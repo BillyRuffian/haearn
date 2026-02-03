@@ -1,6 +1,8 @@
 import { Controller } from "@hotwired/stimulus"
 
 // Rest timer controller for between-set rest periods
+// Uses timestamps for accuracy even when app is backgrounded
+// Persists timer state across navigation
 // Connects to data-controller="rest-timer"
 export default class extends Controller {
   static values = {
@@ -10,7 +12,8 @@ export default class extends Controller {
   static targets = ["display", "container", "progress", "collapsed"]
 
   connect() {
-    this.remaining = this.durationValue
+    this.totalDuration = this.durationValue
+    this.endTime = null
     this.isRunning = false
     this.interval = null
 
@@ -20,41 +23,96 @@ export default class extends Controller {
       const parsed = parseInt(savedDuration, 10)
       // Only use saved value if it's reasonable (15s to 10min)
       if (parsed >= 15 && parsed <= 600) {
-        this.remaining = parsed
+        this.totalDuration = parsed
         this.durationValue = parsed
       }
     }
 
+    // Check if there's a running timer from before navigation
+    this.restoreTimerState()
+
     this.updateDisplay()
 
-    if (this.autoStartValue) {
+    if (this.autoStartValue && !this.isRunning) {
       this.start()
     }
 
     // Listen for set-logged events to auto-start timer
     this.setLoggedHandler = this.setLogged.bind(this)
     window.addEventListener("set-logged", this.setLoggedHandler)
+
+    // Re-sync timer when page becomes visible (for backgrounded PWA)
+    this.visibilityHandler = this.handleVisibilityChange.bind(this)
+    document.addEventListener("visibilitychange", this.visibilityHandler)
   }
 
   disconnect() {
-    this.stop()
+    // Don't call stop() - just clear the interval but keep state in localStorage
+    if (this.interval) {
+      clearInterval(this.interval)
+      this.interval = null
+    }
     window.removeEventListener("set-logged", this.setLoggedHandler)
+    document.removeEventListener("visibilitychange", this.visibilityHandler)
+  }
+
+  restoreTimerState() {
+    const savedEndTime = localStorage.getItem("haearn_timer_end")
+    if (savedEndTime) {
+      const endTime = parseInt(savedEndTime, 10)
+      const now = Date.now()
+
+      if (endTime > now) {
+        // Timer is still running
+        this.endTime = endTime
+        this.isRunning = true
+        this.showTimer()
+        this.startInterval()
+      } else {
+        // Timer expired while away - clear it
+        this.clearTimerState()
+      }
+    }
+  }
+
+  saveTimerState() {
+    if (this.endTime) {
+      localStorage.setItem("haearn_timer_end", this.endTime.toString())
+    }
+  }
+
+  clearTimerState() {
+    localStorage.removeItem("haearn_timer_end")
+  }
+
+  get remaining() {
+    if (!this.endTime) return this.totalDuration
+    const now = Date.now()
+    const remaining = Math.ceil((this.endTime - now) / 1000)
+    return Math.max(0, remaining)
+  }
+
+  startInterval() {
+    if (this.interval) return
+
+    // Use shorter interval for responsive UI, but rely on timestamps for accuracy
+    this.interval = setInterval(() => {
+      this.updateDisplay()
+
+      if (this.remaining <= 0) {
+        this.complete()
+      }
+    }, 100) // Update frequently for smooth countdown
   }
 
   start() {
     if (this.isRunning) return
 
     this.isRunning = true
+    this.endTime = Date.now() + (this.totalDuration * 1000)
+    this.saveTimerState()
     this.showTimer()
-
-    this.interval = setInterval(() => {
-      this.remaining -= 1
-      this.updateDisplay()
-
-      if (this.remaining <= 0) {
-        this.complete()
-      }
-    }, 1000)
+    this.startInterval()
   }
 
   stop() {
@@ -63,17 +121,13 @@ export default class extends Controller {
       this.interval = null
     }
     this.isRunning = false
+    this.endTime = null
+    this.clearTimerState()
   }
 
   skip() {
     this.stop()
     this.hideTimer()
-    this.reset()
-  }
-
-  reset() {
-    this.remaining = this.durationValue
-    this.updateDisplay()
   }
 
   complete() {
@@ -87,41 +141,65 @@ export default class extends Controller {
       setTimeout(() => {
         this.hideTimer()
         this.containerTarget.classList.remove("timer-complete")
-        this.reset()
       }, 2000)
     }
   }
 
   add15() {
-    this.remaining += 15
-    this.durationValue += 15
+    if (this.isRunning && this.endTime) {
+      this.endTime += 15 * 1000
+      this.saveTimerState()
+    }
+    this.totalDuration += 15
+    this.durationValue = this.totalDuration
     this.saveDuration()
     this.updateDisplay()
   }
 
   subtract15() {
-    if (this.remaining > 15) {
-      this.remaining -= 15
-      this.durationValue = Math.max(15, this.durationValue - 15)
-      this.saveDuration()
-      this.updateDisplay()
+    if (this.isRunning && this.endTime) {
+      const newRemaining = this.remaining - 15
+      if (newRemaining > 0) {
+        this.endTime -= 15 * 1000
+        this.saveTimerState()
+      }
     }
+    if (this.totalDuration > 15) {
+      this.totalDuration -= 15
+      this.durationValue = this.totalDuration
+      this.saveDuration()
+    }
+    this.updateDisplay()
   }
 
   saveDuration() {
-    localStorage.setItem("haearn_rest_duration", this.durationValue.toString())
+    localStorage.setItem("haearn_rest_duration", this.totalDuration.toString())
   }
 
   updateDisplay() {
+    const remaining = this.remaining
+
     if (this.hasDisplayTarget) {
-      const mins = Math.floor(this.remaining / 60)
-      const secs = this.remaining % 60
+      const mins = Math.floor(remaining / 60)
+      const secs = remaining % 60
       this.displayTarget.textContent = `${mins}:${secs.toString().padStart(2, "0")}`
     }
 
     if (this.hasProgressTarget) {
-      const percent = (this.remaining / this.durationValue) * 100
+      const percent = (remaining / this.totalDuration) * 100
       this.progressTarget.style.width = `${percent}%`
+    }
+  }
+
+  handleVisibilityChange() {
+    if (document.visibilityState === "visible" && this.isRunning) {
+      // Force immediate update when app comes back to foreground
+      this.updateDisplay()
+
+      // Check if timer completed while backgrounded
+      if (this.remaining <= 0) {
+        this.complete()
+      }
     }
   }
 
@@ -196,7 +274,8 @@ export default class extends Controller {
 
   // Called when a set is logged - auto-start the timer
   setLogged() {
-    this.reset()
+    // Stop any existing timer and start fresh
+    this.stop()
     this.start()
   }
 }

@@ -10,7 +10,7 @@ export default class extends Controller {
 
   connect() {
     console.log("Sortable controller connected", this.element)
-    
+
     this.sortable = Sortable.create(this.element, {
       animation: 200,
       handle: ".drag-handle",

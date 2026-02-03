@@ -27,13 +27,13 @@ class WorkoutExercise < ApplicationRecord
   def previous_workout_exercise
     WorkoutExercise
       .joins(:workout_block)
-      .joins("INNER JOIN workouts ON workouts.id = workout_blocks.workout_id")
+      .joins('INNER JOIN workouts ON workouts.id = workout_blocks.workout_id')
       .where(exercise_id: exercise_id)
       .where(machine_id: machine_id)
-      .where("workouts.user_id = ?", workout.user_id)
-      .where("workouts.id != ?", workout.id)
-      .where("workouts.finished_at IS NOT NULL")
-      .order("workouts.started_at DESC")
+      .where('workouts.user_id = ?', workout.user_id)
+      .where('workouts.id != ?', workout.id)
+      .where('workouts.finished_at IS NOT NULL')
+      .order('workouts.started_at DESC')
       .first
   end
 

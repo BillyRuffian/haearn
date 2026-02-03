@@ -12,23 +12,22 @@
     
     <div class="row g-2 align-items-end">
       <% if workout_exercise.exercise.has_weight %>
-        <div class="col-4">
+        <div class="col">
           <label class="form-label small text-muted mb-1">Weight (<%= Current.user.preferred_unit %>)</label>
-          <div class="input-group input-group-sm">
-            <%= form.number_field :weight_value,
-                value: initial_weight,
-                class: "form-control text-center",
-                step: "any",
-                inputmode: "decimal",
-                data: { 
-                  set_form_target: "weight",
-                  action: show_plate_calc ? "input->plate-calculator#updateWeight" : nil
-                }.compact %>
-          </div>
+          <%= form.number_field :weight_value,
+              value: initial_weight,
+              class: "form-control form-control-sm text-center",
+              step: "any",
+              inputmode: "decimal",
+              onfocus: "this.select()",
+              data: { 
+                set_form_target: "weight",
+                action: show_plate_calc ? "input->plate-calculator#updateWeight" : nil
+              }.compact %>
         </div>
       <% end %>
 
-      <div class="col-3">
+      <div class="col">
         <% case workout_exercise.exercise.exercise_type %>
         <% when 'reps' %>
           <label class="form-label small text-muted mb-1">Reps</label>
@@ -36,30 +35,33 @@
               value: set.reps || last_reps_for(workout_exercise),
               class: "form-control form-control-sm text-center",
               inputmode: "numeric",
+              onfocus: "this.select()",
               data: { set_form_target: "reps" } %>
         <% when 'time' %>
           <label class="form-label small text-muted mb-1">Seconds</label>
           <%= form.number_field :duration_seconds,
               class: "form-control form-control-sm text-center",
-              inputmode: "numeric" %>
+              inputmode: "numeric",
+              onfocus: "this.select()" %>
         <% when 'distance' %>
           <label class="form-label small text-muted mb-1">Meters</label>
           <%= form.number_field :distance_meters,
               class: "form-control form-control-sm text-center",
               inputmode: "decimal",
-              step: "any" %>
+              step: "any",
+              onfocus: "this.select()" %>
         <% end %>
       </div>
 
-      <div class="col-3">
-        <div class="form-check">
+      <div class="col-auto">
+        <div class="form-check pt-3">
           <%= form.check_box :is_warmup, class: "form-check-input" %>
           <%= form.label :is_warmup, "Warmup", class: "form-check-label small" %>
         </div>
       </div>
 
-      <div class="col-2">
-        <%= form.submit "✓", class: "btn btn-primary btn-sm w-100", data: { set_form_target: "submit" } %>
+      <div class="col-auto">
+        <%= form.submit "✓", class: "btn btn-primary btn-sm", data: { set_form_target: "submit" } %>
       </div>
     </div>
   <% end %>

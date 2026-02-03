@@ -13,13 +13,6 @@
           <i class="bi bi-gear me-1"></i><%= workout_exercise.machine.name %>
         </small>
       <% end %>
-      <% if workout_exercise.persistent_notes.present? %>
-        <div class="mt-1">
-          <small class="text-warning">
-            <i class="bi bi-pin-angle-fill me-1"></i><%= workout_exercise.persistent_notes %>
-          </small>
-        </div>
-      <% end %>
     </div>
     <% if workout.in_progress? %>
       <%= button_to workout_workout_exercise_path(workout, workout_exercise),

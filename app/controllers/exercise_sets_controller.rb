@@ -14,13 +14,13 @@ class ExerciseSetsController < ApplicationController
         format.turbo_stream do
           render turbo_stream: [
             turbo_stream.append("sets_list_#{@workout_exercise.id}",
-              partial: "exercise_sets/exercise_set",
+              partial: 'exercise_sets/exercise_set',
               locals: { set: @exercise_set, workout_exercise: @workout_exercise, workout: @workout, index: index }),
             turbo_stream.replace("new_set_#{@workout_exercise.id}",
-              partial: "exercise_sets/form",
+              partial: 'exercise_sets/form',
               locals: { workout_exercise: @workout_exercise, workout: @workout, set: @workout_exercise.exercise_sets.build }),
-            turbo_stream.replace("workout_stats",
-              partial: "workouts/stats",
+            turbo_stream.replace('workout_stats',
+              partial: 'workouts/stats',
               locals: { workout: @workout })
           ]
         end
@@ -28,10 +28,10 @@ class ExerciseSetsController < ApplicationController
       else
         format.turbo_stream do
           render turbo_stream: turbo_stream.replace("new_set_#{@workout_exercise.id}",
-            partial: "exercise_sets/form",
+            partial: 'exercise_sets/form',
             locals: { workout_exercise: @workout_exercise, workout: @workout, set: @exercise_set })
         end
-        format.html { redirect_to workout_path(@workout), alert: "Could not save set." }
+        format.html { redirect_to workout_path(@workout), alert: 'Could not save set.' }
       end
     end
   end
@@ -41,7 +41,7 @@ class ExerciseSetsController < ApplicationController
     respond_to do |format|
       format.turbo_stream do
         render turbo_stream: turbo_stream.replace(@exercise_set,
-          partial: "exercise_sets/edit_form",
+          partial: 'exercise_sets/edit_form',
           locals: { set: @exercise_set, workout_exercise: @workout_exercise, workout: @workout, index: index })
       end
       format.html { redirect_to workout_path(@workout) }
@@ -56,10 +56,10 @@ class ExerciseSetsController < ApplicationController
         format.turbo_stream do
           render turbo_stream: [
             turbo_stream.replace(@exercise_set,
-              partial: "exercise_sets/exercise_set",
+              partial: 'exercise_sets/exercise_set',
               locals: { set: @exercise_set, workout_exercise: @workout_exercise, workout: @workout, index: index }),
-            turbo_stream.replace("workout_stats",
-              partial: "workouts/stats",
+            turbo_stream.replace('workout_stats',
+              partial: 'workouts/stats',
               locals: { workout: @workout })
           ]
         end
@@ -67,10 +67,10 @@ class ExerciseSetsController < ApplicationController
       else
         format.turbo_stream do
           render turbo_stream: turbo_stream.replace(@exercise_set,
-            partial: "exercise_sets/edit_form",
+            partial: 'exercise_sets/edit_form',
             locals: { set: @exercise_set, workout_exercise: @workout_exercise, workout: @workout })
         end
-        format.html { redirect_to workout_path(@workout), alert: "Could not update set." }
+        format.html { redirect_to workout_path(@workout), alert: 'Could not update set.' }
       end
     end
   end
@@ -83,8 +83,8 @@ class ExerciseSetsController < ApplicationController
       format.turbo_stream do
         render turbo_stream: [
           turbo_stream.remove(@exercise_set),
-          turbo_stream.replace("workout_stats",
-            partial: "workouts/stats",
+          turbo_stream.replace('workout_stats',
+            partial: 'workouts/stats',
             locals: { workout: @workout })
         ]
       end

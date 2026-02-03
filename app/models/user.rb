@@ -4,7 +4,7 @@ class User < ApplicationRecord
   has_many :gyms, dependent: :destroy
   has_many :exercises, dependent: :destroy
   has_many :workouts, dependent: :destroy
-  belongs_to :default_gym, class_name: "Gym", optional: true
+  belongs_to :default_gym, class_name: 'Gym', optional: true
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 
@@ -17,14 +17,14 @@ class User < ApplicationRecord
   UNITS = %w[kg lbs].freeze
 
   def preferred_unit
-    super || "kg"
+    super || 'kg'
   end
 
   # Convert weight from kg to user's preferred unit for display
   def display_weight(kg_value)
     return nil if kg_value.nil?
 
-    if preferred_unit == "lbs"
+    if preferred_unit == 'lbs'
       (kg_value * 2.20462).round(1)
     else
       kg_value.round(1)
@@ -35,7 +35,7 @@ class User < ApplicationRecord
   def normalize_weight(value)
     return nil if value.nil?
 
-    if preferred_unit == "lbs"
+    if preferred_unit == 'lbs'
       (value / 2.20462).round(2)
     else
       value.to_f.round(2)

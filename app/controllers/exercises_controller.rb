@@ -10,22 +10,22 @@ class ExercisesController < ApplicationController
     end
 
     # Filter by weighted
-    if params[:weighted] == "true"
+    if params[:weighted] == 'true'
       @exercises = @exercises.where(has_weight: true)
-    elsif params[:weighted] == "false"
+    elsif params[:weighted] == 'false'
       @exercises = @exercises.where(has_weight: false)
     end
 
     # Filter by source (global vs user)
-    if params[:source] == "global"
+    if params[:source] == 'global'
       @exercises = @exercises.global
-    elsif params[:source] == "mine"
+    elsif params[:source] == 'mine'
       @exercises = @exercises.where(user_id: Current.user.id)
     end
 
     # Search by name
     if params[:q].present?
-      @exercises = @exercises.where("name LIKE ?", "%#{params[:q]}%")
+      @exercises = @exercises.where('name LIKE ?', "%#{params[:q]}%")
     end
 
     # For new exercise form
@@ -53,20 +53,20 @@ class ExercisesController < ApplicationController
       if @exercise.save
         # If we have a return_to URL, redirect there instead
         if params[:return_to].present?
-          format.html { redirect_to params[:return_to], notice: "Exercise created! Now select it." }
-          format.turbo_stream { redirect_to params[:return_to], notice: "Exercise created! Now select it." }
+          format.html { redirect_to params[:return_to], notice: 'Exercise created! Now select it.' }
+          format.turbo_stream { redirect_to params[:return_to], notice: 'Exercise created! Now select it.' }
         else
           format.turbo_stream do
             render turbo_stream: [
-              turbo_stream.prepend("exercises", partial: "exercises/exercise", locals: { exercise: @exercise }),
-              turbo_stream.update("new_exercise_form", partial: "exercises/form", locals: { exercise: Current.user.exercises.build })
+              turbo_stream.prepend('exercises', partial: 'exercises/exercise', locals: { exercise: @exercise }),
+              turbo_stream.update('new_exercise_form', partial: 'exercises/form', locals: { exercise: Current.user.exercises.build })
             ]
           end
-          format.html { redirect_to exercises_path, notice: "Exercise created successfully." }
+          format.html { redirect_to exercises_path, notice: 'Exercise created successfully.' }
         end
       else
         @return_to = params[:return_to]
-        format.turbo_stream { render turbo_stream: turbo_stream.update("new_exercise_form", partial: "exercises/form", locals: { exercise: @exercise }) }
+        format.turbo_stream { render turbo_stream: turbo_stream.update('new_exercise_form', partial: 'exercises/form', locals: { exercise: @exercise }) }
         format.html { render :new, status: :unprocessable_entity }
       end
     end
@@ -75,22 +75,22 @@ class ExercisesController < ApplicationController
   def edit
     # Only allow editing user's own exercises
     unless @exercise.user_id == Current.user.id
-      redirect_to exercises_path, alert: "You can only edit your own exercises."
+      redirect_to exercises_path, alert: 'You can only edit your own exercises.'
     end
   end
 
   def update
     # Only allow updating user's own exercises
     unless @exercise.user_id == Current.user.id
-      return redirect_to exercises_path, alert: "You can only edit your own exercises."
+      return redirect_to exercises_path, alert: 'You can only edit your own exercises.'
     end
 
     respond_to do |format|
       if @exercise.update(exercise_params)
-        format.turbo_stream { render turbo_stream: turbo_stream.replace(@exercise, partial: "exercises/exercise", locals: { exercise: @exercise }) }
-        format.html { redirect_to exercises_path, notice: "Exercise updated successfully." }
+        format.turbo_stream { render turbo_stream: turbo_stream.replace(@exercise, partial: 'exercises/exercise', locals: { exercise: @exercise }) }
+        format.html { redirect_to exercises_path, notice: 'Exercise updated successfully.' }
       else
-        format.turbo_stream { render turbo_stream: turbo_stream.replace(@exercise, partial: "exercises/edit_form", locals: { exercise: @exercise }) }
+        format.turbo_stream { render turbo_stream: turbo_stream.replace(@exercise, partial: 'exercises/edit_form', locals: { exercise: @exercise }) }
         format.html { render :edit, status: :unprocessable_entity }
       end
     end
@@ -99,13 +99,13 @@ class ExercisesController < ApplicationController
   def destroy
     # Only allow deleting user's own exercises
     unless @exercise.user_id == Current.user.id
-      return redirect_to exercises_path, alert: "You can only delete your own exercises."
+      return redirect_to exercises_path, alert: 'You can only delete your own exercises.'
     end
 
     # Check if exercise has been used in workouts
     usage_count = @exercise.workout_exercises.count
 
-    if usage_count > 0 && params[:force] != "true"
+    if usage_count > 0 && params[:force] != 'true'
       # Redirect back with info about usage - the view will show a confirmation modal
       redirect_to exercises_path, alert: "This exercise has been used #{usage_count} #{'time'.pluralize(usage_count)} in your workouts. Use the delete button again to confirm deletion of all associated data."
     else
@@ -115,7 +115,7 @@ class ExercisesController < ApplicationController
 
       respond_to do |format|
         format.turbo_stream { render turbo_stream: turbo_stream.remove(@exercise) }
-        format.html { redirect_to exercises_path, notice: "Exercise deleted." }
+        format.html { redirect_to exercises_path, notice: 'Exercise deleted.' }
       end
     end
   end
@@ -124,11 +124,11 @@ class ExercisesController < ApplicationController
     # Get all workout exercises for this exercise from the current user's workouts
     @workout_exercises = WorkoutExercise
       .joins(:workout_block)
-      .joins("INNER JOIN workouts ON workouts.id = workout_blocks.workout_id")
+      .joins('INNER JOIN workouts ON workouts.id = workout_blocks.workout_id')
       .where(workouts: { user_id: Current.user.id })
       .where(exercise_id: @exercise.id)
       .includes(:machine, :exercise_sets, workout_block: :workout)
-      .order("workouts.started_at DESC")
+      .order('workouts.started_at DESC')
 
     # Calculate PRs for this exercise
     @prs = calculate_prs(@workout_exercises)
@@ -212,7 +212,7 @@ class ExercisesController < ApplicationController
     sorted.each do |we|
       workout = we.workout_block.workout
       # Use date + time if multiple sessions on same day
-      date_label = workout.started_at.strftime("%b %d %H:%M")
+      date_label = workout.started_at.strftime('%b %d %H:%M')
       work_sets = we.exercise_sets.select { |s| !s.is_warmup }
 
       next if work_sets.empty?
@@ -237,8 +237,8 @@ class ExercisesController < ApplicationController
         datasets: [ {
           label: "Max Weight (#{Current.user.preferred_unit})",
           data: weight_data,
-          borderColor: "#c86432",
-          backgroundColor: "rgba(200, 100, 50, 0.2)",
+          borderColor: '#c86432',
+          backgroundColor: 'rgba(200, 100, 50, 0.2)',
           fill: true
         } ]
       },
@@ -247,8 +247,8 @@ class ExercisesController < ApplicationController
         datasets: [ {
           label: "Session Volume (#{Current.user.preferred_unit})",
           data: volume_data,
-          borderColor: "#f0a060",
-          backgroundColor: "rgba(240, 160, 96, 0.2)",
+          borderColor: '#f0a060',
+          backgroundColor: 'rgba(240, 160, 96, 0.2)',
           fill: true
         } ]
       }

@@ -1,5 +1,10 @@
 <% content_for(:title) { "Workout | Haearn" } %>
 
+<%# Keep screen awake during active workout %>
+<% if @workout.in_progress? %>
+  <div data-controller="wake-lock"></div>
+<% end %>
+
 <div class="container py-4">
   <!-- Workout Header -->
   <div class="d-flex justify-content-between align-items-start mb-4">

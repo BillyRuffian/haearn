@@ -32,15 +32,15 @@ class Machine < ApplicationRecord
   end
 
   def cables?
-    equipment_type == "cables"
+    equipment_type == 'cables'
   end
 
   def barbell?
-    equipment_type == "barbell"
+    equipment_type == 'barbell'
   end
 
   def smith_machine?
-    equipment_type == "smith_machine"
+    equipment_type == 'smith_machine'
   end
 
   # Equipment types that use plate loading

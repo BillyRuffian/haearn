@@ -618,7 +618,7 @@ select option:checked {
 .drag-handle {
   cursor: grab;
   user-select: none;
-  
+
   &:active {
     cursor: grabbing;
   }
@@ -712,7 +712,7 @@ select option:checked {
 // Rest Timer Footer Bar UI
 .rest-timer-footer {
   position: fixed;
-  bottom: 0;
+  bottom: calc(70px + env(safe-area-inset-bottom)); // Position above the bottom nav bar
   left: 0;
   right: 0;
   z-index: 1040;
@@ -722,7 +722,7 @@ select option:checked {
 }
 
 .rest-timer-spacer {
-  height: 60px; // Match the footer height
+  height: 140px; // Match the footer height + bottom nav height
 }
 
 .rest-timer-collapsed {
@@ -1286,6 +1286,7 @@ $ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
     opacity: 0;
     transform: translateY(12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1295,7 +1296,7 @@ $ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 // Turbo frame transitions
 turbo-frame {
   display: block;
-  
+
   &[busy] {
     opacity: 0.6;
     transition: opacity $transition-fast ease;
@@ -1312,13 +1313,13 @@ html.turbo-loading {
 
 // Card transitions - subtle highlight effect
 .card {
-  transition: 
+  transition:
     border-color $transition-normal $ease-out-expo,
     box-shadow $transition-normal $ease-out-expo;
-  
+
   &:hover {
     border-color: rgba($rust, 0.3);
-    box-shadow: 
+    box-shadow:
       0 4px 12px rgba(0, 0, 0, 0.5),
       0 1px 3px rgba(0, 0, 0, 0.3),
       inset 0 1px 0 rgba(255, 255, 255, 0.04),
@@ -1328,13 +1329,13 @@ html.turbo-loading {
 
 // Button transitions - press effect
 .btn {
-  transition: 
+  transition:
     transform $transition-fast $ease-out-expo,
     box-shadow $transition-fast $ease-out-expo,
     background $transition-fast ease,
     border-color $transition-fast ease,
     opacity $transition-fast ease;
-  
+
   &:active {
     transform: scale(0.97);
   }
@@ -1343,7 +1344,7 @@ html.turbo-loading {
 // Form control transitions
 .form-control,
 .form-select {
-  transition: 
+  transition:
     border-color $transition-fast ease,
     box-shadow $transition-fast ease,
     background-color $transition-fast ease;
@@ -1351,10 +1352,10 @@ html.turbo-loading {
 
 // Badge transitions
 .badge {
-  transition: 
+  transition:
     transform $transition-fast $ease-out-back,
     opacity $transition-fast ease;
-  
+
   &:hover {
     transform: scale(1.05);
   }
@@ -1362,10 +1363,10 @@ html.turbo-loading {
 
 // List item transitions
 .list-group-item {
-  transition: 
+  transition:
     background-color $transition-fast ease,
     transform $transition-fast $ease-out-expo;
-  
+
   &:active {
     transform: scale(0.99);
     background-color: rgba($rust, 0.1);
@@ -1375,11 +1376,11 @@ html.turbo-loading {
 // Navbar link transitions
 .nav-link,
 .navbar-nav .nav-link {
-  transition: 
+  transition:
     color $transition-fast ease,
     background-color $transition-fast ease,
     transform $transition-fast ease;
-  
+
   &:active {
     transform: scale(0.95);
   }
@@ -1390,11 +1391,11 @@ html.turbo-loading {
   &.fade .modal-dialog {
     transform: translateY(30px) scale(0.95);
     opacity: 0;
-    transition: 
+    transition:
       transform $transition-normal $ease-out-expo,
       opacity $transition-normal ease;
   }
-  
+
   &.show .modal-dialog {
     transform: translateY(0) scale(1);
     opacity: 1;
@@ -1404,11 +1405,11 @@ html.turbo-loading {
 // Modal backdrop transition
 .modal-backdrop {
   transition: opacity $transition-normal ease;
-  
+
   &.fade {
     opacity: 0;
   }
-  
+
   &.show {
     opacity: 0.7;
   }
@@ -1416,18 +1417,18 @@ html.turbo-loading {
 
 // Dropdown transitions
 .dropdown-menu {
-  transition: 
+  transition:
     opacity $transition-fast $ease-out-expo,
     transform $transition-fast $ease-out-expo;
   transform-origin: top center;
-  
+
   &:not(.show) {
     display: block !important;
     opacity: 0;
     transform: scaleY(0.9) translateY(-8px);
     pointer-events: none;
   }
-  
+
   &.show {
     opacity: 1;
     transform: scaleY(1) translateY(0);
@@ -1445,6 +1446,7 @@ html.turbo-loading {
     opacity: 0;
     transform: translateY(-16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1462,11 +1464,11 @@ html.turbo-loading {
 
 // Accordion transitions
 .accordion-button {
-  transition: 
+  transition:
     background-color $transition-fast ease,
     color $transition-fast ease,
     box-shadow $transition-fast ease;
-  
+
   &::after {
     transition: transform $transition-normal $ease-out-expo;
   }
@@ -1479,23 +1481,23 @@ html.turbo-loading {
 // Tab transitions
 .nav-tabs .nav-link,
 .nav-pills .nav-link {
-  transition: 
+  transition:
     color $transition-fast ease,
     background-color $transition-fast ease,
     border-color $transition-fast ease;
 }
 
-.tab-content > .tab-pane {
+.tab-content>.tab-pane {
   transition: opacity $transition-fast ease;
 }
 
 // Tooltip & Popover transitions
 .tooltip,
 .popover {
-  transition: 
+  transition:
     opacity $transition-fast ease,
     transform $transition-fast $ease-out-expo;
-  
+
   &:not(.show) {
     transform: scale(0.95);
   }
@@ -1520,7 +1522,7 @@ html.turbo-loading {
 .ripple {
   position: relative;
   overflow: hidden;
-  
+
   &::after {
     content: '';
     position: absolute;
@@ -1534,7 +1536,7 @@ html.turbo-loading {
     transition: width $transition-slow ease, height $transition-slow ease, opacity $transition-slow ease;
     opacity: 0;
   }
-  
+
   &:active::after {
     width: 200%;
     height: 200%;
@@ -1544,9 +1546,9 @@ html.turbo-loading {
 }
 
 // Stagger animation for lists
-.stagger-in > * {
+.stagger-in>* {
   animation: fadeSlideIn $transition-normal $ease-out-expo both;
-  
+
   @for $i from 1 through 20 {
     &:nth-child(#{$i}) {
       animation-delay: #{$i * 50}ms;
@@ -1556,14 +1558,14 @@ html.turbo-loading {
 
 // Bottom nav active state animation
 .bottom-nav .nav-link {
-  transition: 
+  transition:
     color $transition-fast ease,
     transform $transition-fast $ease-out-expo;
-  
+
   &:active {
     transform: scale(0.9);
   }
-  
+
   &.active {
     animation: navPop $transition-normal $ease-out-back;
   }
@@ -1573,9 +1575,11 @@ html.turbo-loading {
   0% {
     transform: scale(0.8);
   }
+
   50% {
     transform: scale(1.1);
   }
+
   100% {
     transform: scale(1);
   }
@@ -1591,6 +1595,7 @@ html.turbo-loading {
     background-color: rgba($success, 0.3);
     transform: scale(1.02);
   }
+
   100% {
     background-color: transparent;
     transform: scale(1);
@@ -1607,9 +1612,11 @@ html.turbo-loading {
     transform: scale(0);
     opacity: 0;
   }
+
   50% {
     transform: scale(1.2);
   }
+
   100% {
     transform: scale(1);
     opacity: 1;
@@ -1622,11 +1629,27 @@ html.turbo-loading {
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20% { transform: translateX(-8px); }
-  40% { transform: translateX(8px); }
-  60% { transform: translateX(-4px); }
-  80% { transform: translateX(4px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-8px);
+  }
+
+  40% {
+    transform: translateX(8px);
+  }
+
+  60% {
+    transform: translateX(-4px);
+  }
+
+  80% {
+    transform: translateX(4px);
+  }
 }
 
 // Pulse animation for notifications
@@ -1635,11 +1658,14 @@ html.turbo-loading {
 }
 
 @keyframes pulse {
-  0%, 100% { 
+
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
-  50% { 
+
+  50% {
     opacity: 0.7;
     transform: scale(1.05);
   }
@@ -1652,6 +1678,7 @@ html {
 
 // Reduce motion for accessibility
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {

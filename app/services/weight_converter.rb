@@ -21,11 +21,11 @@ class WeightConverter
     # @param value [Numeric] the weight value
     # @param from_unit [String] "kg" or "lbs"
     # @return [Float, nil] weight in kg
-    def to_kg(value, from_unit = "kg")
+    def to_kg(value, from_unit = 'kg')
       return nil if value.nil?
 
       case from_unit.to_s.downcase
-      when "lbs"
+      when 'lbs'
         (value.to_f * LBS_TO_KG).round(2)
       else
         value.to_f.round(2)
@@ -36,11 +36,11 @@ class WeightConverter
     # @param kg_value [Numeric] the weight in kg
     # @param to_unit [String] "kg" or "lbs"
     # @return [Float, nil] weight in target unit
-    def from_kg(kg_value, to_unit = "kg")
+    def from_kg(kg_value, to_unit = 'kg')
       return nil if kg_value.nil?
 
       case to_unit.to_s.downcase
-      when "lbs"
+      when 'lbs'
         (kg_value.to_f * KG_TO_LBS).round(1)
       else
         kg_value.to_f.round(1)
@@ -67,10 +67,10 @@ class WeightConverter
     # @return [Float, nil] actual weight being lifted in kg
     def machine_to_kg(displayed_value, machine)
       return nil if displayed_value.nil?
-      return to_kg(displayed_value, "kg") if machine.nil?
+      return to_kg(displayed_value, 'kg') if machine.nil?
 
       # First convert from machine's display unit to kg
-      unit = machine.display_unit || "kg"
+      unit = machine.display_unit || 'kg'
       kg_value = to_kg(displayed_value, unit)
 
       # Then apply weight ratio for cables
@@ -88,7 +88,7 @@ class WeightConverter
     # @return [Float, nil] weight to set on machine
     def kg_to_machine(kg_value, machine)
       return nil if kg_value.nil?
-      return from_kg(kg_value, "kg") if machine.nil?
+      return from_kg(kg_value, 'kg') if machine.nil?
 
       # First reverse the weight ratio
       value = kg_value.to_f
@@ -97,7 +97,7 @@ class WeightConverter
       end
 
       # Then convert to machine's display unit
-      unit = machine.display_unit || "kg"
+      unit = machine.display_unit || 'kg'
       from_kg(value, unit)
     end
 
@@ -107,9 +107,9 @@ class WeightConverter
     # @param precision [Integer] decimal places
     # @return [String] formatted weight with unit
     def format(kg_value, user:, precision: 0)
-      return "—" if kg_value.nil?
+      return '—' if kg_value.nil?
 
-      unit = user&.preferred_unit || "kg"
+      unit = user&.preferred_unit || 'kg'
       display_value = from_kg(kg_value, unit)
 
       if precision > 0
@@ -126,7 +126,7 @@ class WeightConverter
     def display(kg_value, user:)
       return nil if kg_value.nil?
 
-      unit = user&.preferred_unit || "kg"
+      unit = user&.preferred_unit || 'kg'
       from_kg(kg_value, unit)
     end
   end

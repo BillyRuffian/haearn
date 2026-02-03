@@ -2,15 +2,15 @@ module ApplicationHelper
   # Bootstrap icons for each equipment type
   def equipment_icon(equipment_type)
     icons = {
-      "barbell" => '<i class="bi bi-grip-horizontal"></i>',
-      "dumbbell" => '<i class="bi bi-box-fill"></i>',
-      "machine" => '<i class="bi bi-gear-fill"></i>',
-      "cables" => '<i class="bi bi-arrow-down-up"></i>',
-      "bodyweight" => '<i class="bi bi-person-fill"></i>',
-      "kettlebell" => '<i class="bi bi-droplet-fill"></i>',
-      "bands" => '<i class="bi bi-bandaid-fill"></i>',
-      "smith_machine" => '<i class="bi bi-grid-3x3-gap-fill"></i>',
-      "other" => '<i class="bi bi-question-circle"></i>'
+      'barbell' => '<i class="bi bi-grip-horizontal"></i>',
+      'dumbbell' => '<i class="bi bi-box-fill"></i>',
+      'machine' => '<i class="bi bi-gear-fill"></i>',
+      'cables' => '<i class="bi bi-arrow-down-up"></i>',
+      'bodyweight' => '<i class="bi bi-person-fill"></i>',
+      'kettlebell' => '<i class="bi bi-droplet-fill"></i>',
+      'bands' => '<i class="bi bi-bandaid-fill"></i>',
+      'smith_machine' => '<i class="bi bi-grid-3x3-gap-fill"></i>',
+      'other' => '<i class="bi bi-question-circle"></i>'
     }
     icons[equipment_type]&.html_safe || '<i class="bi bi-question-circle"></i>'.html_safe
   end
@@ -18,11 +18,11 @@ module ApplicationHelper
   # Format exercise type with icon
   def exercise_type_badge(exercise)
     case exercise.exercise_type
-    when "reps"
+    when 'reps'
       '<span class="badge bg-primary"><i class="bi bi-123 me-1"></i>Reps</span>'.html_safe
-    when "time"
+    when 'time'
       '<span class="badge bg-info"><i class="bi bi-clock me-1"></i>Time</span>'.html_safe
-    when "distance"
+    when 'distance'
       '<span class="badge bg-success"><i class="bi bi-geo-alt me-1"></i>Distance</span>'.html_safe
     end
   end
@@ -51,7 +51,7 @@ module ApplicationHelper
 
   # Format large numbers with SI units (K, M, etc.)
   def number_to_si(number)
-    return "0" if number.nil? || number.zero?
+    return '0' if number.nil? || number.zero?
 
     if number >= 1_000_000
       "#{(number / 1_000_000.0).round(1)}M"
@@ -79,6 +79,6 @@ module ApplicationHelper
 
   # User's preferred unit string
   def weight_unit
-    Current.user&.preferred_unit || "kg"
+    Current.user&.preferred_unit || 'kg'
   end
 end

@@ -5,7 +5,7 @@ class Workout < ApplicationRecord
   has_many :workout_exercises, through: :workout_blocks
   has_many :exercise_sets, through: :workout_exercises
 
-  validates :gym, presence: { message: "must be selected" }
+  validates :gym, presence: { message: 'must be selected' }
 
   scope :recent, -> { order(started_at: :desc) }
   scope :completed, -> { where.not(finished_at: nil) }

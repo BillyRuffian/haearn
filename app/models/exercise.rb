@@ -17,14 +17,14 @@ class Exercise < ApplicationRecord
   end
 
   def reps?
-    exercise_type == "reps"
+    exercise_type == 'reps'
   end
 
   def time?
-    exercise_type == "time"
+    exercise_type == 'time'
   end
 
   def distance?
-    exercise_type == "distance"
+    exercise_type == 'distance'
   end
 end

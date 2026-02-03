@@ -10,11 +10,11 @@ class WorkoutsController < ApplicationController
     end
 
     if params[:from].present?
-      @workouts = @workouts.where("started_at >= ?", Date.parse(params[:from]).beginning_of_day)
+      @workouts = @workouts.where('started_at >= ?', Date.parse(params[:from]).beginning_of_day)
     end
 
     if params[:to].present?
-      @workouts = @workouts.where("started_at <= ?", Date.parse(params[:to]).end_of_day)
+      @workouts = @workouts.where('started_at <= ?', Date.parse(params[:to]).end_of_day)
     end
 
     @gyms = Current.user.gyms.ordered
@@ -52,7 +52,7 @@ class WorkoutsController < ApplicationController
 
   def update
     if @workout.update(workout_params)
-      redirect_to @workout, notice: "Workout updated."
+      redirect_to @workout, notice: 'Workout updated.'
     else
       @gyms = Current.user.gyms.ordered
       render :edit, status: :unprocessable_entity
@@ -61,12 +61,12 @@ class WorkoutsController < ApplicationController
 
   def destroy
     @workout.destroy
-    redirect_to workouts_path, notice: "Workout deleted."
+    redirect_to workouts_path, notice: 'Workout deleted.'
   end
 
   def finish
     @workout.finish!
-    redirect_to @workout, notice: "Workout complete! 🎉"
+    redirect_to @workout, notice: 'Workout complete! 🎉'
   end
 
   def add_exercise
@@ -84,7 +84,7 @@ class WorkoutsController < ApplicationController
       else
         # Step 1: Show exercise list
         @exercises = Exercise.for_user(Current.user)
-        @exercises = @exercises.where("LOWER(name) LIKE LOWER(?)", "%#{params[:search]}%") if params[:search].present?
+        @exercises = @exercises.where('LOWER(name) LIKE LOWER(?)', "%#{params[:search]}%") if params[:search].present?
         @exercises = @exercises.order(:name).limit(50)
       end
 
@@ -118,9 +118,9 @@ class WorkoutsController < ApplicationController
         end
       end
 
-      redirect_to new_workout, notice: "Workout copied! Ready to go! 💪"
+      redirect_to new_workout, notice: 'Workout copied! Ready to go! 💪'
     else
-      redirect_to @workout, alert: "Could not copy workout."
+      redirect_to @workout, alert: 'Could not copy workout.'
     end
   end
 

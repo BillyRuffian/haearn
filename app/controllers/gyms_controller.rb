@@ -11,7 +11,7 @@ class GymsController < ApplicationController
 
     # If this is a Turbo Frame request for the gym card, return just the partial
     if turbo_frame_request_id == "gym_#{@gym.id}"
-      render partial: "gyms/gym", locals: { gym: @gym }
+      render partial: 'gyms/gym', locals: { gym: @gym }
     end
   end
 
@@ -24,10 +24,10 @@ class GymsController < ApplicationController
 
     respond_to do |format|
       if @gym.save
-        format.turbo_stream { render turbo_stream: turbo_stream.prepend("gyms", partial: "gyms/gym", locals: { gym: @gym }) + turbo_stream.update("new_gym_form", partial: "gyms/form", locals: { gym: Gym.new }) }
-        format.html { redirect_to gyms_path, notice: "Gym created successfully." }
+        format.turbo_stream { render turbo_stream: turbo_stream.prepend('gyms', partial: 'gyms/gym', locals: { gym: @gym }) + turbo_stream.update('new_gym_form', partial: 'gyms/form', locals: { gym: Gym.new }) }
+        format.html { redirect_to gyms_path, notice: 'Gym created successfully.' }
       else
-        format.turbo_stream { render turbo_stream: turbo_stream.update("new_gym_form", partial: "gyms/form", locals: { gym: @gym }) }
+        format.turbo_stream { render turbo_stream: turbo_stream.update('new_gym_form', partial: 'gyms/form', locals: { gym: @gym }) }
         format.html { render :new, status: :unprocessable_entity }
       end
     end
@@ -39,10 +39,10 @@ class GymsController < ApplicationController
   def update
     respond_to do |format|
       if @gym.update(gym_params)
-        format.turbo_stream { render turbo_stream: turbo_stream.replace(@gym, partial: "gyms/gym", locals: { gym: @gym }) }
-        format.html { redirect_to gyms_path, notice: "Gym updated successfully." }
+        format.turbo_stream { render turbo_stream: turbo_stream.replace(@gym, partial: 'gyms/gym', locals: { gym: @gym }) }
+        format.html { redirect_to gyms_path, notice: 'Gym updated successfully.' }
       else
-        format.turbo_stream { render turbo_stream: turbo_stream.replace(@gym, partial: "gyms/form", locals: { gym: @gym }) }
+        format.turbo_stream { render turbo_stream: turbo_stream.replace(@gym, partial: 'gyms/form', locals: { gym: @gym }) }
         format.html { render :edit, status: :unprocessable_entity }
       end
     end
@@ -53,7 +53,7 @@ class GymsController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream { render turbo_stream: turbo_stream.remove(@gym) }
-      format.html { redirect_to gyms_path, notice: "Gym deleted." }
+      format.html { redirect_to gyms_path, notice: 'Gym deleted.' }
     end
   end
 
@@ -63,8 +63,8 @@ class GymsController < ApplicationController
     respond_to do |format|
       format.turbo_stream {
         render turbo_stream: turbo_stream.replace(
-          "gym-header",
-          partial: "gyms/header",
+          'gym-header',
+          partial: 'gyms/header',
           locals: { gym: @gym }
         )
       }

@@ -22,20 +22,20 @@ class MachinesController < ApplicationController
       if @machine.save
         # If we have a return_to URL, redirect there instead
         if params[:return_to].present?
-          format.html { redirect_to params[:return_to], notice: "Machine added! Now select it." }
-          format.turbo_stream { redirect_to params[:return_to], notice: "Machine added! Now select it." }
+          format.html { redirect_to params[:return_to], notice: 'Machine added! Now select it.' }
+          format.turbo_stream { redirect_to params[:return_to], notice: 'Machine added! Now select it.' }
         else
           format.turbo_stream do
             render turbo_stream: [
-              turbo_stream.prepend("machines", partial: "machines/machine", locals: { machine: @machine, gym: @gym }),
-              turbo_stream.update("new_machine_form", partial: "machines/form", locals: { machine: @gym.machines.build, gym: @gym })
+              turbo_stream.prepend('machines', partial: 'machines/machine', locals: { machine: @machine, gym: @gym }),
+              turbo_stream.update('new_machine_form', partial: 'machines/form', locals: { machine: @gym.machines.build, gym: @gym })
             ]
           end
-          format.html { redirect_to gym_path(@gym), notice: "Machine added successfully." }
+          format.html { redirect_to gym_path(@gym), notice: 'Machine added successfully.' }
         end
       else
         @return_to = params[:return_to]
-        format.turbo_stream { render turbo_stream: turbo_stream.update("new_machine_form", partial: "machines/form", locals: { machine: @machine, gym: @gym }) }
+        format.turbo_stream { render turbo_stream: turbo_stream.update('new_machine_form', partial: 'machines/form', locals: { machine: @machine, gym: @gym }) }
         format.html { render :new, status: :unprocessable_entity }
       end
     end
@@ -47,10 +47,10 @@ class MachinesController < ApplicationController
   def update
     respond_to do |format|
       if @machine.update(machine_params)
-        format.turbo_stream { render turbo_stream: turbo_stream.replace(@machine, partial: "machines/machine", locals: { machine: @machine, gym: @gym }) }
-        format.html { redirect_to gym_path(@gym), notice: "Machine updated successfully." }
+        format.turbo_stream { render turbo_stream: turbo_stream.replace(@machine, partial: 'machines/machine', locals: { machine: @machine, gym: @gym }) }
+        format.html { redirect_to gym_path(@gym), notice: 'Machine updated successfully.' }
       else
-        format.turbo_stream { render turbo_stream: turbo_stream.replace(@machine, partial: "machines/edit_form", locals: { machine: @machine, gym: @gym }) }
+        format.turbo_stream { render turbo_stream: turbo_stream.replace(@machine, partial: 'machines/edit_form', locals: { machine: @machine, gym: @gym }) }
         format.html { render :edit, status: :unprocessable_entity }
       end
     end
@@ -61,7 +61,7 @@ class MachinesController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream { render turbo_stream: turbo_stream.remove(@machine) }
-      format.html { redirect_to gym_path(@gym), notice: "Machine deleted." }
+      format.html { redirect_to gym_path(@gym), notice: 'Machine deleted.' }
     end
   end
 
