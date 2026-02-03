@@ -1,5 +1,5 @@
 class GymsController < ApplicationController
-  before_action :set_gym, only: %i[show edit update destroy]
+  before_action :set_gym, only: %i[show edit update destroy set_default]
 
   def index
     @gyms = Current.user.gyms.ordered.includes(:machines)
@@ -8,6 +8,11 @@ class GymsController < ApplicationController
 
   def show
     @machines = @gym.machines.ordered
+
+    # If this is a Turbo Frame request for the gym card, return just the partial
+    if turbo_frame_request_id == "gym_#{@gym.id}"
+      render partial: "gyms/gym", locals: { gym: @gym }
+    end
   end
 
   def new
@@ -49,6 +54,21 @@ class GymsController < ApplicationController
     respond_to do |format|
       format.turbo_stream { render turbo_stream: turbo_stream.remove(@gym) }
       format.html { redirect_to gyms_path, notice: "Gym deleted." }
+    end
+  end
+
+  def set_default
+    Current.user.update!(default_gym: @gym)
+
+    respond_to do |format|
+      format.turbo_stream {
+        render turbo_stream: turbo_stream.replace(
+          "gym-header",
+          partial: "gyms/header",
+          locals: { gym: @gym }
+        )
+      }
+      format.html { redirect_to @gym, notice: "#{@gym.name} is now your default gym." }
     end
   end
 

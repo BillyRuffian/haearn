@@ -9,6 +9,9 @@ Rails.application.routes.draw do
 
   # Gyms & Machines
   resources :gyms do
+    member do
+      post :set_default
+    end
     resources :machines
   end
 

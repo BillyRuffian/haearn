@@ -4,6 +4,7 @@ class User < ApplicationRecord
   has_many :gyms, dependent: :destroy
   has_many :exercises, dependent: :destroy
   has_many :workouts, dependent: :destroy
+  belongs_to :default_gym, class_name: "Gym", optional: true
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 

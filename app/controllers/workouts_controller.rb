@@ -30,6 +30,7 @@ class WorkoutsController < ApplicationController
 
   def new
     @workout = Current.user.workouts.build
+    @workout.gym_id = Current.user.default_gym_id if Current.user.default_gym_id.present?
     @gyms = Current.user.gyms.ordered
   end
 
