@@ -1,3 +1,92 @@
-<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="256" cy="256" r="256" fill="red"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Metallic background gradient -->
+    <linearGradient id="metalBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a1a"/>
+      <stop offset="25%" style="stop-color:#0d0d0d"/>
+      <stop offset="50%" style="stop-color:#1f1f1f"/>
+      <stop offset="75%" style="stop-color:#0a0a0a"/>
+      <stop offset="100%" style="stop-color:#141414"/>
+    </linearGradient>
+    <!-- Iron/steel gradient for the H -->
+    <linearGradient id="ironGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6b7280"/>
+      <stop offset="20%" style="stop-color:#4b5563"/>
+      <stop offset="40%" style="stop-color:#9ca3af"/>
+      <stop offset="60%" style="stop-color:#6b7280"/>
+      <stop offset="80%" style="stop-color:#374151"/>
+      <stop offset="100%" style="stop-color:#4b5563"/>
+    </linearGradient>
+    <!-- Hot iron accent -->
+    <linearGradient id="hotIron" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b35"/>
+      <stop offset="50%" style="stop-color:#c94d14"/>
+      <stop offset="100%" style="stop-color:#7a2d09"/>
+    </linearGradient>
+    <!-- Bevel highlight -->
+    <linearGradient id="bevelTop" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#d1d5db"/>
+      <stop offset="100%" style="stop-color:#6b7280"/>
+    </linearGradient>
+    <!-- Shadow -->
+    <filter id="shadow">
+      <feDropShadow dx="4" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <!-- Inner glow -->
+    <filter id="innerGlow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Square black metallic background -->
+  <rect width="512" height="512" fill="url(#metalBg)"/>
+  <line x1="0" y1="0" x2="512" y2="512" stroke="#2a2a2a" stroke-width="1" opacity="0.3"/>
+  <line x1="512" y1="0" x2="0" y2="512" stroke="#2a2a2a" stroke-width="1" opacity="0.3"/>
+  
+  <!-- Main H with shadow -->
+  <g filter="url(#shadow)">
+    <!-- Left vertical bar -->
+    <path fill="url(#ironGradient)" d="
+      M112 72
+      L168 72
+      L168 224
+      L344 224
+      L344 72
+      L400 72
+      L400 440
+      L344 440
+      L344 280
+      L168 280
+      L168 440
+      L112 440
+      Z
+    "/>
+    
+    <!-- Top bevel highlights -->
+    <path fill="url(#bevelTop)" opacity="0.6" d="
+      M112 72 L168 72 L168 80 L120 80 L120 432 L112 440 Z
+    "/>
+    <path fill="url(#bevelTop)" opacity="0.6" d="
+      M344 72 L400 72 L400 80 L352 80 L352 72 Z
+    "/>
+    
+    <!-- Hot iron accent line across crossbar -->
+    <rect x="168" y="244" width="176" height="8" fill="url(#hotIron)" filter="url(#innerGlow)"/>
+    
+    <!-- Small ember accents -->
+    <circle cx="176" cy="248" r="4" fill="#ff6b35" opacity="0.8"/>
+    <circle cx="336" cy="248" r="4" fill="#ff6b35" opacity="0.8"/>
+  </g>
+  
+  <!-- Subtle metal texture lines -->
+  <g opacity="0.1" stroke="#fff" stroke-width="1">
+    <line x1="130" y1="72" x2="130" y2="440"/>
+    <line x1="150" y1="72" x2="150" y2="440"/>
+    <line x1="362" y1="72" x2="362" y2="440"/>
+    <line x1="382" y1="72" x2="382" y2="440"/>
+  </g>
 </svg>
