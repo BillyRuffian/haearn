@@ -9,3 +9,6 @@ pin "bootstrap", to: "bootstrap.bundle.min.js"
 
 # Chart.js - ESM build from CDN (auto-bundled)
 pin "chart.js/auto", to: "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/auto/+esm"
+
+# SortableJS for drag and drop
+pin "sortablejs", to: "https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/modular/sortable.esm.js"

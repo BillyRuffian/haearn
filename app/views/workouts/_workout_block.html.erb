@@ -1,4 +1,25 @@
-<div class="card mb-3 workout-block" id="<%= dom_id(block) %>">
+<div class="card mb-3 workout-block" id="<%= dom_id(block) %>" data-block-id="<%= block.id %>">
+  <% if workout.in_progress? %>
+    <div class="drag-handle d-flex justify-content-between align-items-center px-3 py-2 border-bottom bg-dark bg-opacity-25" style="cursor: grab; touch-action: none;">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-grip-vertical text-muted me-2"></i>
+        <% if block.superset? %>
+          <span class="badge bg-warning text-dark">
+            <i class="bi bi-arrow-repeat me-1"></i>Superset (<%= block.workout_exercises.count %> exercises)
+          </span>
+        <% else %>
+          <span class="text-muted small">Block <%= block.position %></span>
+        <% end %>
+      </div>
+      <%= link_to add_exercise_workout_path(workout, to_block: block.id),
+          class: "btn btn-sm btn-outline-primary",
+          data: { turbo_frame: "modal" },
+          title: "Add exercise to this block (superset)",
+          onclick: "event.stopPropagation();" do %>
+        <i class="bi bi-plus"></i><span class="d-none d-sm-inline ms-1">Add to Superset</span>
+      <% end %>
+    </div>
+  <% end %>
   <% block.workout_exercises.order(:position).each_with_index do |workout_exercise, index| %>
     <% is_superset = block.workout_exercises.count > 1 %>
     <%= render "workout_exercise", 

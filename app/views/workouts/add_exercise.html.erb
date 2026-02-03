@@ -7,10 +7,24 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">
-            <i class="bi bi-plus-circle me-2"></i>Add Exercise
+            <% if @target_block %>
+              <i class="bi bi-arrow-repeat me-2 text-warning"></i>Add to Superset
+            <% else %>
+              <i class="bi bi-plus-circle me-2"></i>Add Exercise
+            <% end %>
           </h5>
           <%= link_to workout_path(@workout), class: "btn-close", data: { turbo_frame: "modal" } %>
         </div>
+        
+        <% if @target_block %>
+          <div class="alert alert-warning m-3 mb-0 py-2">
+            <i class="bi bi-info-circle me-1"></i>
+            Adding to Block <%= @target_block.position %> 
+            <% if @target_block.workout_exercises.any? %>
+              (with <%= @target_block.workout_exercises.map { |we| we.exercise.name }.to_sentence %>)
+            <% end %>
+          </div>
+        <% end %>
         
         <div class="modal-body p-0">
           <% if @selected_exercise %>
@@ -23,7 +37,7 @@
             <% if @machines.any? %>
               <div class="list-group list-group-flush">
                 <% @machines.each do |machine| %>
-                  <%= button_to add_exercise_workout_path(@workout, exercise_id: @selected_exercise.id, machine_id: machine.id),
+                  <%= button_to add_exercise_workout_path(@workout, exercise_id: @selected_exercise.id, machine_id: machine.id, to_block: @target_block&.id),
                       method: :post,
                       class: "list-group-item list-group-item-action d-flex justify-content-between align-items-center",
                       data: { turbo_frame: "_top" } do %>
@@ -39,7 +53,7 @@
                 <% end %>
                 
                 <!-- Create new machine option -->
-                <%= link_to new_gym_machine_path(@workout.gym, return_to: add_exercise_workout_path(@workout, select_exercise: @selected_exercise.id)),
+                <%= link_to new_gym_machine_path(@workout.gym, return_to: add_exercise_workout_path(@workout, select_exercise: @selected_exercise.id, to_block: @target_block&.id)),
                     class: "list-group-item list-group-item-action text-primary",
                     data: { turbo_frame: "_top" } do %>
                   <i class="bi bi-plus-lg me-2"></i>Add new machine...
@@ -51,7 +65,7 @@
                 <i class="bi bi-gear display-4 text-muted mb-3"></i>
                 <h6>No machines at <%= @workout.gym.name %> yet</h6>
                 <p class="text-muted small">Add a machine to track your exercises.</p>
-                <%= link_to new_gym_machine_path(@workout.gym, return_to: add_exercise_workout_path(@workout, select_exercise: @selected_exercise.id)),
+                <%= link_to new_gym_machine_path(@workout.gym, return_to: add_exercise_workout_path(@workout, select_exercise: @selected_exercise.id, to_block: @target_block&.id)),
                     class: "btn btn-primary",
                     data: { turbo_frame: "_top" } do %>
                   <i class="bi bi-plus-lg me-1"></i>Add Machine
@@ -60,14 +74,14 @@
             <% end %>
             
             <div class="p-3 d-flex gap-2">
-              <%= link_to add_exercise_workout_path(@workout), class: "btn btn-outline-secondary btn-sm" do %>
+              <%= link_to add_exercise_workout_path(@workout, to_block: @target_block&.id), class: "btn btn-outline-secondary btn-sm" do %>
                 <i class="bi bi-arrow-left me-1"></i>Back to exercises
               <% end %>
             </div>
           <% else %>
             <!-- Step 1: Search & Select Exercise -->
             <div class="p-3 border-bottom sticky-top bg-body">
-              <%= form_with url: add_exercise_workout_path(@workout), 
+              <%= form_with url: add_exercise_workout_path(@workout, to_block: @target_block&.id), 
                   method: :get,
                   data: { controller: "search", turbo_frame: "exercise_list" } do %>
                 <div class="input-group">
@@ -85,7 +99,7 @@
             <%= turbo_frame_tag "exercise_list" do %>
               <div class="list-group list-group-flush">
                 <!-- Create new exercise option -->
-                <%= link_to new_exercise_path(return_to: add_exercise_workout_path(@workout)),
+                <%= link_to new_exercise_path(return_to: add_exercise_workout_path(@workout, to_block: @target_block&.id)),
                     class: "list-group-item list-group-item-action text-primary",
                     data: { turbo_frame: "_top" } do %>
                   <i class="bi bi-plus-lg me-2"></i>Create new exercise...
@@ -93,7 +107,7 @@
                 
                 <% @exercises.each do |exercise| %>
                   <!-- Always go to machine selection step -->
-                  <%= link_to add_exercise_workout_path(@workout, select_exercise: exercise.id),
+                  <%= link_to add_exercise_workout_path(@workout, select_exercise: exercise.id, to_block: @target_block&.id),
                       class: "list-group-item list-group-item-action d-flex justify-content-between align-items-center",
                       data: { turbo_frame: "modal" } do %>
                     <div>

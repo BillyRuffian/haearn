@@ -614,6 +614,35 @@ select option:checked {
   }
 }
 
+// Drag handle styles for reordering
+.drag-handle {
+  cursor: grab;
+  user-select: none;
+  
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+// SortableJS ghost and drag states
+.sortable-ghost {
+  opacity: 0.4;
+  background: rgba($rust, 0.1) !important;
+  border: 2px dashed $rust !important;
+}
+
+.sortable-chosen {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  border-color: $rust !important;
+}
+
+.sortable-drag {
+  opacity: 1;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+  transform: scale(1.02);
+  background: $iron-dark !important;
+}
+
 .workout-exercise {
   &:not(:last-child) {
     border-bottom: 1px solid $iron-light;
@@ -1232,6 +1261,404 @@ select option:checked {
     &:active {
       background-color: rgba($rust, 0.1);
     }
+  }
+}
+
+// =====================================================
+// App-Like Transitions & Animations
+// =====================================================
+
+// Global transition settings
+$transition-fast: 150ms;
+$transition-normal: 250ms;
+$transition-slow: 350ms;
+$ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+$ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+$ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+// Page content fade in on load
+.container {
+  animation: fadeSlideIn $transition-slow $ease-out-expo;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Turbo frame transitions
+turbo-frame {
+  display: block;
+  
+  &[busy] {
+    opacity: 0.6;
+    transition: opacity $transition-fast ease;
+  }
+}
+
+// Turbo page transitions
+html.turbo-loading {
+  .container {
+    opacity: 0.7;
+    transition: opacity $transition-fast ease;
+  }
+}
+
+// Card transitions - subtle highlight effect
+.card {
+  transition: 
+    border-color $transition-normal $ease-out-expo,
+    box-shadow $transition-normal $ease-out-expo;
+  
+  &:hover {
+    border-color: rgba($rust, 0.3);
+    box-shadow: 
+      0 4px 12px rgba(0, 0, 0, 0.5),
+      0 1px 3px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 0 0 1px rgba($rust, 0.1);
+  }
+}
+
+// Button transitions - press effect
+.btn {
+  transition: 
+    transform $transition-fast $ease-out-expo,
+    box-shadow $transition-fast $ease-out-expo,
+    background $transition-fast ease,
+    border-color $transition-fast ease,
+    opacity $transition-fast ease;
+  
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+// Form control transitions
+.form-control,
+.form-select {
+  transition: 
+    border-color $transition-fast ease,
+    box-shadow $transition-fast ease,
+    background-color $transition-fast ease;
+}
+
+// Badge transitions
+.badge {
+  transition: 
+    transform $transition-fast $ease-out-back,
+    opacity $transition-fast ease;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+// List item transitions
+.list-group-item {
+  transition: 
+    background-color $transition-fast ease,
+    transform $transition-fast $ease-out-expo;
+  
+  &:active {
+    transform: scale(0.99);
+    background-color: rgba($rust, 0.1);
+  }
+}
+
+// Navbar link transitions
+.nav-link,
+.navbar-nav .nav-link {
+  transition: 
+    color $transition-fast ease,
+    background-color $transition-fast ease,
+    transform $transition-fast ease;
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+// Modal transitions - slide up with fade
+.modal {
+  &.fade .modal-dialog {
+    transform: translateY(30px) scale(0.95);
+    opacity: 0;
+    transition: 
+      transform $transition-normal $ease-out-expo,
+      opacity $transition-normal ease;
+  }
+  
+  &.show .modal-dialog {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+// Modal backdrop transition
+.modal-backdrop {
+  transition: opacity $transition-normal ease;
+  
+  &.fade {
+    opacity: 0;
+  }
+  
+  &.show {
+    opacity: 0.7;
+  }
+}
+
+// Dropdown transitions
+.dropdown-menu {
+  transition: 
+    opacity $transition-fast $ease-out-expo,
+    transform $transition-fast $ease-out-expo;
+  transform-origin: top center;
+  
+  &:not(.show) {
+    display: block !important;
+    opacity: 0;
+    transform: scaleY(0.9) translateY(-8px);
+    pointer-events: none;
+  }
+  
+  &.show {
+    opacity: 1;
+    transform: scaleY(1) translateY(0);
+    pointer-events: auto;
+  }
+}
+
+// Alert/Flash message transitions
+.alert {
+  animation: alertSlideIn $transition-normal $ease-out-expo;
+}
+
+@keyframes alertSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Collapse transitions (smoother)
+.collapse {
+  transition: height $transition-normal $ease-in-out;
+}
+
+.collapsing {
+  transition: height $transition-normal $ease-in-out;
+}
+
+// Accordion transitions
+.accordion-button {
+  transition: 
+    background-color $transition-fast ease,
+    color $transition-fast ease,
+    box-shadow $transition-fast ease;
+  
+  &::after {
+    transition: transform $transition-normal $ease-out-expo;
+  }
+}
+
+.accordion-collapse {
+  transition: height $transition-normal $ease-in-out;
+}
+
+// Tab transitions
+.nav-tabs .nav-link,
+.nav-pills .nav-link {
+  transition: 
+    color $transition-fast ease,
+    background-color $transition-fast ease,
+    border-color $transition-fast ease;
+}
+
+.tab-content > .tab-pane {
+  transition: opacity $transition-fast ease;
+}
+
+// Tooltip & Popover transitions
+.tooltip,
+.popover {
+  transition: 
+    opacity $transition-fast ease,
+    transform $transition-fast $ease-out-expo;
+  
+  &:not(.show) {
+    transform: scale(0.95);
+  }
+}
+
+// Breadcrumb transitions
+.breadcrumb-item a {
+  transition: color $transition-fast ease;
+}
+
+// Table row transitions
+.table tbody tr {
+  transition: background-color $transition-fast ease;
+}
+
+// Icon spin on interaction (for loading states)
+.icon-spin {
+  animation: spin 1s linear infinite;
+}
+
+// Ripple effect for touch feedback
+.ripple {
+  position: relative;
+  overflow: hidden;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width $transition-slow ease, height $transition-slow ease, opacity $transition-slow ease;
+    opacity: 0;
+  }
+  
+  &:active::after {
+    width: 200%;
+    height: 200%;
+    opacity: 1;
+    transition: 0s;
+  }
+}
+
+// Stagger animation for lists
+.stagger-in > * {
+  animation: fadeSlideIn $transition-normal $ease-out-expo both;
+  
+  @for $i from 1 through 20 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 50}ms;
+    }
+  }
+}
+
+// Bottom nav active state animation
+.bottom-nav .nav-link {
+  transition: 
+    color $transition-fast ease,
+    transform $transition-fast $ease-out-expo;
+  
+  &:active {
+    transform: scale(0.9);
+  }
+  
+  &.active {
+    animation: navPop $transition-normal $ease-out-back;
+  }
+}
+
+@keyframes navPop {
+  0% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+// Workout set completion animation
+.set-complete {
+  animation: setComplete $transition-normal $ease-out-expo;
+}
+
+@keyframes setComplete {
+  0% {
+    background-color: rgba($success, 0.3);
+    transform: scale(1.02);
+  }
+  100% {
+    background-color: transparent;
+    transform: scale(1);
+  }
+}
+
+// Success checkmark animation
+.success-check {
+  animation: checkPop $transition-slow $ease-out-back;
+}
+
+@keyframes checkPop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+// Shake animation for errors
+.shake {
+  animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+// Pulse animation for notifications
+.pulse {
+  animation: pulse 2s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+// Smooth scrolling
+html {
+  scroll-behavior: smooth;
+}
+
+// Reduce motion for accessibility
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

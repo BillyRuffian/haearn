@@ -29,9 +29,13 @@ Rails.application.routes.draw do
       get :add_exercise
       post :add_exercise
       post :copy
+      patch :reorder_blocks
     end
     resources :workout_exercises, only: [ :show, :edit, :update, :destroy ] do
       resources :exercise_sets, only: [ :create, :edit, :update, :destroy ]
+      member do
+        patch :move_to_block
+      end
     end
   end
 

@@ -67,6 +67,33 @@ class WorkoutExercisesController < ApplicationController
     redirect_to @workout, notice: "Exercise removed."
   end
 
+  def move_to_block
+    target_block_id = params[:target_block_id]
+
+    if target_block_id == "new"
+      # Create a new block
+      target_block = @workout.workout_blocks.create!(
+        position: @workout.workout_blocks.maximum(:position).to_i + 1,
+        rest_seconds: 90
+      )
+    else
+      target_block = @workout.workout_blocks.find(target_block_id)
+    end
+
+    old_block = @workout_exercise.workout_block
+
+    # Move the exercise
+    @workout_exercise.update!(
+      workout_block: target_block,
+      position: target_block.workout_exercises.count + 1
+    )
+
+    # Delete old block if empty
+    old_block.destroy if old_block.workout_exercises.empty?
+
+    redirect_to @workout, notice: "Exercise moved."
+  end
+
   private
 
   def set_workout

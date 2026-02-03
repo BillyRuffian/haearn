@@ -93,7 +93,11 @@
 
   <!-- Exercise Blocks -->
   <div id="workout_blocks">
-    <%= turbo_frame_tag "workout_exercises" do %>
+    <%= turbo_frame_tag "workout_exercises", 
+        data: @workout.in_progress? ? { 
+          controller: "sortable", 
+          sortable_url_value: reorder_blocks_workout_path(@workout) 
+        } : {} do %>
       <% @workout.workout_blocks.includes(workout_exercises: [:exercise, :machine, :exercise_sets]).order(:position).each do |block| %>
         <%= render "workout_block", block: block, workout: @workout %>
       <% end %>
