@@ -712,17 +712,26 @@ select option:checked {
 // Rest Timer Footer Bar UI
 .rest-timer-footer {
   position: fixed;
-  bottom: calc(70px + env(safe-area-inset-bottom)); // Position above the bottom nav bar
+  bottom: calc(70px + env(safe-area-inset-bottom)); // Position above the bottom nav bar on mobile
   left: 0;
   right: 0;
   z-index: 1040;
   background: linear-gradient(180deg, rgba(20, 20, 22, 0.98) 0%, rgba(10, 10, 12, 0.98) 100%);
   border-top: 1px solid rgba($rust, 0.3);
   backdrop-filter: blur(10px);
+
+  // On large screens, bottom nav is hidden so timer sits at bottom
+  @media (min-width: 992px) {
+    bottom: 0;
+  }
 }
 
 .rest-timer-spacer {
-  height: 140px; // Match the footer height + bottom nav height
+  height: 140px; // Match the footer height + bottom nav height on mobile
+
+  @media (min-width: 992px) {
+    height: 70px; // Just the timer height on desktop
+  }
 }
 
 .rest-timer-collapsed {
