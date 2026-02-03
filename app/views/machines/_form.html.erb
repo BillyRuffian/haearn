@@ -1,0 +1,63 @@
+<%= form_with(model: [gym, machine], class: "row g-3 align-items-end") do |form| %>
+  <% if machine.errors.any? %>
+    <div class="col-12">
+      <div class="alert alert-danger py-2">
+        <% machine.errors.full_messages.each do |message| %>
+          <div><%= message %></div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="col-md-3">
+    <%= form.label :name, class: "form-label" %>
+    <%= form.text_field :name, class: "form-control", placeholder: "e.g., Lat Pulldown #2", required: true %>
+  </div>
+
+  <div class="col-md-2">
+    <%= form.label :equipment_type, "Type", class: "form-label" %>
+    <%= form.select :equipment_type, 
+        Machine::EQUIPMENT_TYPES.map { |t| [t.titleize, t] }, 
+        { include_blank: "Select type..." },
+        class: "form-select", 
+        required: true,
+        data: { controller: "custom-select machine-type", action: "change->machine-type#toggle" } %>
+  </div>
+
+  <div class="col-md-2" data-machine-type-target="ratioField" style="<%= 'display: none;' unless machine.cables? %>">
+    <%= form.label :weight_ratio, "Cable Ratio", class: "form-label" %>
+    <div class="input-group">
+      <%= form.number_field :weight_ratio, 
+          class: "form-control", 
+          placeholder: "0.5", 
+          step: 0.01, 
+          min: 0.01, 
+          max: 2.0 %>
+      <span class="input-group-text">:1</span>
+    </div>
+    <div class="form-text">e.g., 0.5 for 2:1 pulley</div>
+  </div>
+
+  <div class="col-md-2">
+    <%= form.label :display_unit, "Display Unit", class: "form-label" %>
+    <%= form.select :display_unit, 
+        Machine::UNITS.map { |u| [u.upcase, u] }, 
+        { include_blank: "Default" },
+        class: "form-select",
+        data: { controller: "custom-select" } %>
+  </div>
+
+  <div class="col-md-3">
+    <%= form.label :notes, class: "form-label" %>
+    <%= form.text_field :notes, class: "form-control", placeholder: "Seat settings, etc." %>
+  </div>
+
+  <div class="col-12">
+    <div class="d-flex gap-2">
+      <%= form.submit machine.persisted? ? "Update" : "Add Machine", class: "btn btn-primary" %>
+      <% if machine.persisted? %>
+        <%= link_to "Cancel", gym_path(gym), class: "btn btn-outline-secondary", data: { turbo_frame: dom_id(machine) } %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

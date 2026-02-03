@@ -1,0 +1,69 @@
+<div class="list-group">
+  <% workout_exercises.each do |we| %>
+    <% workout = we.workout_block.workout %>
+    <% work_sets = we.exercise_sets.reject(&:is_warmup).sort_by(&:created_at) %>
+    <% session_volume = work_sets.sum { |s| (s.weight_kg || 0) * (s.reps || 0) } %>
+    <% is_volume_pr = prs[:best_session_volume] && prs[:best_session_volume][:workout]&.id == workout.id %>
+    
+    <div class="list-group-item history-session <%= 'pr-session' if is_volume_pr %>">
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <div>
+          <%= link_to workout_path(workout), class: "text-decoration-none" do %>
+            <h6 class="mb-0">
+              <%= workout.started_at.strftime("%A, %B %-d, %Y") %>
+              <% if is_volume_pr %>
+                <span class="badge bg-warning ms-2"><i class="bi bi-trophy-fill"></i> PR</span>
+              <% end %>
+            </h6>
+          <% end %>
+          <small class="text-muted">
+            <% if workout.gym %>
+              <i class="bi bi-building me-1"></i><%= workout.gym.name %>
+            <% end %>
+            <% if we.machine %>
+              <span class="ms-2"><i class="bi bi-gear me-1"></i><%= we.machine.name %></span>
+            <% end %>
+          </small>
+        </div>
+        <% if we.exercise.has_weight? %>
+          <div class="text-end">
+            <span class="weight-display h5 mb-0">
+              <%= number_with_delimiter(Current.user.display_weight(session_volume).round) %>
+            </span>
+            <small class="text-muted"><%= Current.user.preferred_unit %></small>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="sets-summary">
+        <% work_sets.each_with_index do |set, idx| %>
+          <% is_weight_pr = prs[:best_set_weight] && 
+              set.weight_kg == prs[:best_set_weight][:weight_kg] && 
+              set.reps == prs[:best_set_weight][:reps] %>
+          <span class="set-badge <%= 'pr-set' if is_weight_pr %>">
+            <% if we.exercise.has_weight? %>
+              <%= number_with_delimiter(Current.user.display_weight(set.weight_kg).round) %> × <%= set.reps %>
+            <% elsif we.exercise.exercise_type == "time" %>
+              <%= set.duration_seconds %>s
+            <% elsif we.exercise.exercise_type == "distance" %>
+              <%= set.distance_meters %>m
+            <% else %>
+              <%= set.reps %> reps
+            <% end %>
+            <% if is_weight_pr %>
+              <i class="bi bi-trophy-fill text-warning"></i>
+            <% end %>
+          </span>
+        <% end %>
+      </div>
+
+      <% if we.session_notes.present? %>
+        <div class="mt-2">
+          <small class="text-muted fst-italic">
+            <i class="bi bi-chat-left-text me-1"></i><%= we.session_notes %>
+          </small>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

@@ -1,0 +1,39 @@
+<% content_for(:title) { "My Gyms | Haearn" } %>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-heading mb-0">
+      <i class="bi bi-building me-2"></i>My Gyms
+    </h1>
+  </div>
+
+  <p class="text-muted mb-4">
+    Track your equipment at each gym. Add machines with specific settings like cable ratios.
+  </p>
+
+  <!-- New Gym Form -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <i class="bi bi-plus-lg me-2"></i>Add New Gym
+    </div>
+    <div class="card-body">
+      <%= turbo_frame_tag "new_gym_form" do %>
+        <%= render "form", gym: @gym %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Gyms List -->
+  <div id="gyms">
+    <% if @gyms.any? %>
+      <% @gyms.each do |gym| %>
+        <%= render "gym", gym: gym %>
+      <% end %>
+    <% else %>
+      <div class="text-center py-5">
+        <i class="bi bi-building display-4 text-muted"></i>
+        <p class="text-muted mt-3">No gyms yet. Add your first gym above!</p>
+      </div>
+    <% end %>
+  </div>
+</div>

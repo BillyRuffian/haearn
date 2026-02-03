@@ -1,0 +1,58 @@
+<%= turbo_frame_tag set do %>
+  <%= form_with model: set, 
+      url: workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
+      method: :patch,
+      class: "edit-set-form",
+      data: { turbo_frame: dom_id(set) } do |form| %>
+    
+    <div class="row g-2 align-items-center set-row">
+      <div class="col-1 text-center small text-muted">
+        <%= index %>
+      </div>
+
+      <% if workout_exercise.exercise.has_weight %>
+        <div class="col-3">
+          <div class="input-group input-group-sm">
+            <%= form.number_field :weight_value,
+                value: set.weight_kg ? Current.user.display_weight(set.weight_kg)&.round : nil,
+                class: "form-control form-control-sm text-center",
+                step: "any",
+                inputmode: "decimal" %>
+          </div>
+        </div>
+      <% else %>
+        <div class="col-3"></div>
+      <% end %>
+
+      <div class="col-3">
+        <% case workout_exercise.exercise.exercise_type %>
+        <% when 'reps' %>
+          <%= form.number_field :reps,
+              class: "form-control form-control-sm text-center",
+              inputmode: "numeric" %>
+        <% when 'time' %>
+          <%= form.number_field :duration_seconds,
+              class: "form-control form-control-sm text-center",
+              inputmode: "numeric" %>
+        <% when 'distance' %>
+          <%= form.number_field :distance_meters,
+              class: "form-control form-control-sm text-center",
+              inputmode: "decimal",
+              step: "any" %>
+        <% end %>
+      </div>
+
+      <div class="col-3">
+        <div class="form-check">
+          <%= form.check_box :is_warmup, class: "form-check-input" %>
+          <label class="form-check-label small">Warmup</label>
+        </div>
+      </div>
+
+      <div class="col-2 text-end">
+        <%= form.submit "Save", class: "btn btn-primary btn-sm" %>
+        <%= link_to "Cancel", workout_path(workout), class: "btn btn-outline-secondary btn-sm ms-1", data: { turbo_frame: "_top" } %>
+      </div>
+    </div>
+  <% end %>
+<% end %>

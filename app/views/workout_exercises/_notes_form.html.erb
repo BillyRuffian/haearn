@@ -1,0 +1,35 @@
+<div id="workout_exercise_notes_<%= workout_exercise.id %>" class="notes-section mt-2 pt-2 border-top">
+  <%= form_with model: [workout, workout_exercise], 
+      data: { turbo_stream: true },
+      class: "notes-form" do |form| %>
+    <div class="row g-2">
+      <div class="col-12">
+        <label class="form-label small text-warning mb-1">
+          <i class="bi bi-pin-angle-fill me-1"></i>Persistent Notes
+          <span class="text-muted fw-normal">(copied to future workouts)</span>
+        </label>
+        <%= form.text_field :persistent_notes, 
+            class: "form-control form-control-sm",
+            placeholder: "e.g., Seat at 4, use handle B" %>
+      </div>
+      <div class="col-12">
+        <label class="form-label small text-muted mb-1">
+          <i class="bi bi-chat-text me-1"></i>Session Notes
+          <span class="text-muted fw-normal">(for this workout only)</span>
+        </label>
+        <%= form.text_field :session_notes,
+            class: "form-control form-control-sm",
+            placeholder: "e.g., Shoulder felt tight today" %>
+      </div>
+      <div class="col-12">
+        <div class="d-flex gap-2">
+          <%= form.submit "Save Notes", class: "btn btn-sm btn-primary" %>
+          <%= link_to "Cancel",
+              workout_workout_exercise_path(workout, workout_exercise),
+              class: "btn btn-sm btn-outline-secondary",
+              data: { turbo_method: :get, turbo_stream: true } %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+</div>

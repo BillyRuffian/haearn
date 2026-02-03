@@ -1,0 +1,38 @@
+<%# Bottom Navigation Bar - Mobile only %>
+<% if Current.user %>
+  <nav class="bottom-nav d-lg-none">
+    <div class="bottom-nav-container">
+      <%= link_to root_path, class: "bottom-nav-item #{'active' if controller_name == 'dashboard'}" do %>
+        <i class="bi bi-house-fill"></i>
+        <span>Home</span>
+      <% end %>
+
+      <%= link_to workouts_path, class: "bottom-nav-item #{'active' if controller_name == 'workouts' && action_name == 'index'}" do %>
+        <i class="bi bi-clock-history"></i>
+        <span>History</span>
+      <% end %>
+
+      <% if Current.user.active_workout %>
+        <%= link_to workout_path(Current.user.active_workout), class: "bottom-nav-item bottom-nav-primary" do %>
+          <i class="bi bi-lightning-charge-fill"></i>
+          <span>Workout</span>
+        <% end %>
+      <% else %>
+        <%= link_to new_workout_path, class: "bottom-nav-item bottom-nav-primary" do %>
+          <i class="bi bi-plus-circle-fill"></i>
+          <span>Start</span>
+        <% end %>
+      <% end %>
+
+      <%= link_to exercises_path, class: "bottom-nav-item #{'active' if controller_name == 'exercises'}" do %>
+        <i class="bi bi-list-check"></i>
+        <span>Exercises</span>
+      <% end %>
+
+      <%= link_to gyms_path, class: "bottom-nav-item #{'active' if controller_name.in?(%w[gyms machines])}" do %>
+        <i class="bi bi-building"></i>
+        <span>Gyms</span>
+      <% end %>
+    </div>
+  </nav>
+<% end %>

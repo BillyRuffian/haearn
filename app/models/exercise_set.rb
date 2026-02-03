@@ -1,0 +1,50 @@
+class ExerciseSet < ApplicationRecord
+  belongs_to :workout_exercise
+
+  has_one :workout_block, through: :workout_exercise
+  has_one :workout, through: :workout_block
+  has_one :exercise, through: :workout_exercise
+
+  validates :position, presence: true, numericality: { greater_than: 0 }
+  validates :weight_kg, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validates :reps, numericality: { greater_than: 0, only_integer: true }, allow_nil: true
+  validates :duration_seconds, numericality: { greater_than: 0, only_integer: true }, allow_nil: true
+  validates :distance_meters, numericality: { greater_than: 0 }, allow_nil: true
+
+  scope :ordered, -> { order(:position) }
+  scope :warmup, -> { where(is_warmup: true) }
+  scope :working, -> { where(is_warmup: false) }
+  scope :completed, -> { where.not(completed_at: nil) }
+
+  before_validation :set_position, on: :create
+
+  def warmup?
+    is_warmup == true
+  end
+
+  def working?
+    !warmup?
+  end
+
+  def completed?
+    completed_at.present?
+  end
+
+  def complete!
+    update!(completed_at: Time.current)
+  end
+
+  # Volume for this set (weight × reps)
+  def volume_kg
+    return 0 unless weight_kg && reps
+    weight_kg * reps
+  end
+
+  private
+
+  def set_position
+    return if position.present?
+    max_position = workout_exercise.exercise_sets.maximum(:position) || 0
+    self.position = max_position + 1
+  end
+end

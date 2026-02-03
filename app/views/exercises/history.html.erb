@@ -1,0 +1,207 @@
+<% content_for(:title) { "#{@exercise.name} History | Haearn" } %>
+
+<div class="container py-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+      <%= link_to exercises_path, class: "text-muted text-decoration-none small" do %>
+        <i class="bi bi-arrow-left me-1"></i>Back to Exercises
+      <% end %>
+      <h1 class="display-heading mb-1 mt-2">
+        <i class="bi bi-graph-up-arrow me-2"></i><%= @exercise.name %>
+      </h1>
+      <p class="text-muted mb-0">
+        <span class="badge bg-secondary me-2"><%= @exercise.exercise_type.capitalize %></span>
+        <% if @exercise.has_weight? %>
+          <span class="badge bg-info">Weighted</span>
+        <% end %>
+        <% if @exercise.description.present? %>
+          <span class="ms-2"><%= @exercise.description %></span>
+        <% end %>
+      </p>
+    </div>
+  </div>
+
+  <% if @workout_exercises.any? %>
+    <!-- Personal Records -->
+    <% if @exercise.has_weight? && @prs[:best_set_weight] %>
+      <div class="card mb-4 pr-card">
+        <div class="card-header">
+          <i class="bi bi-trophy-fill text-warning me-2"></i>Personal Records
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <% if @prs[:best_set_weight] %>
+              <div class="col-md-4">
+                <div class="pr-stat">
+                  <div class="pr-label">Heaviest Set</div>
+                  <div class="pr-value weight-display">
+                    <%= number_with_delimiter(Current.user.display_weight(@prs[:best_set_weight][:weight_kg]).round) %>
+                    <small class="text-muted"><%= Current.user.preferred_unit %></small>
+                  </div>
+                  <div class="pr-detail">
+                    × <%= @prs[:best_set_weight][:reps] %> reps
+                    <span class="text-muted ms-2"><%= @prs[:best_set_weight][:date].strftime("%b %d, %Y") %></span>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+
+            <% if @prs[:best_set_volume] %>
+              <div class="col-md-4">
+                <div class="pr-stat">
+                  <div class="pr-label">Best Single Set</div>
+                  <div class="pr-value weight-display">
+                    <%= number_with_delimiter(Current.user.display_weight(@prs[:best_set_volume][:volume]).round) %>
+                    <small class="text-muted"><%= Current.user.preferred_unit %></small>
+                  </div>
+                  <div class="pr-detail">
+                    <%= number_with_delimiter(Current.user.display_weight(@prs[:best_set_volume][:weight_kg]).round) %> × <%= @prs[:best_set_volume][:reps] %>
+                    <span class="text-muted ms-2"><%= @prs[:best_set_volume][:date].strftime("%b %d, %Y") %></span>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+
+            <% if @prs[:best_session_volume] %>
+              <div class="col-md-4">
+                <div class="pr-stat">
+                  <div class="pr-label">Best Session Volume</div>
+                  <div class="pr-value weight-display">
+                    <%= number_with_delimiter(Current.user.display_weight(@prs[:best_session_volume][:volume]).round) %>
+                    <small class="text-muted"><%= Current.user.preferred_unit %></small>
+                  </div>
+                  <div class="pr-detail">
+                    <span class="text-muted"><%= @prs[:best_session_volume][:date].strftime("%b %d, %Y") %></span>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Progress Charts -->
+    <% if @exercise.has_weight? && @chart_data[:labels]&.length.to_i > 1 %>
+      <div class="row g-3 mb-4">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <i class="bi bi-graph-up me-2"></i>Weight Progression
+            </div>
+            <div class="card-body">
+              <div style="height: 200px;"
+                   data-controller="chart"
+                   data-chart-type-value="line"
+                   data-chart-data-value='<%= @chart_data[:weight].to_json %>'>
+                <canvas data-chart-target="canvas"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <i class="bi bi-bar-chart me-2"></i>Session Volume
+            </div>
+            <div class="card-body">
+              <div style="height: 200px;"
+                   data-controller="chart"
+                   data-chart-type-value="line"
+                   data-chart-data-value='<%= @chart_data[:volume].to_json %>'>
+                <canvas data-chart-target="canvas"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Stats Overview -->
+    <div class="row g-3 mb-4">
+      <div class="col-4">
+        <div class="card text-center">
+          <div class="card-body py-3">
+            <div class="h4 mb-0"><%= @workout_exercises.count %></div>
+            <small class="text-muted">Sessions</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="card text-center">
+          <div class="card-body py-3">
+            <div class="h4 mb-0"><%= @workout_exercises.sum { |we| we.exercise_sets.reject(&:is_warmup).count } %></div>
+            <small class="text-muted">Work Sets</small>
+          </div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="card text-center">
+          <div class="card-body py-3">
+            <div class="weight-display h4 mb-0">
+              <%= number_with_delimiter(Current.user.display_weight(
+                @workout_exercises.sum { |we| we.exercise_sets.reject(&:is_warmup).sum { |s| (s.weight_kg || 0) * (s.reps || 0) } }
+              ).round) %>
+            </div>
+            <small class="text-muted">Total Volume</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Group by Machine if multiple machines used -->
+    <% if @by_machine.keys.compact.any? %>
+      <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#all-machines" type="button">
+            All (<%= @workout_exercises.count %>)
+          </button>
+        </li>
+        <% @by_machine.keys.compact.each_with_index do |machine, idx| %>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#machine-<%= machine.id %>" type="button">
+              <%= machine.name %> (<%= @by_machine[machine].count %>)
+            </button>
+          </li>
+        <% end %>
+        <% if @by_machine[nil]&.any? %>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#no-machine" type="button">
+              No Machine (<%= @by_machine[nil].count %>)
+            </button>
+          </li>
+        <% end %>
+      </ul>
+
+      <div class="tab-content">
+        <div class="tab-pane fade show active" id="all-machines" role="tabpanel">
+          <%= render partial: "history_sessions", locals: { workout_exercises: @workout_exercises, prs: @prs } %>
+        </div>
+        <% @by_machine.keys.compact.each do |machine| %>
+          <div class="tab-pane fade" id="machine-<%= machine.id %>" role="tabpanel">
+            <%= render partial: "history_sessions", locals: { workout_exercises: @by_machine[machine], prs: @prs } %>
+          </div>
+        <% end %>
+        <% if @by_machine[nil]&.any? %>
+          <div class="tab-pane fade" id="no-machine" role="tabpanel">
+            <%= render partial: "history_sessions", locals: { workout_exercises: @by_machine[nil], prs: @prs } %>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <%= render partial: "history_sessions", locals: { workout_exercises: @workout_exercises, prs: @prs } %>
+    <% end %>
+
+  <% else %>
+    <div class="text-center py-5">
+      <i class="bi bi-inbox display-4 text-muted"></i>
+      <p class="text-muted mt-3">You haven't logged this exercise yet.</p>
+      <% if Current.user.active_workout %>
+        <%= link_to add_exercise_workout_path(Current.user.active_workout, select_exercise: @exercise.id), class: "btn btn-primary" do %>
+          <i class="bi bi-plus-lg me-1"></i>Add to Current Workout
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

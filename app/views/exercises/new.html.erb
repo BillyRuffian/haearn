@@ -1,0 +1,74 @@
+<% content_for(:title) { "Create Exercise | Haearn" } %>
+
+<div class="container py-4">
+  <div class="mb-4">
+    <% if @return_to.present? %>
+      <%= link_to @return_to, class: "text-muted text-decoration-none small" do %>
+        <i class="bi bi-arrow-left me-1"></i>Back to add exercise
+      <% end %>
+    <% else %>
+      <%= link_to exercises_path, class: "text-muted text-decoration-none small" do %>
+        <i class="bi bi-arrow-left me-1"></i>Back to exercise library
+      <% end %>
+    <% end %>
+  </div>
+
+  <h1 class="display-heading mb-4">
+    <i class="bi bi-plus-circle me-2"></i>Create Exercise
+  </h1>
+
+  <div class="card">
+    <div class="card-body">
+      <%= form_with model: @exercise, local: true do |form| %>
+        <% if @return_to.present? %>
+          <%= hidden_field_tag :return_to, @return_to %>
+        <% end %>
+
+        <% if @exercise.errors.any? %>
+          <div class="alert alert-danger mb-4">
+            <% @exercise.errors.full_messages.each do |message| %>
+              <div><%= message %></div>
+            <% end %>
+          </div>
+        <% end %>
+
+        <div class="mb-3">
+          <%= form.label :name, class: "form-label" %>
+          <%= form.text_field :name, class: "form-control", placeholder: "e.g., Incline Hammer Curl", required: true %>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <%= form.label :exercise_type, "Type", class: "form-label" %>
+            <%= form.select :exercise_type, 
+                Exercise::EXERCISE_TYPES.map { |t| [t.titleize, t] }, 
+                { include_blank: "Select type..." },
+                class: "form-select", 
+                required: true,
+                data: { controller: "custom-select" } %>
+          </div>
+          <div class="col-md-6 d-flex align-items-end">
+            <div class="form-check mb-2">
+              <%= form.check_box :has_weight, class: "form-check-input", checked: true %>
+              <%= form.label :has_weight, "Uses Weight", class: "form-check-label" %>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <%= form.label :description, class: "form-label" %>
+          <%= form.text_area :description, class: "form-control", rows: 2, placeholder: "Optional description or notes..." %>
+        </div>
+
+        <div class="d-flex gap-2">
+          <%= form.submit "Create Exercise", class: "btn btn-primary" %>
+          <% if @return_to.present? %>
+            <%= link_to "Cancel", @return_to, class: "btn btn-outline-secondary" %>
+          <% else %>
+            <%= link_to "Cancel", exercises_path, class: "btn btn-outline-secondary" %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

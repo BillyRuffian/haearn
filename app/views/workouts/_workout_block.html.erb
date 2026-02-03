@@ -1,0 +1,9 @@
+<div class="card mb-3 workout-block" id="<%= dom_id(block) %>">
+  <% block.workout_exercises.order(:position).each_with_index do |workout_exercise, index| %>
+    <% is_superset = block.workout_exercises.count > 1 %>
+    <%= render "workout_exercise", 
+        workout_exercise: workout_exercise, 
+        workout: workout,
+        superset_label: is_superset ? "#{(block.position + 64).chr}#{index + 1}" : nil %>
+  <% end %>
+</div>

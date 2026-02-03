@@ -1,0 +1,11 @@
+#!/bin/bash -e
+
+# If running the rails server then create or migrate existing database
+if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
+  ./bin/rails db:prepare
+  
+  # Run seeds (idempotent - only creates records if they don't exist)
+  ./bin/rails db:seed
+fi
+
+exec "${@}"

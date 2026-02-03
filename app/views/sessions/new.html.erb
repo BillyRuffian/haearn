@@ -1,0 +1,37 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-lg">
+        <div class="card-header text-center py-4">
+          <h1 class="h3 mb-1">Welcome Back</h1>
+          <p class="text-muted mb-0">Sign in to continue</p>
+        </div>
+        <div class="card-body p-4">
+          <%= form_with url: session_path, class: "needs-validation" do |form| %>
+            <div class="mb-3">
+              <%= form.label :email_address, "Email", class: "form-label" %>
+              <%= form.email_field :email_address, class: "form-control form-control-lg", placeholder: "you@example.com", required: true, autofocus: true, autocomplete: "username", value: params[:email_address] %>
+            </div>
+
+            <div class="mb-4">
+              <%= form.label :password, class: "form-label" %>
+              <%= form.password_field :password, class: "form-control form-control-lg", placeholder: "••••••••", required: true, autocomplete: "current-password", maxlength: 72 %>
+            </div>
+
+            <div class="d-grid gap-2">
+              <%= form.submit "Sign In", class: "btn btn-primary btn-lg" %>
+            </div>
+          <% end %>
+
+          <div class="text-center mt-3">
+            <%= link_to "Forgot password?", new_password_path, class: "text-muted" %>
+          </div>
+        </div>
+        <div class="card-footer text-center py-3">
+          <span class="text-muted">Don't have an account?</span>
+          <%= link_to "Sign up", new_registration_path, class: "text-rust ms-1" %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

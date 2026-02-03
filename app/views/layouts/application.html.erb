@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+  <head>
+    <title><%= content_for(:title) || "Haearn" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="application-name" content="Haearn">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#121212">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <%# Enable PWA manifest for installable apps %>
+    <%= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body data-controller="offline">
+    <!-- Offline Indicator -->
+    <div data-offline-target="indicator" 
+         class="d-none bg-warning text-dark text-center py-1 small fw-semibold"
+         style="position: fixed; top: 0; left: 0; right: 0; z-index: 1050;">
+      <i class="bi bi-wifi-off me-1"></i>
+      You're offline — Changes will sync when back online
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+      <div class="container">
+        <%= link_to root_path, class: "navbar-brand d-flex align-items-center" do %>
+          <i class="bi bi-fire me-2"></i>
+          HAEARN
+        <% end %>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <% if Current.user %>
+              <li class="nav-item">
+                <%= link_to "Dashboard", root_path, class: "nav-link #{'active' if controller_name == 'dashboard'}" %>
+              </li>
+              <li class="nav-item">
+                <%= link_to workouts_path, class: "nav-link #{'active' if controller_name == 'workouts'}" do %>
+                  Workouts
+                  <% if Current.user.active_workout %>
+                    <span class="badge bg-warning ms-1" title="Workout in progress">
+                      <i class="bi bi-lightning-charge"></i>
+                    </span>
+                  <% end %>
+                <% end %>
+              </li>
+              <li class="nav-item">
+                <%= link_to "Exercises", exercises_path, class: "nav-link #{'active' if controller_name == 'exercises'}" %>
+              </li>
+              <li class="nav-item">
+                <%= link_to "Gyms", gyms_path, class: "nav-link #{'active' if controller_name.in?(%w[gyms machines])}" %>
+              </li>
+            <% end %>
+          </ul>
+
+          <ul class="navbar-nav">
+            <% if Current.user %>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                  <i class="bi bi-person-circle me-1"></i>
+                  <%= Current.user.name %>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+                  <li><span class="dropdown-item-text text-muted small"><%= Current.user.email_address %></span></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><%= link_to "Settings", "#", class: "dropdown-item" %></li>
+                  <li>
+                    <%= button_to "Sign out", session_path, method: :delete, class: "dropdown-item" %>
+                  </li>
+                </ul>
+              </li>
+            <% else %>
+              <li class="nav-item">
+                <%= link_to "Sign in", new_session_path, class: "nav-link" %>
+              </li>
+              <li class="nav-item">
+                <%= link_to "Sign up", new_registration_path, class: "btn btn-primary ms-2" %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <% if flash[:notice] %>
+      <div class="container mt-3">
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <%= flash[:notice] %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      </div>
+    <% end %>
+
+    <% if flash[:alert] %>
+      <div class="container mt-3">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <%= flash[:alert] %>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Main Content -->
+    <main>
+      <%= yield %>
+    </main>
+
+    <!-- Footer (hidden on mobile when bottom nav is shown) -->
+    <footer class="mt-auto py-4 border-top border-secondary d-none d-lg-block">
+      <div class="container text-center">
+        <p class="text-muted mb-0">
+          <strong class="text-rust">Haearn</strong> — Forged for serious lifters
+        </p>
+      </div>
+    </footer>
+
+    <!-- Bottom Navigation (Mobile Only) -->
+    <%= render "layouts/bottom_nav" %>
+
+    <!-- Install Prompt Banner -->
+    <div data-controller="install-prompt">
+      <div data-install-prompt-target="banner" 
+           class="d-none position-fixed bottom-0 start-0 end-0 p-3 bg-dark border-top border-rust"
+           style="z-index: 1040;">
+        <div class="container d-flex align-items-center justify-content-between">
+          <div class="d-flex align-items-center">
+            <i class="bi bi-download text-rust me-3 fs-4"></i>
+            <div>
+              <strong>Install Haearn</strong>
+              <p class="mb-0 small text-muted">Add to home screen for the best experience</p>
+            </div>
+          </div>
+          <div class="d-flex gap-2">
+            <button data-action="click->install-prompt#dismiss" 
+                    class="btn btn-sm btn-outline-secondary">
+              Not now
+            </button>
+            <button data-action="click->install-prompt#install" 
+                    class="btn btn-sm btn-primary">
+              Install
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

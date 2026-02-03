@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  gym: one
+  started_at: 2026-02-02 21:29:08
+  finished_at: 2026-02-02 21:29:08
+  notes: MyText
+
+two:
+  user: two
+  gym: two
+  started_at: 2026-02-02 21:29:08
+  finished_at: 2026-02-02 21:29:08
+  notes: MyText

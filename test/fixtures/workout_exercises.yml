@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  workout_block: one
+  exercise: one
+  machine: one
+  position: 1
+  session_notes: MyText
+  persistent_notes: MyText
+
+two:
+  workout_block: two
+  exercise: two
+  machine: two
+  position: 1
+  session_notes: MyText
+  persistent_notes: MyText

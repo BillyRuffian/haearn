@@ -1,0 +1,1335 @@
+// Haearn - Dark Iron Theme
+// Custom Bootstrap variables (must be before import)
+
+// Import industrial fonts
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Bebas+Neue&family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+// Color palette - Dark & Moody Iron
+$body-bg: #0a0a0a;
+$body-color: #c8c8c8;
+
+// Iron and rust colors
+$iron-dark: #141414;
+$iron-medium: #1e1e1e;
+$iron-light: #2a2a2a;
+$gunmetal: #5a6269;
+$steel: #43464b;
+$rust: #a33a0c;
+$rust-light: #c94d14;
+$rust-dark: #7a2d09;
+$forge-orange: #ff6b35;
+
+// Bootstrap color overrides
+$primary: $rust;
+$secondary: $gunmetal;
+$dark: $iron-dark;
+$light: #c8c8c8;
+$success: #2d7a3e;
+$info: #3d7ea6;
+$warning: #b8860b;
+$danger: #a33232;
+
+// Typography - Industrial
+$font-family-sans-serif: 'Rajdhani', 'Segoe UI', system-ui, sans-serif;
+$headings-font-family: 'Bebas Neue', 'Rajdhani', sans-serif;
+$font-weight-normal: 500;
+$headings-font-weight: 400;
+$headings-letter-spacing: 0.05em;
+
+// Card and component backgrounds
+$card-bg: $iron-dark;
+$card-border-color: $iron-light;
+
+// Input styling
+$input-bg: $iron-medium;
+$input-border-color: $iron-light;
+$input-color: #c8c8c8;
+$input-placeholder-color: #555;
+$input-focus-border-color: $rust;
+$input-focus-box-shadow: 0 0 0 0.2rem rgba($rust, 0.25);
+
+// Button styling - sharper, more industrial
+$btn-border-radius: 0.15rem;
+
+// Navbar
+$navbar-dark-color: rgba(200, 200, 200, 0.85);
+$navbar-dark-hover-color: rgba(255, 255, 255, 1);
+$navbar-dark-active-color: $rust-light;
+
+// Links
+$link-color: $rust-light;
+$link-hover-color: $forge-orange;
+
+// Border radius - sharp industrial edges
+$border-radius: 0.15rem;
+$border-radius-sm: 0.1rem;
+$border-radius-lg: 0.2rem;
+
+// Shadows for depth
+$box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.4);
+$box-shadow-sm: 0 0.0625rem 0.125rem rgba(0, 0, 0, 0.3);
+$box-shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+
+// Import Bootstrap with our overrides
+@import 'bootstrap/scss/bootstrap';
+@import 'bootstrap-icons/font/bootstrap-icons';
+
+// Additional custom styles
+
+// Headings with industrial letter spacing
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+// Body with subtle iron texture gradient
+body {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(30, 30, 32, 0.8) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(25, 22, 20, 0.6) 0%, transparent 50%),
+    linear-gradient(180deg,
+      #0a0a0a 0%,
+      #0d0d0e 10%,
+      #101012 25%,
+      #0e0e10 50%,
+      #0c0c0e 75%,
+      #080808 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+
+  // Subtle noise texture overlay
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.03;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    z-index: -1;
+  }
+}
+
+// Cards with brushed metal feel
+.card {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+    linear-gradient(180deg, #161618 0%, #111113 100%);
+  border: 1px solid #222224;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03);
+
+  // Subtle top edge highlight like machined metal
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%);
+  }
+}
+
+.card-header {
+  background: linear-gradient(180deg, #1a1a1c 0%, #141416 100%);
+  border-bottom: 1px solid #2a2a2c;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+// Iron-styled buttons - stamped metal look
+.btn-primary {
+  background: linear-gradient(180deg, $rust-light 0%, $rust 40%, $rust-dark 100%);
+  border: 1px solid $rust-dark;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+
+  &:hover {
+    background: linear-gradient(180deg, $forge-orange 0%, $rust-light 40%, $rust 100%);
+    border-color: $rust;
+    box-shadow:
+      0 4px 8px rgba(0, 0, 0, 0.5),
+      0 0 20px rgba($rust, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  &:active {
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.3),
+      inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.btn-secondary {
+  background: linear-gradient(180deg, #4a4d52 0%, $steel 40%, #33363a 100%);
+  border: 1px solid #2a2d30;
+  color: #c8c8c8;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+
+  &:hover {
+    background: linear-gradient(180deg, #555860 0%, #4a4d52 40%, $steel 100%);
+    color: #fff;
+  }
+}
+
+.btn-outline-primary {
+  border: 2px solid $rust;
+  color: $rust-light;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+
+  &:hover {
+    background: $rust;
+    border-color: $rust;
+    color: #fff;
+    box-shadow: 0 0 15px rgba($rust, 0.4);
+  }
+}
+
+// Form controls with machined metal feel
+.form-control,
+.form-select {
+  background: linear-gradient(180deg, #0e0e10 0%, #141416 100%);
+  border: 1px solid #2a2a2c;
+  color: #c8c8c8;
+  font-weight: 500;
+
+  &:focus {
+    background: linear-gradient(180deg, #121214 0%, #181a1c 100%);
+    border-color: $rust;
+    box-shadow:
+      0 0 0 2px rgba($rust, 0.2),
+      inset 0 1px 3px rgba(0, 0, 0, 0.3);
+    color: #e0e0e0;
+  }
+
+  &::placeholder {
+    color: #4a4a4a;
+    font-weight: 400;
+  }
+}
+
+// Force dark styling on select dropdown options
+.form-select {
+  &:focus {
+    outline: none;
+  }
+
+  option {
+    background-color: #1e1e1e !important;
+    color: #e0e0e0 !important;
+
+    &:hover,
+    &:focus,
+    &:active,
+    &:checked {
+      background-color: $rust !important;
+      color: #ffffff !important;
+    }
+  }
+}
+
+// Override at html level for native selects
+select,
+select option {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+select option:hover,
+select option:focus,
+select option:active,
+select option:checked {
+  background: linear-gradient(#a33a0c, #a33a0c);
+  background-color: #a33a0c !important;
+  color: #ffffff !important;
+}
+
+// Custom stylable select dropdown (Stimulus controller)
+.custom-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select-button {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  display: block;
+  padding: 0.5rem 2.25rem 0.5rem 0.75rem;
+  background: linear-gradient(180deg, #0e0e10 0%, #141416 100%);
+  border: 1px solid #2a2a2c;
+  border-radius: 0.375rem;
+  color: #c8c8c8;
+  font-weight: 500;
+  font-size: 1rem;
+  line-height: 1.5;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+  &:hover {
+    border-color: #444;
+  }
+
+  &:focus {
+    background: linear-gradient(180deg, #121214 0%, #181a1c 100%);
+    border-color: $rust;
+    box-shadow: 0 0 0 2px rgba($rust, 0.2);
+    outline: none;
+  }
+
+  &.form-select-lg {
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    font-size: 1.125rem;
+    border-radius: 0.5rem;
+  }
+
+  &.form-select-sm {
+    padding: 0.35rem 2rem 0.35rem 0.5rem;
+    font-size: 0.875rem;
+    border-radius: 0.25rem;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    border: solid #888;
+    border-width: 0 2px 2px 0;
+    padding: 3px;
+    transform: translateY(-70%) rotate(45deg);
+    transition: transform 0.2s;
+  }
+}
+
+.custom-select-wrapper.open .custom-select-button::after {
+  transform: translateY(-30%) rotate(-135deg);
+}
+
+.custom-select-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1050;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-top: none;
+  border-radius: 0 0 0.15rem 0.15rem;
+  max-height: 250px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.custom-select-option {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  color: #e0e0e0;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background-color: #a33a0c;
+    color: #ffffff;
+  }
+
+  &.selected {
+    background-color: #333;
+    color: #ffffff;
+  }
+
+  &.selected:hover {
+    background-color: #a33a0c;
+  }
+}
+
+.form-label {
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #888;
+}
+
+// Navbar - recessed industrial channel
+.navbar {
+  background: #050506 !important;
+  border-bottom: 1px solid rgba($rust, 0.3);
+  border-top: 1px solid #000;
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(0, 0, 0, 0.3),
+    0 4px 20px rgba($rust, 0.15),
+    0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.navbar-brand {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+
+  // Subtle steel text - not too bright
+  background: linear-gradient(180deg, #909090 0%, #686868 50%, #787878 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+
+  i {
+    background: linear-gradient(180deg, $rust-light 0%, $rust-dark 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+.nav-link {
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #606060 !important;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: #a0a0a0 !important;
+  }
+
+  &.active {
+    color: $rust-light !important;
+  }
+}
+
+.navbar-toggler {
+  border-color: #333 !important;
+
+  &:focus {
+    box-shadow: none;
+  }
+}
+
+// Tables
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-striped-bg: rgba(255, 255, 255, 0.02);
+  --bs-table-hover-bg: rgba(183, 65, 14, 0.1);
+  --bs-table-border-color: #333;
+  color: #e0e0e0;
+}
+
+// Badges
+.badge {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.badge.bg-warmup {
+  background: linear-gradient(180deg, #666 0%, #444 100%);
+}
+
+.badge.bg-working {
+  background: linear-gradient(180deg, $rust-light 0%, $rust 100%);
+}
+
+// Equipment type badges
+.equipment-badge-barbell,
+.equipment-badge-dumbbell,
+.equipment-badge-kettlebell {
+  background: linear-gradient(180deg, #5c4d3d 0%, #3d3429 100%);
+  color: #c9b896;
+}
+
+.equipment-badge-machine,
+.equipment-badge-smith_machine {
+  background: linear-gradient(180deg, #3d4d5c 0%, #29343d 100%);
+  color: #96b8c9;
+}
+
+.equipment-badge-cables {
+  background: linear-gradient(180deg, $rust 0%, darken($rust, 15%) 100%);
+  color: #fff;
+}
+
+.equipment-badge-bodyweight {
+  background: linear-gradient(180deg, #4d5c3d 0%, #343d29 100%);
+  color: #b8c996;
+}
+
+.equipment-badge-bands {
+  background: linear-gradient(180deg, #5c3d5c 0%, #3d293d 100%);
+  color: #c996c9;
+}
+
+.equipment-badge-other {
+  background: linear-gradient(180deg, #555 0%, #333 100%);
+  color: #999;
+}
+
+// Source badges
+.bg-rust {
+  background: linear-gradient(180deg, $rust-light 0%, $rust 100%) !important;
+}
+
+// Custom utility classes
+.text-iron {
+  color: $gunmetal;
+}
+
+.text-rust {
+  color: $rust-light;
+}
+
+.text-forge {
+  color: $forge-orange;
+}
+
+.bg-iron {
+  background-color: $iron-dark;
+}
+
+.bg-iron-medium {
+  background-color: $iron-medium;
+}
+
+// Display text with heavy industrial feel
+.display-1,
+.display-2,
+.display-3,
+.display-4,
+.display-5,
+.display-6 {
+  font-family: 'Bebas Neue', sans-serif;
+  letter-spacing: 0.08em;
+}
+
+// Weight display - monospace for alignment
+.weight-display {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+// Rest timer styles
+.rest-timer {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 4rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: $rust-light;
+  text-shadow:
+    0 0 30px rgba($rust, 0.5),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.rest-timer.warning {
+  color: $forge-orange;
+  animation: pulse 0.8s infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+// PR badge glow - molten metal
+.pr-badge {
+  background: linear-gradient(180deg, #ffd700 0%, #ff8c00 50%, #cc5500 100%);
+  color: #000;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow:
+    0 0 15px rgba(255, 140, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+// Dropdown menus
+.dropdown-menu {
+  background: linear-gradient(180deg, #1a1a1c 0%, #121214 100%);
+  border: 1px solid #2a2a2c;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.dropdown-item {
+  color: #b0b0b0;
+  font-weight: 500;
+
+  &:hover {
+    background: linear-gradient(90deg, rgba($rust, 0.2) 0%, transparent 100%);
+    color: #fff;
+  }
+}
+
+// Alerts with industrial styling
+.alert {
+  border-radius: 0.15rem;
+  border-left: 3px solid;
+  font-weight: 500;
+}
+
+// Workout page styles
+.workout-block {
+  overflow: hidden;
+
+  .card-header {
+    background: linear-gradient(135deg, $iron-medium 0%, $iron-dark 100%);
+    border-bottom: 1px solid $iron-light;
+  }
+}
+
+.workout-exercise {
+  &:not(:last-child) {
+    border-bottom: 1px solid $iron-light;
+  }
+}
+
+.set-row {
+  border-bottom: 1px solid rgba($iron-light, 0.3);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: rgba($rust, 0.05);
+  }
+}
+
+.set-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: $iron-light;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.add-set-form {
+  border-top: 1px solid $iron-light;
+  padding-top: 0.75rem;
+}
+
+.previous-performance {
+  background: rgba($info, 0.1);
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+}
+
+// Workout timer
+.workout-timer {
+  font-family: 'JetBrains Mono', monospace;
+  color: $forge-orange;
+}
+
+// Modal styling improvements
+.modal-content {
+  background: $iron-dark;
+  border: 1px solid $iron-light;
+}
+
+.modal-header {
+  background: linear-gradient(135deg, $iron-medium 0%, $iron-dark 100%);
+  border-bottom: 1px solid $iron-light;
+
+  .btn-close {
+    filter: invert(0.7);
+
+    &:hover {
+      filter: invert(1);
+    }
+  }
+}
+
+// Rest Timer Footer Bar UI
+.rest-timer-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1040;
+  background: linear-gradient(180deg, rgba(20, 20, 22, 0.98) 0%, rgba(10, 10, 12, 0.98) 100%);
+  border-top: 1px solid rgba($rust, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.rest-timer-spacer {
+  height: 60px; // Match the footer height
+}
+
+.rest-timer-collapsed {
+  padding: 0.75rem 1rem;
+  text-align: center;
+}
+
+.rest-timer-start-btn {
+  background: transparent;
+  border: 1px solid $rust;
+  color: $rust-light;
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.25rem;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba($rust, 0.2);
+    color: #fff;
+  }
+}
+
+.rest-timer-bar {
+  padding: 0.5rem 1rem;
+
+  &.timer-active {
+    border-top-color: $rust;
+    box-shadow: 0 -4px 20px rgba($rust, 0.3);
+  }
+
+  &.timer-complete {
+    animation: timerPulse 0.3s ease-in-out infinite;
+    border-top-color: $forge-orange;
+  }
+}
+
+.rest-timer-bar-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.rest-timer-center {
+  flex: 1;
+  max-width: 200px;
+  text-align: center;
+}
+
+.rest-timer-display {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 20px rgba($forge-orange, 0.5);
+  line-height: 1;
+}
+
+.rest-timer-progress {
+  height: 4px;
+  background: $iron-light;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 0.25rem;
+}
+
+.rest-timer-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, $rust 0%, $forge-orange 100%);
+  border-radius: 2px;
+  transition: width 1s linear;
+}
+
+.rest-timer-adjust-btn {
+  background: transparent;
+  border: 1px solid $iron-light;
+  color: $text-muted;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: $rust;
+    color: $rust-light;
+  }
+}
+
+.rest-timer-skip-btn {
+  background: transparent;
+  border: 1px solid $rust;
+  color: $rust-light;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $rust;
+    color: #fff;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes timerPulse {
+
+  0%,
+  100% {
+    border-color: $rust;
+    box-shadow: 0 0 20px rgba($rust, 0.3);
+  }
+
+  50% {
+    border-color: $forge-orange;
+    box-shadow: 0 0 40px rgba($forge-orange, 0.6);
+  }
+}
+
+// Mobile optimizations
+@media (max-width: 576px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .btn {
+    padding: 0.75rem 1rem;
+  }
+
+  .form-control {
+    font-size: 16px; // Prevents zoom on iOS
+    padding: 0.75rem;
+  }
+
+  .navbar-brand {
+    font-size: 1.3rem;
+  }
+
+  .set-row {
+    font-size: 0.9rem;
+  }
+
+  .add-set-form {
+    .form-label {
+      font-size: 0.7rem;
+    }
+  }
+
+  .rest-timer-display {
+    font-size: 1.5rem;
+  }
+
+  .rest-timer-bar-content {
+    gap: 0.5rem;
+  }
+
+  .rest-timer-adjust-btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}
+
+// =====================================================
+// Workout History
+// =====================================================
+
+.workout-history-item {
+  background: $iron-dark;
+  border-color: $iron-light;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: $iron-medium;
+
+    .copy-workout-btn {
+      opacity: 1;
+    }
+  }
+
+  a {
+    color: inherit;
+  }
+
+  h6 {
+    color: $body-color;
+    font-family: $font-family-sans-serif;
+    font-weight: 600;
+  }
+
+  .copy-workout-btn {
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+
+    @media (max-width: 768px) {
+      opacity: 1;
+    }
+  }
+}
+
+// =====================================================
+// Exercise History
+// =====================================================
+
+.pr-card {
+  background: linear-gradient(145deg, $iron-dark 0%, rgba($rust-dark, 0.2) 100%);
+  border-color: $rust-dark;
+
+  .card-header {
+    background: transparent;
+    border-bottom-color: $rust-dark;
+    font-family: $headings-font-family;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+}
+
+.pr-stat {
+  text-align: center;
+
+  .pr-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $text-muted;
+    margin-bottom: 0.25rem;
+  }
+
+  .pr-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: $forge-orange;
+    line-height: 1.2;
+  }
+
+  .pr-detail {
+    font-size: 0.85rem;
+    color: $body-color;
+  }
+}
+
+.history-session {
+  background: $iron-dark;
+  border-color: $iron-light;
+
+  &.pr-session {
+    border-left: 3px solid $forge-orange;
+    background: linear-gradient(90deg, rgba($rust-dark, 0.15) 0%, $iron-dark 30%);
+  }
+}
+
+.sets-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  .set-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    background: $iron-medium;
+    border-radius: 0.25rem;
+    font-size: 0.85rem;
+    font-family: $font-family-monospace;
+
+    &.pr-set {
+      background: rgba($rust, 0.3);
+      border: 1px solid $rust;
+    }
+  }
+}
+
+// ===================
+// Plate Calculator
+// ===================
+.plate-calculator {
+  padding: 0.75rem;
+  background: rgba($iron-light, 0.3);
+  border-radius: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.plate-visualization {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0.5rem;
+  background: $iron-dark;
+  border-radius: 0.25rem;
+  overflow-x: auto;
+}
+
+.bar-end {
+  width: 8px;
+  height: 24px;
+  background: linear-gradient(90deg, #5a6269, #3d4043);
+  border-radius: 2px 0 0 2px;
+}
+
+.bar-sleeve {
+  width: 30px;
+  height: 16px;
+  background: linear-gradient(90deg, #3d4043, #4a5055);
+  border-radius: 0 4px 4px 0;
+}
+
+.plate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    1px 0 2px rgba(0, 0, 0, 0.5);
+  transition: transform 0.1s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  .plate-label {
+    font-size: 0.55rem;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.7);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
+}
+
+// Plate colors matching Olympic standards
+.plate[data-weight="25"],
+.plate[data-weight="2.5"],
+.plate[data-weight="5"] {
+  .plate-label {
+    color: rgba(0, 0, 0, 0.8);
+  }
+}
+
+.plate[data-weight="20"],
+.plate[data-weight="45"] {
+  .plate-label {
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.plate-breakdown {
+  font-family: $font-family-monospace;
+}
+
+.plate-calc-empty {
+  padding: 0.5rem;
+  font-style: italic;
+}
+
+// =====================================================
+// Bottom Navigation Bar (Mobile)
+// =====================================================
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: $iron-dark;
+  border-top: 1px solid $iron-light;
+  z-index: 1030;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 0.5rem 0;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: $gunmetal;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.75rem;
+  transition: color 0.15s ease;
+  min-width: 60px;
+
+  i {
+    font-size: 1.25rem;
+    margin-bottom: 0.15rem;
+  }
+
+  &:hover,
+  &.active {
+    color: $rust-light;
+  }
+
+  &.active {
+    i {
+      color: $forge-orange;
+    }
+  }
+}
+
+.bottom-nav-primary {
+  color: $forge-orange;
+
+  i {
+    font-size: 1.75rem;
+    background: linear-gradient(135deg, $rust-light, $forge-orange);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  &:hover {
+    color: $forge-orange;
+  }
+}
+
+// Add padding to main content when bottom nav is visible
+@media (max-width: 991.98px) {
+  main {
+    padding-bottom: 80px;
+  }
+}
+
+// =====================================================
+// Swipeable List Items
+// =====================================================
+.swipeable-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.swipeable-content {
+  position: relative;
+  background: $iron-dark;
+  z-index: 1;
+  will-change: transform;
+}
+
+.swipe-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: stretch;
+  z-index: 0;
+}
+
+.swipe-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+
+  &.swipe-action-delete {
+    background: $danger;
+  }
+
+  &.swipe-action-edit {
+    background: $primary;
+  }
+
+  i {
+    font-size: 1.25rem;
+  }
+}
+
+// =====================================================
+// Touch-Friendly Improvements
+// =====================================================
+@media (max-width: 767.98px) {
+
+  // Larger tap targets
+  .btn {
+    min-height: 44px;
+    padding: 0.625rem 1rem;
+  }
+
+  .btn-sm {
+    min-height: 36px;
+    padding: 0.375rem 0.75rem;
+  }
+
+  .form-control,
+  .form-select {
+    min-height: 44px;
+    font-size: 16px; // Prevents zoom on iOS
+  }
+
+  // Larger list items
+  .list-group-item {
+    padding: 1rem;
+  }
+
+  // Touch feedback
+  .touchable {
+    -webkit-tap-highlight-color: rgba($rust, 0.2);
+
+    &:active {
+      background-color: rgba($rust, 0.1);
+    }
+  }
+}
+
+// =====================================================
+// Loading States
+// =====================================================
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba($iron-dark, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.loading-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid $iron-light;
+  border-top-color: $rust;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Turbo loading indicator
+.turbo-progress-bar {
+  background: linear-gradient(90deg, $rust, $forge-orange);
+  height: 3px;
+}
+
+// Skeleton loading
+.skeleton {
+  background: linear-gradient(90deg,
+      $iron-medium 25%,
+      $iron-light 50%,
+      $iron-medium 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: $border-radius;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-text {
+  height: 1em;
+  margin-bottom: 0.5em;
+
+  &:last-child {
+    width: 70%;
+  }
+}
+
+.skeleton-button {
+  height: 44px;
+  width: 120px;
+}
+
+// =====================================================
+// Pull to Refresh (visual indicator only)
+// =====================================================
+.pull-indicator {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
+  padding: 0.5rem 1rem;
+  background: $iron-medium;
+  border-radius: 0 0 $border-radius $border-radius;
+  color: $gunmetal;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  transition: transform 0.2s ease;
+  z-index: 1040;
+
+  &.visible {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  i {
+    margin-right: 0.25rem;
+  }
+}

@@ -1,0 +1,47 @@
+<% content_for(:title) { "Start Workout | Haearn" } %>
+
+<div class="container py-4">
+  <h1 class="display-heading mb-4">
+    <i class="bi bi-play-circle me-2"></i>Start New Workout
+  </h1>
+
+  <div class="card">
+    <div class="card-body">
+      <%= form_with model: @workout do |form| %>
+        <% if @workout.errors.any? %>
+          <div class="alert alert-danger mb-4">
+            <% @workout.errors.full_messages.each do |message| %>
+              <div><%= message %></div>
+            <% end %>
+          </div>
+        <% end %>
+
+        <div class="mb-4">
+          <%= form.label :gym_id, "Select Gym", class: "form-label" %>
+          <% if @gyms.any? %>
+            <%= form.select :gym_id, 
+                @gyms.map { |g| [g.name, g.id] },
+                { prompt: "Choose a gym..." },
+                class: "form-select form-select-lg",
+                data: { controller: "custom-select" },
+                required: true %>
+            <div class="form-text">Select the gym you're working out at to track machine-specific exercises.</div>
+          <% else %>
+            <div class="alert alert-warning">
+              <i class="bi bi-exclamation-triangle me-2"></i>
+              <strong>You need to add a gym first.</strong>
+              <p class="mb-2 mt-2">Haearn tracks your exercises by machine, so you need at least one gym with machines set up.</p>
+              <%= link_to "Add your first gym", new_gym_path, class: "btn btn-primary btn-sm" %>
+            </div>
+          <% end %>
+        </div>
+
+        <% if @gyms.any? %>
+          <div class="d-grid gap-2">
+            <%= form.submit "Start Workout 💪", class: "btn btn-primary btn-lg" %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,42 @@
+<%= turbo_frame_tag machine do %>
+  <div class="card mb-2">
+    <div class="card-body py-2">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+          <div>
+            <span class="badge equipment-badge-<%= machine.equipment_type %>">
+              <%= equipment_icon(machine.equipment_type) %>
+              <%= machine.equipment_type.titleize %>
+            </span>
+          </div>
+          <div>
+            <strong><%= machine.name %></strong>
+            <% if machine.cables? && machine.weight_ratio.present? %>
+              <span class="text-muted ms-2 small">
+                <i class="bi bi-arrow-down-up"></i> <%= machine.weight_ratio %>:1 ratio
+              </span>
+            <% end %>
+            <% if machine.display_unit.present? %>
+              <span class="text-muted ms-2 small">
+                <i class="bi bi-speedometer2"></i> Shows <%= machine.display_unit.upcase %>
+              </span>
+            <% end %>
+            <% if machine.notes.present? %>
+              <span class="text-muted ms-2 small">
+                <i class="bi bi-chat-text"></i> <%= truncate(machine.notes, length: 40) %>
+              </span>
+            <% end %>
+          </div>
+        </div>
+        <div class="d-flex gap-2">
+          <%= link_to edit_gym_machine_path(gym, machine), class: "btn btn-sm btn-outline-secondary", data: { turbo_frame: dom_id(machine) } do %>
+            <i class="bi bi-pencil"></i>
+          <% end %>
+          <%= button_to gym_machine_path(gym, machine), method: :delete, class: "btn btn-sm btn-outline-danger", data: { turbo_confirm: "Delete #{machine.name}?" } do %>
+            <i class="bi bi-trash"></i>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  exercise_type: MyString
+  has_weight: false
+  user: one
+  description: MyText
+
+two:
+  name: MyString
+  exercise_type: MyString
+  has_weight: false
+  user: two
+  description: MyText

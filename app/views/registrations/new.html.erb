@@ -1,0 +1,59 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card shadow-lg">
+        <div class="card-header text-center py-4">
+          <h1 class="h3 mb-1">Join Haearn</h1>
+          <p class="text-muted mb-0">Forge your strength</p>
+        </div>
+        <div class="card-body p-4">
+          <%= form_with model: @user, url: registration_path, class: "needs-validation" do |form| %>
+            <% if @user.errors.any? %>
+              <div class="alert alert-danger">
+                <ul class="mb-0">
+                  <% @user.errors.full_messages.each do |message| %>
+                    <li><%= message %></li>
+                  <% end %>
+                </ul>
+              </div>
+            <% end %>
+
+            <div class="mb-3">
+              <%= form.label :name, class: "form-label" %>
+              <%= form.text_field :name, class: "form-control form-control-lg", placeholder: "Your name", autofocus: true, required: true %>
+            </div>
+
+            <div class="mb-3">
+              <%= form.label :email_address, "Email", class: "form-label" %>
+              <%= form.email_field :email_address, class: "form-control form-control-lg", placeholder: "you@example.com", required: true %>
+            </div>
+
+            <div class="mb-3">
+              <%= form.label :password, class: "form-label" %>
+              <%= form.password_field :password, class: "form-control form-control-lg", placeholder: "••••••••", required: true, minlength: 8 %>
+              <div class="form-text">Minimum 8 characters</div>
+            </div>
+
+            <div class="mb-3">
+              <%= form.label :password_confirmation, "Confirm password", class: "form-label" %>
+              <%= form.password_field :password_confirmation, class: "form-control form-control-lg", placeholder: "••••••••", required: true %>
+            </div>
+
+            <div class="mb-4">
+              <%= form.label :preferred_unit, "Preferred weight unit", class: "form-label" %>
+              <%= form.select :preferred_unit, [["Kilograms (kg)", "kg"], ["Pounds (lbs)", "lbs"]], {}, class: "form-select form-select-lg", data: { controller: "custom-select" } %>
+            </div>
+
+            <div class="d-grid gap-2">
+              <%= form.submit "Create Account", class: "btn btn-primary btn-lg" %>
+            </div>
+          <% end %>
+        </div>
+        <div class="card-footer text-center py-3">
+          <span class="text-muted">Already have an account?</span>
+          <%= link_to "Sign in", new_session_path, class: "text-rust ms-1" %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

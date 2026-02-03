@@ -1,0 +1,171 @@
+<div class="container py-4">
+  <% if Current.user %>
+    <!-- Logged in dashboard -->
+    <div class="row mb-4">
+      <div class="col">
+        <p class="text-muted text-uppercase mb-1" style="letter-spacing: 0.1em; font-size: 0.85rem;">Welcome back</p>
+        <h1 class="display-4 mb-0">
+          <span class="text-rust"><%= Current.user.name %></span>
+        </h1>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row g-4 mb-5">
+      <div class="col-md-6">
+        <% active_workout = Current.user.active_workout %>
+        <div class="card h-100 position-relative">
+          <div class="card-body d-flex flex-column justify-content-center align-items-center py-5">
+            <% if active_workout %>
+              <i class="bi bi-lightning-charge display-1 text-forge mb-3"></i>
+              <h3 class="mb-2">Workout In Progress</h3>
+              <p class="text-muted text-center mb-2">
+                <%= active_workout.gym&.name || "No gym selected" %> &middot;
+                <%= active_workout.duration_minutes || 0 %> min
+              </p>
+              <p class="text-muted text-center small mb-4">
+                <%= pluralize(active_workout.exercise_sets.count, "set") %> logged
+              </p>
+              <%= link_to "CONTINUE", workout_path(active_workout), class: "btn btn-primary btn-lg px-5" %>
+            <% else %>
+              <i class="bi bi-play-circle display-1 text-forge mb-3"></i>
+              <h3 class="mb-2">Start Workout</h3>
+              <p class="text-muted text-center mb-4">Begin a new training session</p>
+              <%= link_to "LET'S GO", new_workout_path, class: "btn btn-primary btn-lg px-5" %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card h-100 position-relative">
+          <div class="card-body d-flex flex-column justify-content-center align-items-center py-5">
+            <i class="bi bi-clock-history display-1 text-iron mb-3"></i>
+            <h3 class="mb-2">View History</h3>
+            <p class="text-muted text-center mb-4">Review past workouts</p>
+            <%= link_to "BROWSE", workouts_path, class: "btn btn-secondary btn-lg px-5" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card text-center position-relative">
+          <div class="card-body py-4">
+            <h2 class="display-3 weight-display text-rust mb-0"><%= @workouts_this_week %></h2>
+            <p class="text-muted text-uppercase mb-0" style="letter-spacing: 0.1em; font-size: 0.75rem;">Workouts This Week</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card text-center position-relative">
+          <div class="card-body py-4">
+            <h2 class="display-3 weight-display mb-0"><%= number_to_si(@volume_this_week) %></h2>
+            <p class="text-muted text-uppercase mb-0" style="letter-spacing: 0.1em; font-size: 0.75rem;">Volume This Week (<%= Current.user.preferred_unit %>)</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card text-center position-relative">
+          <div class="card-body py-4">
+            <h2 class="display-3 weight-display text-forge mb-0"><%= @prs_this_month %></h2>
+            <p class="text-muted text-uppercase mb-0" style="letter-spacing: 0.1em; font-size: 0.75rem;">PRs This Month</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Workout Frequency Chart -->
+    <div class="row mt-5">
+      <div class="col-12">
+        <div class="card position-relative">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-bar-chart me-2"></i>Workout Frequency
+            </h5>
+            <div data-controller="chart"
+                 data-chart-type-value="bar"
+                 data-chart-labels-value="<%= @workout_frequency.map { |w| w[:label] }.to_json %>"
+                 data-chart-points-value="<%= @workout_frequency.map { |w| w[:count] }.to_json %>"
+                 data-chart-label-value="Workouts"
+                 data-chart-color-value="#ff6b35"
+                 style="height: 200px;">
+              <canvas data-chart-target="canvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Workouts -->
+    <% if @recent_workouts.any? %>
+      <div class="row mt-5">
+        <div class="col-12">
+          <div class="card position-relative">
+            <div class="card-body py-4">
+              <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="text-uppercase text-muted mb-0" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+                  <i class="bi bi-clock-history me-2"></i>Recent Workouts
+                </h5>
+                <%= link_to "View All", workouts_path, class: "btn btn-sm btn-outline-secondary" %>
+              </div>
+              <div class="list-group list-group-flush">
+                <% @recent_workouts.each do |workout| %>
+                  <%= link_to workout_path(workout), class: "list-group-item list-group-item-action bg-transparent border-secondary px-0 py-3" do %>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <h6 class="mb-1"><%= workout.gym&.name || "Workout" %></h6>
+                        <small class="text-muted">
+                          <%= workout.finished_at.strftime("%b %d, %Y") %> &middot;
+                          <%= workout.duration_minutes || 0 %> min &middot;
+                          <%= pluralize(workout.workout_exercises.count, "exercise") %>
+                        </small>
+                      </div>
+                      <div class="text-end">
+                        <span class="text-muted">
+                          <%= number_with_delimiter(Current.user.display_weight(workout.total_volume_kg).round) %><%= Current.user.preferred_unit %>
+                        </span>
+                        <i class="bi bi-chevron-right ms-2 text-muted"></i>
+                      </div>
+                    </div>
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  <% else %>
+    <!-- Landing page for logged out users -->
+    <div class="row min-vh-75 align-items-center py-5">
+      <div class="col-lg-7 mb-5 mb-lg-0">
+        <p class="text-muted text-uppercase mb-2" style="letter-spacing: 0.2em; font-size: 0.85rem;">Hardcore Weightlifting Tracker</p>
+        <h1 class="display-2 fw-bold mb-4" style="line-height: 0.95;">
+          <span class="d-block">Forge Your</span>
+          <span class="text-rust">Strength</span>
+        </h1>
+        <p class="lead text-muted mb-4" style="font-size: 1.1rem; max-width: 500px;">
+          Built for serious lifters. Track machines, cable ratios, supersets, and every detail that matters.
+        </p>
+        <ul class="list-unstyled mb-5">
+          <li class="mb-2"><i class="bi bi-check2-circle text-rust me-2"></i> Track specific machines & equipment</li>
+          <li class="mb-2"><i class="bi bi-check2-circle text-rust me-2"></i> Cable pulley ratio calculations</li>
+          <li class="mb-2"><i class="bi bi-check2-circle text-rust me-2"></i> Superset & circuit support</li>
+          <li class="mb-2"><i class="bi bi-check2-circle text-rust me-2"></i> Personal records & progress charts</li>
+        </ul>
+        <div class="d-flex gap-3 flex-wrap">
+          <%= link_to "GET STARTED", new_registration_path, class: "btn btn-primary btn-lg px-4" %>
+          <%= link_to "SIGN IN", new_session_path, class: "btn btn-outline-primary btn-lg px-4" %>
+        </div>
+      </div>
+      <div class="col-lg-5 text-center">
+        <div class="position-relative">
+          <i class="bi bi-fire" style="font-size: 12rem; background: linear-gradient(180deg, #ff6b35 0%, #c94d14 50%, #7a2d09 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 0 40px rgba(201, 77, 20, 0.4));"></i>
+        </div>
+        <p class="text-muted fst-italic mt-3" style="letter-spacing: 0.15em;">"Iron" in Welsh</p>
+      </div>
+    </div>
+  <% end %>
+</div>

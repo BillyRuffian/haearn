@@ -1,0 +1,86 @@
+<div class="workout-exercise" id="<%= dom_id(workout_exercise) %>">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div>
+      <% if superset_label %>
+        <span class="badge bg-secondary me-2"><%= superset_label %></span>
+      <% end %>
+      <%= link_to history_exercise_path(workout_exercise.exercise), class: "text-decoration-none", data: { turbo_frame: "_top" } do %>
+        <strong><%= workout_exercise.exercise.name %></strong>
+        <i class="bi bi-graph-up-arrow ms-1 text-muted small"></i>
+      <% end %>
+      <% if workout_exercise.machine %>
+        <small class="text-muted ms-2">
+          <i class="bi bi-gear me-1"></i><%= workout_exercise.machine.name %>
+        </small>
+      <% end %>
+      <% if workout_exercise.persistent_notes.present? %>
+        <div class="mt-1">
+          <small class="text-warning">
+            <i class="bi bi-pin-angle-fill me-1"></i><%= workout_exercise.persistent_notes %>
+          </small>
+        </div>
+      <% end %>
+    </div>
+    <% if workout.in_progress? %>
+      <%= button_to workout_workout_exercise_path(workout, workout_exercise),
+          method: :delete,
+          class: "btn btn-sm btn-outline-danger",
+          data: { turbo_confirm: "Remove this exercise?" },
+          form: { data: { turbo_frame: "_top" } } do %>
+        <i class="bi bi-x-lg"></i>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div class="card-body py-2">
+    <!-- Previous Performance (if any) -->
+    <% if workout_exercise.previous_exercise %>
+      <div class="previous-performance text-muted small mb-2">
+        <i class="bi bi-arrow-counterclockwise me-1"></i>Last:
+        <% workout_exercise.previous_exercise.exercise_sets.each do |prev_set| %>
+          <span class="badge bg-dark">
+            <%= Current.user.display_weight(prev_set.weight_kg)&.round %><%= Current.user.preferred_unit %> × <%= prev_set.reps %>
+          </span>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- Sets Table -->
+    <div class="sets-list" id="sets_<%= workout_exercise.id %>">
+      <div class="row small text-muted mb-1 d-none d-sm-flex">
+        <div class="col-1 text-center">#</div>
+        <div class="col-3 text-center">Weight</div>
+        <div class="col-3 text-center">
+          <%= case workout_exercise.exercise.exercise_type
+              when 'reps' then 'Reps'
+              when 'time' then 'Time'
+              when 'distance' then 'Distance'
+              end %>
+        </div>
+        <div class="col-3 text-center">
+          <% if workout.in_progress? %>+1 Rep<% end %>
+        </div>
+        <div class="col-2"></div>
+      </div>
+
+      <%= turbo_frame_tag "sets_list_#{workout_exercise.id}" do %>
+        <% workout_exercise.exercise_sets.order(:created_at).each_with_index do |set, idx| %>
+          <%= render "exercise_sets/exercise_set", set: set, index: idx + 1, workout: workout, workout_exercise: workout_exercise %>
+        <% end %>
+      <% end %>
+    </div>
+
+    <!-- Add Set Form -->
+    <% if workout.in_progress? %>
+      <%= turbo_frame_tag "new_set_#{workout_exercise.id}" do %>
+        <%= render "exercise_sets/form", 
+            workout: workout, 
+            workout_exercise: workout_exercise,
+            set: workout_exercise.exercise_sets.build %>
+      <% end %>
+    <% end %>
+
+    <!-- Notes Section (editable) -->
+    <%= render "workout_exercises/notes_display", workout: workout, workout_exercise: workout_exercise %>
+  </div>
+</div>

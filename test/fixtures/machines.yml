@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  gym: one
+  name: MyString
+  equipment_type: MyString
+  weight_ratio: 9.99
+  display_unit: MyString
+  notes: MyText
+
+two:
+  gym: two
+  name: MyString
+  equipment_type: MyString
+  weight_ratio: 9.99
+  display_unit: MyString
+  notes: MyText

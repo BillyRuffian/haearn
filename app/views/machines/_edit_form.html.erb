@@ -1,0 +1,7 @@
+<%= turbo_frame_tag machine do %>
+  <div class="card mb-2">
+    <div class="card-body">
+      <%= render "machines/form", machine: machine, gym: gym %>
+    </div>
+  </div>
+<% end %>

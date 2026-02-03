@@ -1,0 +1,128 @@
+<%= turbo_frame_tag "modal" do %>
+  <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.8);"
+       data-controller="modal"
+       data-modal-close-url-value="<%= workout_path(@workout) %>"
+       data-action="click->modal#backdropClick">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-plus-circle me-2"></i>Add Exercise
+          </h5>
+          <%= link_to workout_path(@workout), class: "btn-close", data: { turbo_frame: "modal" } %>
+        </div>
+        
+        <div class="modal-body p-0">
+          <% if @selected_exercise %>
+            <!-- Step 2: Machine Selection -->
+            <div class="p-3 border-bottom">
+              <h6 class="mb-0"><%= @selected_exercise.name %></h6>
+              <small class="text-muted">Select equipment</small>
+            </div>
+            
+            <% if @machines.any? %>
+              <div class="list-group list-group-flush">
+                <% @machines.each do |machine| %>
+                  <%= button_to add_exercise_workout_path(@workout, exercise_id: @selected_exercise.id, machine_id: machine.id),
+                      method: :post,
+                      class: "list-group-item list-group-item-action d-flex justify-content-between align-items-center",
+                      data: { turbo_frame: "_top" } do %>
+                    <div>
+                      <%= equipment_icon(machine.equipment_type) %>
+                      <strong class="ms-2"><%= machine.name %></strong>
+                    <% if machine.notes.present? %>
+                      <small class="text-muted d-block ms-4"><%= truncate(machine.notes, length: 40) %></small>
+                      <% end %>
+                    </div>
+                    <span class="badge bg-dark"><%= machine.equipment_type.humanize %></span>
+                  <% end %>
+                <% end %>
+                
+                <!-- Create new machine option -->
+                <%= link_to new_gym_machine_path(@workout.gym, return_to: add_exercise_workout_path(@workout, select_exercise: @selected_exercise.id)),
+                    class: "list-group-item list-group-item-action text-primary",
+                    data: { turbo_frame: "_top" } do %>
+                  <i class="bi bi-plus-lg me-2"></i>Add new machine...
+                <% end %>
+              </div>
+            <% else %>
+              <!-- No machines yet - prompt to create one -->
+              <div class="p-4 text-center">
+                <i class="bi bi-gear display-4 text-muted mb-3"></i>
+                <h6>No machines at <%= @workout.gym.name %> yet</h6>
+                <p class="text-muted small">Add a machine to track your exercises.</p>
+                <%= link_to new_gym_machine_path(@workout.gym, return_to: add_exercise_workout_path(@workout, select_exercise: @selected_exercise.id)),
+                    class: "btn btn-primary",
+                    data: { turbo_frame: "_top" } do %>
+                  <i class="bi bi-plus-lg me-1"></i>Add Machine
+                <% end %>
+              </div>
+            <% end %>
+            
+            <div class="p-3 d-flex gap-2">
+              <%= link_to add_exercise_workout_path(@workout), class: "btn btn-outline-secondary btn-sm" do %>
+                <i class="bi bi-arrow-left me-1"></i>Back to exercises
+              <% end %>
+            </div>
+          <% else %>
+            <!-- Step 1: Search & Select Exercise -->
+            <div class="p-3 border-bottom sticky-top bg-body">
+              <%= form_with url: add_exercise_workout_path(@workout), 
+                  method: :get,
+                  data: { controller: "search", turbo_frame: "exercise_list" } do %>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-search"></i></span>
+                  <%= text_field_tag :search, params[:search],
+                      class: "form-control",
+                      placeholder: "Search exercises...",
+                      autocomplete: "off",
+                      data: { search_target: "input", action: "input->search#search" } %>
+                </div>
+              <% end %>
+            </div>
+
+            <!-- Exercise List -->
+            <%= turbo_frame_tag "exercise_list" do %>
+              <div class="list-group list-group-flush">
+                <!-- Create new exercise option -->
+                <%= link_to new_exercise_path(return_to: add_exercise_workout_path(@workout)),
+                    class: "list-group-item list-group-item-action text-primary",
+                    data: { turbo_frame: "_top" } do %>
+                  <i class="bi bi-plus-lg me-2"></i>Create new exercise...
+                <% end %>
+                
+                <% @exercises.each do |exercise| %>
+                  <!-- Always go to machine selection step -->
+                  <%= link_to add_exercise_workout_path(@workout, select_exercise: exercise.id),
+                      class: "list-group-item list-group-item-action d-flex justify-content-between align-items-center",
+                      data: { turbo_frame: "modal" } do %>
+                    <div>
+                      <strong><%= exercise.name %></strong>
+                      <% if exercise.description.present? %>
+                        <small class="text-muted d-block"><%= truncate(exercise.description, length: 50) %></small>
+                      <% end %>
+                    </div>
+                    <div>
+                      <% if exercise.has_weight %>
+                        <span class="badge bg-secondary">Weighted</span>
+                      <% end %>
+                      <span class="badge bg-dark"><%= exercise.exercise_type %></span>
+                      <i class="bi bi-chevron-right ms-2"></i>
+                    </div>
+                  <% end %>
+                <% end %>
+
+                <% if @exercises.empty? %>
+                  <div class="text-center py-4 text-muted">
+                    <i class="bi bi-search display-6"></i>
+                    <p class="mt-2">No exercises found</p>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

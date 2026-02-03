@@ -1,0 +1,57 @@
+<%= turbo_frame_tag exercise do %>
+  <div class="card mb-2">
+    <div class="card-body py-2">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center flex-grow-1">
+          <div class="me-3" style="min-width: 200px;">
+            <%= link_to history_exercise_path(exercise), class: "text-decoration-none", data: { turbo_frame: "_top" } do %>
+              <strong><%= exercise.name %></strong>
+            <% end %>
+            <% if exercise.description.present? %>
+              <span class="text-muted ms-2 small"><%= truncate(exercise.description, length: 50) %></span>
+            <% end %>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <div class="d-flex gap-1">
+            <%= exercise_type_badge(exercise) %>
+            <% if exercise.has_weight? %>
+              <span class="badge bg-secondary"><i class="bi bi-speedometer2 me-1"></i>Weighted</span>
+            <% end %>
+            <% if exercise.global? %>
+              <span class="badge bg-dark"><i class="bi bi-globe me-1"></i>Global</span>
+            <% else %>
+              <span class="badge bg-rust"><i class="bi bi-person me-1"></i>Mine</span>
+            <% end %>
+          </div>
+          <%= link_to history_exercise_path(exercise), class: "btn btn-sm btn-outline-secondary", title: "View history", data: { turbo_frame: "_top" } do %>
+            <i class="bi bi-graph-up-arrow"></i>
+          <% end %>
+          <% unless exercise.global? %>
+            <%= link_to edit_exercise_path(exercise), class: "btn btn-sm btn-outline-secondary", title: "Edit", data: { turbo_frame: dom_id(exercise) } do %>
+              <i class="bi bi-pencil"></i>
+            <% end %>
+            <% 
+              usage_count = exercise.workout_exercises.count
+              if usage_count > 0
+                confirm_msg = "DELETE #{exercise.name}?\n\nThis exercise has been logged #{usage_count} #{'time'.pluralize(usage_count)} in your workouts.\n\nThis will permanently delete ALL associated workout data including sets and history.\n\nThis cannot be undone!"
+              else
+                confirm_msg = "Delete #{exercise.name}?"
+              end
+            %>
+            <%= button_to exercise_path(exercise, force: usage_count > 0 ? "true" : nil), 
+                method: :delete, 
+                class: "btn btn-sm btn-outline-danger", 
+                title: usage_count > 0 ? "#{usage_count} logged sessions" : "Delete",
+                data: { turbo_confirm: confirm_msg } do %>
+              <i class="bi bi-trash"></i>
+              <% if usage_count > 0 %>
+                <span class="badge bg-danger ms-1"><%= usage_count %></span>
+              <% end %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

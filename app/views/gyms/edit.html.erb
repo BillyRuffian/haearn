@@ -1,0 +1,20 @@
+<% content_for(:title) { "Edit #{@gym.name} | Haearn" } %>
+
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><%= link_to "Gyms", gyms_path %></li>
+      <li class="breadcrumb-item active"><%= @gym.name %></li>
+    </ol>
+  </nav>
+
+  <h1 class="display-heading mb-4">Edit Gym</h1>
+
+  <div class="card">
+    <div class="card-body">
+      <%= turbo_frame_tag @gym do %>
+        <%= render "form", gym: @gym %>
+      <% end %>
+    </div>
+  </div>
+</div>

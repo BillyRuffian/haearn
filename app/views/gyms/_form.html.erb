@@ -1,0 +1,35 @@
+<%= form_with(model: gym, class: "row g-3 align-items-end") do |form| %>
+  <% if gym.errors.any? %>
+    <div class="col-12">
+      <div class="alert alert-danger py-2">
+        <% gym.errors.full_messages.each do |message| %>
+          <div><%= message %></div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="col-md-4">
+    <%= form.label :name, class: "form-label" %>
+    <%= form.text_field :name, class: "form-control", placeholder: "e.g., Iron Temple", required: true %>
+  </div>
+
+  <div class="col-md-4">
+    <%= form.label :location, class: "form-label" %>
+    <%= form.text_field :location, class: "form-control", placeholder: "e.g., Downtown" %>
+  </div>
+
+  <div class="col-md-4">
+    <%= form.label :notes, class: "form-label" %>
+    <%= form.text_field :notes, class: "form-control", placeholder: "Any notes..." %>
+  </div>
+
+  <div class="col-12">
+    <div class="d-flex gap-2">
+      <%= form.submit gym.persisted? ? "Update Gym" : "Add Gym", class: "btn btn-primary" %>
+      <% if gym.persisted? %>
+        <%= link_to "Cancel", gym_path(gym), class: "btn btn-outline-secondary", data: { turbo_frame: dom_id(gym) } %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

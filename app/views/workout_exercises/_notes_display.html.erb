@@ -1,0 +1,27 @@
+<div id="workout_exercise_notes_<%= workout_exercise.id %>" class="notes-section mt-2 pt-2 border-top">
+  <div class="d-flex justify-content-between align-items-start">
+    <div class="flex-grow-1">
+      <% if workout_exercise.persistent_notes.present? %>
+        <small class="d-block text-warning">
+          <i class="bi bi-pin-angle-fill me-1"></i><%= workout_exercise.persistent_notes %>
+        </small>
+      <% end %>
+      <% if workout_exercise.session_notes.present? %>
+        <small class="d-block text-muted">
+          <i class="bi bi-chat-text me-1"></i><%= workout_exercise.session_notes %>
+        </small>
+      <% end %>
+      <% if workout_exercise.persistent_notes.blank? && workout_exercise.session_notes.blank? %>
+        <small class="text-muted fst-italic">No notes</small>
+      <% end %>
+    </div>
+    <% if workout.in_progress? %>
+      <%= link_to edit_workout_workout_exercise_path(workout, workout_exercise),
+          class: "btn btn-sm btn-link text-muted p-0 ms-2",
+          data: { turbo_stream: true },
+          title: "Edit notes" do %>
+        <i class="bi bi-pencil"></i>
+      <% end %>
+    <% end %>
+  </div>
+</div>

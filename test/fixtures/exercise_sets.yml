@@ -1,0 +1,21 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  workout_exercise: one
+  position: 1
+  is_warmup: false
+  weight_kg: 9.99
+  reps: 1
+  duration_seconds: 1
+  distance_meters: 9.99
+  completed_at: 2026-02-02 21:29:27
+
+two:
+  workout_exercise: two
+  position: 1
+  is_warmup: false
+  weight_kg: 9.99
+  reps: 1
+  duration_seconds: 1
+  distance_meters: 9.99
+  completed_at: 2026-02-02 21:29:27

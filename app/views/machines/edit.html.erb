@@ -1,0 +1,21 @@
+<% content_for(:title) { "Edit #{@machine.name} | Haearn" } %>
+
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><%= link_to "Gyms", gyms_path %></li>
+      <li class="breadcrumb-item"><%= link_to @gym.name, gym_path(@gym) %></li>
+      <li class="breadcrumb-item active"><%= @machine.name %></li>
+    </ol>
+  </nav>
+
+  <h1 class="display-heading mb-4">Edit Machine</h1>
+
+  <div class="card">
+    <div class="card-body">
+      <%= turbo_frame_tag @machine do %>
+        <%= render "form", machine: @machine, gym: @gym %>
+      <% end %>
+    </div>
+  </div>
+</div>

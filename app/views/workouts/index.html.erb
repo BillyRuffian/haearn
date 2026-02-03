@@ -1,0 +1,141 @@
+<% content_for(:title) { "Workout History | Haearn" } %>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-heading mb-0">
+      <i class="bi bi-clock-history me-2"></i>Workout History
+    </h1>
+    <% unless @active_workout %>
+      <%= link_to new_workout_path, class: "btn btn-primary" do %>
+        <i class="bi bi-plus-lg me-1"></i>Start Workout
+      <% end %>
+    <% end %>
+  </div>
+
+  <% if @active_workout %>
+    <div class="alert alert-warning mb-4">
+      <div class="d-flex justify-content-between align-items-center">
+        <span>
+          <i class="bi bi-lightning-charge me-2"></i>
+          <strong>Workout in progress</strong> at <%= @active_workout.gym&.name || "home" %>
+          (<%= @active_workout.duration_minutes %> min)
+        </span>
+        <%= link_to "Continue", workout_path(@active_workout), class: "btn btn-primary btn-sm" %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Filters -->
+  <%= turbo_frame_tag "workouts_list" do %>
+    <div class="card mb-4">
+      <div class="card-body py-2">
+        <%= form_with url: workouts_path, method: :get, data: { turbo_frame: "workouts_list" } do %>
+          <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+              <label class="form-label small">Gym</label>
+              <%= select_tag :gym_id,
+                  options_from_collection_for_select(@gyms, :id, :name, params[:gym_id]),
+                  include_blank: "All gyms",
+                  class: "form-select form-select-sm",
+                  onchange: "this.form.requestSubmit()",
+                  data: { controller: "custom-select" } %>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small">From</label>
+              <%= date_field_tag :from, params[:from], class: "form-control form-control-sm", onchange: "this.form.requestSubmit()" %>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small">To</label>
+              <%= date_field_tag :to, params[:to], class: "form-control form-control-sm", onchange: "this.form.requestSubmit()" %>
+            </div>
+            <div class="col-md-2">
+              <% if params[:gym_id].present? || params[:from].present? || params[:to].present? %>
+                <%= link_to "Clear", workouts_path, class: "btn btn-outline-secondary btn-sm w-100" %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Stats Summary -->
+    <% if @workouts.any? %>
+      <div class="row g-3 mb-4">
+        <div class="col-4">
+          <div class="card text-center">
+            <div class="card-body py-2">
+              <div class="h5 mb-0"><%= @workouts.count %></div>
+              <small class="text-muted">Workouts</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="card text-center">
+            <div class="card-body py-2">
+              <div class="h5 mb-0"><%= @workouts.sum { |w| w.exercise_sets.where(is_warmup: false).count } %></div>
+              <small class="text-muted">Sets</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="card text-center">
+            <div class="card-body py-2">
+              <div class="weight-display h5 mb-0">
+                <%= number_with_delimiter(Current.user.display_weight(@workouts.sum(&:total_volume_kg)).round) %>
+              </div>
+              <small class="text-muted">Total Volume</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    <div class="list-group">
+      <% @workouts.each do |workout| %>
+        <div class="list-group-item workout-history-item">
+          <div class="d-flex justify-content-between align-items-center">
+            <%= link_to workout_path(workout), class: "flex-grow-1 text-decoration-none", data: { turbo_frame: "_top" } do %>
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h6 class="mb-1">
+                    <%= workout.started_at.strftime("%A, %B %-d, %Y") %>
+                    <% if workout.in_progress? %>
+                      <span class="badge bg-warning ms-2">In Progress</span>
+                    <% end %>
+                  </h6>
+                  <p class="text-muted mb-0 small">
+                    <% if workout.gym %>
+                      <i class="bi bi-building me-1"></i><%= workout.gym.name %> &middot;
+                    <% end %>
+                    <%= pluralize(workout.workout_exercises.count, "exercise") %> &middot;
+                    <%= pluralize(workout.exercise_sets.count, "set") %>
+                    <% if workout.completed? %>
+                      &middot; <%= workout.duration_minutes %> min
+                    <% end %>
+                  </p>
+                </div>
+                <div class="text-end me-3">
+                  <span class="weight-display h5 mb-0">
+                    <%= number_with_delimiter(Current.user.display_weight(workout.total_volume_kg).round) %>
+                  </span>
+                  <span class="text-muted small"><%= Current.user.preferred_unit %></span>
+                </div>
+              </div>
+            <% end %>
+            <% if workout.completed? && !@active_workout %>
+              <%= button_to copy_workout_path(workout), method: :post, class: "btn btn-outline-primary btn-sm copy-workout-btn", title: "Repeat this workout", data: { turbo_confirm: "Start a new workout based on this one?" } do %>
+                <i class="bi bi-arrow-repeat"></i>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center py-5">
+      <i class="bi bi-calendar-x display-4 text-muted"></i>
+      <p class="text-muted mt-3">No workouts yet. Start your first one!</p>
+      <%= link_to "Start Workout", new_workout_path, class: "btn btn-primary", data: { turbo_frame: "_top" } %>
+    </div>
+  <% end %>
+  <% end %>
+</div>

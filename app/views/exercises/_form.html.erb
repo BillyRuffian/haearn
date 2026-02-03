@@ -1,0 +1,47 @@
+<%= form_with(model: exercise, class: "row g-3 align-items-end") do |form| %>
+  <% if exercise.errors.any? %>
+    <div class="col-12">
+      <div class="alert alert-danger py-2">
+        <% exercise.errors.full_messages.each do |message| %>
+          <div><%= message %></div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="col-md-4">
+    <%= form.label :name, class: "form-label" %>
+    <%= form.text_field :name, class: "form-control", placeholder: "e.g., Incline Hammer Curl", required: true %>
+  </div>
+
+  <div class="col-md-2">
+    <%= form.label :exercise_type, "Type", class: "form-label" %>
+    <%= form.select :exercise_type, 
+        Exercise::EXERCISE_TYPES.map { |t| [t.titleize, t] }, 
+        { include_blank: "Select..." },
+        class: "form-select", 
+        required: true,
+        data: { controller: "custom-select" } %>
+  </div>
+
+  <div class="col-md-2">
+    <div class="form-check mt-4">
+      <%= form.check_box :has_weight, class: "form-check-input" %>
+      <%= form.label :has_weight, "Uses Weight", class: "form-check-label" %>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <%= form.label :description, class: "form-label" %>
+    <%= form.text_field :description, class: "form-control", placeholder: "Optional description..." %>
+  </div>
+
+  <div class="col-12">
+    <div class="d-flex gap-2">
+      <%= form.submit exercise.persisted? ? "Update" : "Create Exercise", class: "btn btn-primary" %>
+      <% if exercise.persisted? %>
+        <%= link_to "Cancel", exercises_path, class: "btn btn-outline-secondary", data: { turbo_frame: dom_id(exercise) } %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

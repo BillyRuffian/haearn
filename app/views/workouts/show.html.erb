@@ -1,0 +1,158 @@
+<% content_for(:title) { "Workout | Haearn" } %>
+
+<div class="container py-4">
+  <!-- Workout Header -->
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+      <h1 class="display-heading mb-1">
+        <% if @workout.in_progress? %>
+          <i class="bi bi-lightning-charge text-warning me-2"></i>Active Workout
+        <% else %>
+          <i class="bi bi-calendar-check me-2"></i>Workout
+        <% end %>
+      </h1>
+      <p class="text-muted mb-0">
+        <i class="bi bi-calendar3 me-1"></i><%= @workout.started_at.strftime("%A, %B %-d at %-I:%M %p") %>
+        <% if @workout.gym %>
+          <span class="ms-2"><i class="bi bi-building me-1"></i><%= @workout.gym.name %></span>
+        <% end %>
+      </p>
+    </div>
+    <div class="text-end">
+      <% if @workout.in_progress? %>
+        <div class="workout-timer h4 mb-2" data-controller="timer" data-timer-started-at-value="<%= @workout.started_at.iso8601 %>">
+          <span data-timer-target="display"><%= @workout.duration_minutes %></span> min
+        </div>
+        <div class="d-flex gap-2 justify-content-end">
+          <%= button_to workout_path(@workout), 
+              method: :delete, 
+              class: "btn btn-outline-danger",
+              data: { turbo_confirm: "Discard this workout? All sets will be deleted. This cannot be undone." } do %>
+            <i class="bi bi-trash me-1"></i>Discard
+          <% end %>
+          <%= button_to "Finish Workout", finish_workout_path(@workout), 
+              method: :patch, 
+              class: "btn btn-success",
+              data: { turbo_confirm: "Finish this workout?" } %>
+        </div>
+      <% else %>
+        <div class="h4 mb-2"><%= @workout.duration_minutes %> min</div>
+        <% unless Current.user.active_workout %>
+          <%= button_to copy_workout_path(@workout), method: :post, 
+              class: "btn btn-primary",
+              data: { turbo_confirm: "Start a new workout based on this one?" } do %>
+            <i class="bi bi-arrow-repeat me-1"></i>Repeat
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Workout Stats -->
+  <%= render "workouts/stats", workout: @workout %>
+
+  <!-- Workout Notes -->
+  <% if @workout.in_progress? || @workout.notes.present? %>
+    <div class="card mb-4">
+      <div class="card-body">
+        <%= turbo_frame_tag "workout_notes" do %>
+          <% if @editing_notes %>
+            <%= form_with model: @workout, url: workout_path(@workout), method: :patch do |form| %>
+              <%= form.text_area :notes, 
+                  class: "form-control mb-2", 
+                  rows: 2, 
+                  placeholder: "How are you feeling today?" %>
+              <div class="d-flex gap-2">
+                <%= form.submit "Save", class: "btn btn-primary btn-sm" %>
+                <%= link_to "Cancel", workout_path(@workout), class: "btn btn-outline-secondary btn-sm" %>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <small class="text-muted d-block mb-1">Session Notes</small>
+                <% if @workout.notes.present? %>
+                  <p class="mb-0"><%= @workout.notes %></p>
+                <% else %>
+                  <p class="text-muted mb-0 fst-italic">No notes</p>
+                <% end %>
+              </div>
+              <% if @workout.in_progress? %>
+                <%= link_to workout_path(@workout, editing_notes: true), 
+                    class: "btn btn-sm btn-outline-secondary",
+                    data: { turbo_frame: "workout_notes" } do %>
+                  <i class="bi bi-pencil"></i>
+                <% end %>
+              <% end %>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Exercise Blocks -->
+  <div id="workout_blocks">
+    <%= turbo_frame_tag "workout_exercises" do %>
+      <% @workout.workout_blocks.includes(workout_exercises: [:exercise, :machine, :exercise_sets]).order(:position).each do |block| %>
+        <%= render "workout_block", block: block, workout: @workout %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <!-- Add Exercise Button -->
+  <% if @workout.in_progress? %>
+    <div class="d-grid mt-4">
+      <%= link_to add_exercise_workout_path(@workout), 
+          class: "btn btn-outline-primary btn-lg",
+          data: { turbo_frame: "modal" } do %>
+        <i class="bi bi-plus-lg me-2"></i>Add Exercise
+      <% end %>
+    </div>
+  <% end %>
+</div>
+
+<!-- Modal Frame for Exercise Picker -->
+<%= turbo_frame_tag "modal" %>
+
+<!-- Rest Timer (fixed footer bar) -->
+<% if @workout.in_progress? %>
+  <div class="rest-timer-footer" data-controller="rest-timer" data-rest-timer-duration-value="120">
+    <!-- Collapsed state: just a button -->
+    <div class="rest-timer-collapsed" data-rest-timer-target="collapsed">
+      <button type="button" 
+              class="rest-timer-start-btn"
+              data-action="rest-timer#start"
+              title="Start rest timer">
+        <i class="bi bi-stopwatch me-2"></i>Start Rest Timer
+      </button>
+    </div>
+    
+    <!-- Expanded state: the timer bar -->
+    <div class="rest-timer-bar d-none" data-rest-timer-target="container">
+      <div class="rest-timer-bar-content">
+        <button type="button" class="rest-timer-adjust-btn" data-action="rest-timer#subtract15">
+          -15s
+        </button>
+        
+        <div class="rest-timer-center">
+          <span class="rest-timer-display" data-rest-timer-target="display">2:00</span>
+          <div class="rest-timer-progress">
+            <div class="rest-timer-progress-bar" data-rest-timer-target="progress"></div>
+          </div>
+        </div>
+        
+        <button type="button" class="rest-timer-adjust-btn" data-action="rest-timer#add15">
+          +15s
+        </button>
+        
+        <button type="button" class="rest-timer-skip-btn" data-action="rest-timer#skip">
+          <i class="bi bi-skip-forward-fill"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Spacer to prevent content from being hidden behind footer -->
+  <div class="rest-timer-spacer"></div>
+<% end %>
