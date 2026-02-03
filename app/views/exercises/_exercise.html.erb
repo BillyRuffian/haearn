@@ -1,9 +1,9 @@
 <%= turbo_frame_tag exercise do %>
   <div class="card mb-2">
     <div class="card-body py-2">
-      <div class="d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center flex-grow-1">
-          <div class="me-3" style="min-width: 200px;">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+        <div class="flex-grow-1">
+          <div>
             <%= link_to history_exercise_path(exercise), class: "text-decoration-none", data: { turbo_frame: "_top" } do %>
               <strong><%= exercise.name %></strong>
             <% end %>
@@ -11,9 +11,7 @@
               <span class="text-muted ms-2 small"><%= truncate(exercise.description, length: 50) %></span>
             <% end %>
           </div>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-          <div class="d-flex gap-1">
+          <div class="mt-1 d-flex flex-wrap gap-1">
             <%= exercise_type_badge(exercise) %>
             <% if exercise.has_weight? %>
               <span class="badge bg-secondary"><i class="bi bi-speedometer2 me-1"></i>Weighted</span>
@@ -24,6 +22,8 @@
               <span class="badge bg-rust"><i class="bi bi-person me-1"></i>Mine</span>
             <% end %>
           </div>
+        </div>
+        <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
           <%= link_to history_exercise_path(exercise), class: "btn btn-sm btn-outline-secondary", title: "View history", data: { turbo_frame: "_top" } do %>
             <i class="bi bi-graph-up-arrow"></i>
           <% end %>
