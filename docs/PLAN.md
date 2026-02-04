@@ -66,7 +66,22 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Display unit selector
 - [x] Persistent notes field
 
-### 2.3 Exercise Library
+### 2.3 Machine Photos
+- [ ] Active Storage setup (local disk storage, not cloud)
+- [ ] Multiple photos per machine (gallery)
+- [ ] Camera capture directly from mobile (not just file picker)
+- [ ] Photo use cases:
+  - Machine identification (which leg press is this?)
+  - Seat/pad position settings
+  - Pin placement for adjustments
+  - Cable attachment setup
+  - Weight stack/plate configuration
+- [ ] Photo thumbnails on machine list
+- [ ] Full-screen photo viewer with swipe
+- [ ] Delete/reorder photos
+- [ ] Optional: annotate photos (draw circles/arrows on settings)
+
+### 2.4 Exercise Library
 - [x] `ExercisesController` for viewing/creating
 - [x] Filter by type (reps/time/distance)
 - [x] Search functionality
@@ -162,6 +177,25 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Volume over time
 - [x] Workout frequency (8-week bar chart on dashboard)
 
+### 4.5 Advanced Visualizations (Future)
+- [ ] **Calendar Heatmap** - GitHub-style contribution graph for workout consistency
+- [ ] **PR Timeline** - Scatter plot showing when PRs were hit across all lifts
+- [ ] **Estimated 1RM Trend** - Track e1RM over time (more meaningful than raw weight)
+- [ ] **Volume Distribution Pie Chart** - Breakdown by muscle group (weekly/monthly)
+- [ ] **Lift Ratio Spider Chart** - Balance between major lifts (squat/bench/deadlift/OHP)
+- [ ] **Rep Range Distribution** - Bar chart showing % of sets in each rep range (1-5, 6-10, 10+)
+- [ ] **Training Density** - Volume per minute/hour over time (workout efficiency)
+- [ ] **Tonnage Tracker** - Total weight lifted per session/week/month (area chart)
+- [ ] **Strength Curve** - Performance at different rep ranges per exercise (are you better at 3s or 10s?)
+- [ ] **Session Duration Trends** - Are workouts getting longer/shorter?
+- [ ] **Body Map Heatmap** - Visual showing which muscles trained recently (recovery indicator)
+- [ ] **Exercise Frequency Ranking** - Bar chart of most-performed exercises
+- [ ] **Consistency Streaks** - Current/longest streak visualizations
+- [ ] **Week-over-Week Comparison** - Side-by-side volume bars for this week vs last
+- [ ] **Wilks/DOTS Score Over Time** - For powerlifters tracking relative strength
+- [ ] **Plateau Detector** - Visual highlighting exercises with no PR in X weeks
+- [ ] **Training Split Adherence** - Planned vs actual sessions (donut chart)
+
 ---
 
 ## Phase 5: Unit Conversion System
@@ -249,6 +283,46 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] `loading_controller.js` for loading states
 - [x] Skeleton loading CSS classes
 - [x] Custom turbo-progress-bar styling
+
+---
+
+## Phase 7.5: Granular Tracking (Future)
+
+### 7.5.1 Equipment Modifiers
+- [ ] Belt used (boolean per set) - PRs with/without are different
+- [ ] Wraps/sleeves (knee, wrist, elbow)
+- [ ] Straps used (for grip-limited exercises)
+- [ ] Track "raw" vs "equipped" PRs separately
+
+### 7.5.2 Exercise Variations
+- [ ] Grip width (close/normal/wide)
+- [ ] Stance (narrow/normal/wide/sumo)
+- [ ] Incline/decline angle for benches
+- [ ] Bar type (straight, EZ-curl, SSB, trap bar, cambered)
+- [ ] Store as modifiers on WorkoutExercise, not separate exercises
+
+### 7.5.3 Set Outcomes
+- [ ] Failed rep tracking (attempted but didn't complete)
+- [ ] Partial reps (half reps, cheat reps)
+- [ ] Spotter assisted (and how much help)
+- [ ] Pain/discomfort flag on set (something tweaked)
+
+### 7.5.4 Advanced Loading
+- [ ] Band tension (accommodating resistance)
+- [ ] Chain weight
+- [ ] Blood flow restriction (BFR) sets
+- [ ] Tempo prescription (3-1-2-0 format: eccentric-pause-concentric-pause)
+
+### 7.5.5 Form Video
+- [ ] Record video of a set (Active Storage, local)
+- [ ] Attach video to specific ExerciseSet
+- [ ] Quick playback for form review
+- [ ] Optional: side-by-side comparison of same lift over time
+
+### 7.5.6 Exercise Cues
+- [ ] Personal form reminders per exercise ("squeeze at top", "elbows tucked")
+- [ ] Display cues when exercise is selected
+- [ ] Quick-add cues during workout
 
 ---
 
@@ -437,10 +511,102 @@ $text-muted: #6c757d;
 
 ---
 
+## Phase 8: Advanced Training Features
+
+### 8.1 Workout Templates & Programs
+- [ ] Create reusable workout templates from past workouts
+- [ ] Program builder (weekly schedules, mesocycles)
+- [ ] Popular split templates (PPL, Upper/Lower, Full Body)
+- [ ] Deload week automation (reduce volume/intensity by %)
+- [ ] Program progression rules (linear, double progression, wave loading)
+
+### 8.2 Auto-Regulation & Suggestions
+- [ ] RPE (Rate of Perceived Exertion) logging per set
+- [ ] RIR (Reps in Reserve) tracking
+- [ ] Auto-suggest weight increases based on performance
+- [ ] Fatigue indicator (compare current vs typical performance)
+- [ ] "Ready to progress" notifications when hitting rep targets consistently
+
+### 8.3 1RM Calculator & Projections
+- [ ] Calculate estimated 1RM from any set (Epley, Brzycki formulas)
+- [ ] Track e1RM trends over time
+- [ ] Percentage-based programming (work at 80% of 1RM, etc.)
+- [ ] Strength standards comparison (beginner → elite)
+
+### 8.4 Advanced Set Types
+- [ ] Drop sets (weight decrements tracked)
+- [ ] Rest-pause sets (micro-rest within set)
+- [ ] Cluster sets (inter-rep rest)
+- [ ] Myo-reps / Back-off sets
+- [ ] AMRAP sets (as many reps as possible, flag for PR tracking)
+- [ ] Tempo tracking (eccentric/pause/concentric, e.g., 3-1-2)
+
+### 8.5 Warm-up Generator
+- [ ] Auto-generate warmup sets for working weight
+- [ ] Configurable progression (e.g., bar → 50% → 70% → 85% → work sets)
+- [ ] One-tap "add warmups" to exercise
+
+### 8.6 Body Metrics Tracking
+- [ ] Bodyweight log (morning weigh-ins)
+- [ ] Body measurements (arms, chest, waist, legs)
+- [ ] Progress photos with date overlay
+- [ ] Wilks/DOTS/IPF GL score calculation for powerlifters
+- [ ] Bodyweight-relative strength tracking (e.g., 2x BW squat)
+
+### 8.7 Recovery & Readiness
+- [ ] Sleep quality logging (hours, rating)
+- [ ] Muscle soreness tracker (body map)
+- [ ] Recovery score based on recent volume + rest
+- [ ] Suggest rest days when volume is excessive
+
+---
+
+## Phase 9: Data & Analysis
+
+### 9.1 Data Export/Import
+- [ ] Export workouts to CSV/JSON
+- [ ] Export PR history
+- [ ] Import from other apps (Strong, Hevy, etc.)
+- [ ] Backup/restore functionality
+
+### 9.2 Advanced Analytics
+- [ ] Volume per muscle group (weekly/monthly)
+- [ ] Training frequency heatmap
+- [ ] Exercise balance analysis (push/pull ratio, anterior/posterior)
+- [ ] Plateau detection (no PR in X weeks)
+- [ ] Workout consistency streaks
+
+### 9.3 Comparison Tools
+- [ ] Compare any two workouts side-by-side
+- [ ] Week-over-week volume comparison
+- [ ] "This time last year" view
+
+---
+
+## Phase 10: Quality of Life
+
+### 10.1 Exercise Management
+- [ ] Exercise substitution suggestions (similar movement patterns)
+- [ ] Mark machines as broken/unavailable at gym
+- [ ] Equipment "favorites" for quick selection
+- [ ] Exercise notes/cues library (form reminders)
+
+### 10.2 Injury Management
+- [ ] Log injuries with affected body parts
+- [ ] Auto-flag exercises that stress injured areas
+- [ ] "Safe alternatives" suggestions during injury
+
+### 10.3 Competition Mode (Powerlifting)
+- [ ] Meet day tracker (3 attempts per lift)
+- [ ] Attempt selection helper
+- [ ] Meet history and totals
+- [ ] Weigh-in countdown
+
+---
+
 ## Notes for Future Development
 
-- Consider workout templates/programs in Phase 8
-- Data export (CSV/JSON) can be added anytime
-- Social features (sharing workouts) could be Phase 9
 - Barcode scanning for gym machines?
-- Integration with fitness trackers?
+- Integration with fitness trackers / Apple Health?
+- Heart rate zone tracking for conditioning work?
+- Video form check with rep counter (ML)?
