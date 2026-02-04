@@ -9,6 +9,10 @@
     </div>
   <% end %>
 
+  <% if local_assigns[:return_to] || params[:return_to] %>
+    <%= hidden_field_tag :return_to, local_assigns[:return_to] || params[:return_to] %>
+  <% end %>
+
   <div class="col-md-4">
     <%= form.label :name, class: "form-label" %>
     <%= form.text_field :name, class: "form-control", placeholder: "e.g., Iron Temple", required: true %>

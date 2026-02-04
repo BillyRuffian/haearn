@@ -11,10 +11,67 @@
 
   <h1 class="display-heading mb-4">Edit Machine</h1>
 
-  <div class="card">
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Machine Details</h5>
+    </div>
     <div class="card-body">
       <%= turbo_frame_tag @machine do %>
         <%= render "form", machine: @machine, gym: @gym %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h5 class="mb-0"><i class="bi bi-camera me-2"></i>Photos</h5>
+    </div>
+    <div class="card-body">
+      <p class="text-muted small mb-3">
+        Add photos to remember seat positions, pin settings, or identify this machine.
+      </p>
+
+      <%# Photo Gallery %>
+      <% if @machine.photos.attached? %>
+        <div class="row g-3 mb-4" id="photo-gallery">
+          <% @machine.photos.each do |photo| %>
+            <div class="col-6 col-md-4 col-lg-3" id="<%= "photo_#{photo.id}" %>">
+              <div class="card h-100 photo-card">
+                <%= link_to url_for(photo), target: "_blank", class: "d-block" do %>
+                  <%= image_tag photo.variant(resize_to_fill: [300, 300]), 
+                      class: "card-img-top", 
+                      style: "object-fit: cover; aspect-ratio: 1;",
+                      alt: "Machine photo" %>
+                <% end %>
+                <div class="card-body p-2 text-center">
+                  <%= button_to delete_photo_gym_machine_path(@gym, @machine, photo_id: photo.id),
+                      method: :delete,
+                      class: "btn btn-sm btn-outline-danger",
+                      data: { turbo_confirm: "Delete this photo?" } do %>
+                    <i class="bi bi-trash"></i> Delete
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%# Upload Form %>
+      <%= form_with model: [@gym, @machine], method: :patch, local: true, class: "photo-upload-form" do |form| %>
+        <div class="mb-3">
+          <%= form.label :photos, "Add Photos", class: "form-label" %>
+          <%= form.file_field :photos, 
+              multiple: true,
+              accept: "image/jpeg,image/png,image/webp,image/heic,image/heif",
+              capture: "environment",
+              class: "form-control",
+              direct_upload: false %>
+          <div class="form-text">
+            JPEG, PNG, WebP, or HEIC. Max 10MB each. On mobile, tap to use camera.
+          </div>
+        </div>
+        <%= form.submit "Upload Photos", class: "btn btn-primary" %>
       <% end %>
     </div>
   </div>

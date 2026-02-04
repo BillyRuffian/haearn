@@ -24,8 +24,14 @@ class GymsController < ApplicationController
 
     respond_to do |format|
       if @gym.save
-        format.turbo_stream { render turbo_stream: turbo_stream.prepend('gyms', partial: 'gyms/gym', locals: { gym: @gym }) + turbo_stream.update('new_gym_form', partial: 'gyms/form', locals: { gym: Gym.new }) }
-        format.html { redirect_to gyms_path, notice: 'Gym created successfully.' }
+        format.turbo_stream {
+          if turbo_frame_request?
+            render turbo_stream: turbo_stream.prepend('gyms', partial: 'gyms/gym', locals: { gym: @gym }) + turbo_stream.update('new_gym_form', partial: 'gyms/form', locals: { gym: Gym.new })
+          else
+            redirect_to safe_return_to(params[:return_to]) || new_workout_path, notice: 'Gym created! Now start your workout.'
+          end
+        }
+        format.html { redirect_to safe_return_to(params[:return_to]) || gyms_path, notice: 'Gym created successfully.' }
       else
         format.turbo_stream { render turbo_stream: turbo_stream.update('new_gym_form', partial: 'gyms/form', locals: { gym: @gym }) }
         format.html { render :new, status: :unprocessable_entity }

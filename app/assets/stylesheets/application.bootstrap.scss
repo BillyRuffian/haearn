@@ -1881,3 +1881,228 @@ html {
     color: rgba(255, 255, 255, 0.7) !important;
   }
 }
+
+// Calendar Heatmap - GitHub-style workout consistency graph
+.heatmap-card {
+  overflow: hidden; // Contain the fade element
+}
+
+.heatmap-scroll-fade {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 50px;
+  background: linear-gradient(to right, transparent, $iron-dark);
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 0.2s ease;
+  
+  // Hide on larger screens where scroll isn't needed
+  @media (min-width: 900px) {
+    display: none;
+  }
+}
+
+.heatmap-container {
+  position: relative;
+  overflow-x: auto;
+  padding: 1rem 0;
+  -webkit-overflow-scrolling: touch; // Smooth scrolling on iOS
+}
+
+.heatmap-wrapper {
+  display: flex;
+  gap: 4px;
+}
+
+.heatmap-grid-area {
+  display: flex;
+  flex-direction: column;
+}
+
+.heatmap-months {
+  position: relative;
+  height: 16px;
+  margin-bottom: 3px;
+  
+  @media (min-width: 576px) {
+    height: 18px;
+    margin-bottom: 4px;
+  }
+}
+
+.heatmap-month-label {
+  position: absolute;
+  font-size: 0.6rem;
+  color: $gunmetal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  
+  @media (min-width: 576px) {
+    font-size: 0.7rem;
+  }
+}
+
+.heatmap-days {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-top: 19px; // Align with weeks (account for month labels)
+  
+  @media (min-width: 576px) {
+    gap: 2px;
+    padding-top: 22px;
+  }
+  
+  span {
+    font-size: 0.55rem;
+    color: $gunmetal;
+    height: 9px;
+    line-height: 9px;
+    width: 22px;
+    text-align: right;
+    padding-right: 3px;
+    
+    @media (min-width: 576px) {
+      font-size: 0.65rem;
+      height: 12px;
+      line-height: 12px;
+      width: 28px;
+      padding-right: 4px;
+    }
+  }
+}
+
+.heatmap-weeks {
+  display: flex;
+  gap: 1px;
+  
+  @media (min-width: 576px) {
+    gap: 2px;
+  }
+}
+
+.heatmap-week {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  
+  @media (min-width: 576px) {
+    gap: 2px;
+  }
+}
+
+.heatmap-cell {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  transition: transform 0.1s ease;
+  
+  @media (min-width: 576px) {
+    width: 12px;
+    height: 12px;
+  }
+  
+  &:hover {
+    transform: scale(1.3);
+    cursor: pointer;
+  }
+  
+  // Disable hover scale on touch devices
+  @media (hover: none) {
+    &:hover {
+      transform: none;
+    }
+  }
+  
+  &.level-0 {
+    background: $iron-medium;
+  }
+  
+  &.level-1 {
+    background: rgba($rust-dark, 0.6);
+  }
+  
+  &.level-2 {
+    background: rgba($rust, 0.8);
+  }
+  
+  &.level-3 {
+    background: $rust-light;
+  }
+  
+  &.level-4 {
+    background: $forge-orange;
+    box-shadow: 0 0 4px rgba($forge-orange, 0.5);
+  }
+  
+  &.level-future {
+    background: $iron-dark;
+    opacity: 0.3;
+    
+    &:hover {
+      transform: none;
+      cursor: default;
+    }
+  }
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  margin-top: 0.5rem;
+  
+  @media (min-width: 576px) {
+    gap: 3px;
+    margin-top: 0.75rem;
+  }
+  
+  .heatmap-cell {
+    width: 9px;
+    height: 9px;
+    
+    @media (min-width: 576px) {
+      width: 12px;
+      height: 12px;
+    }
+    
+    &:hover {
+      transform: none;
+      cursor: default;
+    }
+  }
+}
+
+.heatmap-tooltip {
+  position: absolute;
+  background: $iron-dark;
+  border: 1px solid $iron-light;
+  padding: 0.35rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: $body-color;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  z-index: 10;
+  pointer-events: none;
+  
+  // Hide tooltip on touch devices (they can't hover)
+  @media (hover: none) {
+    display: none;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid $iron-light;
+  }
+}

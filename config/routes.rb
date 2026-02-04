@@ -112,6 +112,8 @@ Rails.application.routes.draw do
   # Settings
   resource :settings, only: %i[show update] do
     patch :update_password, on: :member
+    get :export_data, on: :member
+    get :export_csv, on: :member
   end
 
   # Dashboard
@@ -122,7 +124,11 @@ Rails.application.routes.draw do
     member do
       post :set_default
     end
-    resources :machines
+    resources :machines do
+      member do
+        delete :delete_photo
+      end
+    end
   end
 
   # Exercise Library

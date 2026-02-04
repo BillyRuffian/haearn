@@ -14,7 +14,9 @@ export default class extends Controller {
     labels: Array,
     points: Array,
     label: { type: String, default: "Value" },
-    color: { type: String, default: "#c86432" }
+    color: { type: String, default: "#c86432" },
+    horizontal: { type: Boolean, default: false },
+    fill: { type: Boolean, default: false }
   }
 
   static targets = ["canvas"]
@@ -45,15 +47,23 @@ export default class extends Controller {
 
     // Simple mode: build data from labels/points/color values
     if (this.hasLabelsValue && this.hasPointsValue) {
+      const dataset = {
+        label: this.labelValue,
+        data: this.pointsValue,
+        backgroundColor: this.colorValue,
+        borderColor: this.colorValue,
+        borderWidth: 2
+      }
+      
+      // Add fill for area charts
+      if (this.fillValue) {
+        dataset.fill = true
+        dataset.backgroundColor = this.hexToRgba(this.colorValue, 0.2)
+      }
+      
       chartData = {
         labels: this.labelsValue,
-        datasets: [{
-          label: this.labelValue,
-          data: this.pointsValue,
-          backgroundColor: this.colorValue,
-          borderColor: this.colorValue,
-          borderWidth: 2
-        }]
+        datasets: [dataset]
       }
     }
 
@@ -120,9 +130,18 @@ export default class extends Controller {
 
     // Merge with provided options
     const mergedOptions = this.deepMerge(defaultOptions, this.optionsValue || {})
+    
+    // Handle horizontal bar charts
+    let chartType = this.typeValue
+    if (this.horizontalValue && chartType === 'bar') {
+      mergedOptions.indexAxis = 'y'
+      // For horizontal bars, swap x/y grid styling
+      mergedOptions.scales.x.beginAtZero = true
+      mergedOptions.scales.y.grid = { display: false }
+    }
 
     this.chart = new Chart(ctx, {
-      type: this.typeValue,
+      type: chartType,
       data: chartData,
       options: mergedOptions
     })
@@ -139,6 +158,14 @@ export default class extends Controller {
       }
     }
     return result
+  }
+
+  // Convert hex color to rgba
+  hexToRgba(hex, alpha) {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
   }
 
   // Allow updating data dynamically

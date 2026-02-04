@@ -1,0 +1,18 @@
+<% content_for(:title) { "New Gym | Haearn" } %>
+
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><%= link_to "Gyms", gyms_path %></li>
+      <li class="breadcrumb-item active">New Gym</li>
+    </ol>
+  </nav>
+
+  <h1 class="display-heading mb-4">Add New Gym</h1>
+
+  <div class="card">
+    <div class="card-body">
+      <%= render "form", gym: @gym %>
+    </div>
+  </div>
+</div>

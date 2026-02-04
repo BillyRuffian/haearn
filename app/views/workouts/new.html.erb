@@ -31,7 +31,7 @@
               <i class="bi bi-exclamation-triangle me-2"></i>
               <strong>You need to add a gym first.</strong>
               <p class="mb-2 mt-2">Haearn tracks your exercises by machine, so you need at least one gym with machines set up.</p>
-              <%= link_to "Add your first gym", new_gym_path, class: "btn btn-primary btn-sm" %>
+              <%= link_to "Add your first gym", new_gym_path(return_to: new_workout_path), class: "btn btn-primary btn-sm" %>
             </div>
           <% end %>
         </div>

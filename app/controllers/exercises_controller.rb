@@ -148,6 +148,7 @@ class ExercisesController < ApplicationController
       best_set_weight: nil,      # Heaviest single set weight
       best_set_volume: nil,      # Highest volume single set (weight * reps)
       best_session_volume: nil,  # Highest total volume in a session
+      best_e1rm: nil,            # Highest estimated 1RM
       best_reps_at_weight: {}    # Best reps for each weight
     }
 
@@ -174,6 +175,26 @@ class ExercisesController < ApplicationController
           reps: best_volume_set.reps,
           volume: (best_volume_set.weight_kg || 0) * (best_volume_set.reps || 0),
           date: best_volume_set.completed_at&.to_date || best_volume_set.created_at.to_date
+        }
+      end
+
+      # Best estimated 1RM (Epley formula)
+      best_e1rm_value = 0
+      best_e1rm_set = nil
+      all_sets.each do |s|
+        next unless s.weight_kg && s.reps && s.reps > 0
+        e1rm = s.weight_kg * (1 + s.reps.to_f / 30)
+        if e1rm > best_e1rm_value
+          best_e1rm_value = e1rm
+          best_e1rm_set = s
+        end
+      end
+      if best_e1rm_set
+        prs[:best_e1rm] = {
+          e1rm_kg: best_e1rm_value,
+          weight_kg: best_e1rm_set.weight_kg,
+          reps: best_e1rm_set.reps,
+          date: best_e1rm_set.completed_at&.to_date || best_e1rm_set.created_at.to_date
         }
       end
 
@@ -208,12 +229,14 @@ class ExercisesController < ApplicationController
     # Prepare data points
     weight_data = []
     volume_data = []
+    e1rm_data = []
     labels = []
 
     sorted.each do |we|
       workout = we.workout_block.workout
       # Use date + time if multiple sessions on same day
       date_label = workout.started_at.strftime('%b %d %H:%M')
+      date_iso = workout.started_at.to_date.to_s
       work_sets = we.exercise_sets.select { |s| !s.is_warmup }
 
       next if work_sets.empty?
@@ -228,6 +251,28 @@ class ExercisesController < ApplicationController
         # Session volume
         session_volume = work_sets.sum { |s| (s.weight_kg || 0) * (s.reps || 0) }
         volume_data << Current.user.display_weight(session_volume).round
+
+        # Estimated 1RM (best from session using Epley formula)
+        best_e1rm = 0
+        best_set = nil
+        work_sets.each do |s|
+          next unless s.weight_kg && s.reps && s.reps > 0
+          # Epley formula: 1RM = weight × (1 + reps/30)
+          e1rm = s.weight_kg * (1 + s.reps.to_f / 30)
+          if e1rm > best_e1rm
+            best_e1rm = e1rm
+            best_set = s
+          end
+        end
+
+        if best_set
+          e1rm_data << {
+            date: date_iso,
+            e1rm: Current.user.display_weight(best_e1rm).round(1),
+            weight: Current.user.display_weight(best_set.weight_kg).round(1),
+            reps: best_set.reps
+          }
+        end
       end
     end
 
@@ -252,7 +297,8 @@ class ExercisesController < ApplicationController
           backgroundColor: 'rgba(240, 160, 96, 0.2)',
           fill: true
         } ]
-      }
+      },
+      e1rm: e1rm_data
     }
   end
 

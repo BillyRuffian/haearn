@@ -77,6 +77,22 @@
                 </div>
               </div>
             <% end %>
+
+            <% if @prs[:best_e1rm] %>
+              <div class="col-md-4">
+                <div class="pr-stat">
+                  <div class="pr-label">Best Est. 1RM</div>
+                  <div class="pr-value weight-display">
+                    <%= number_with_delimiter(Current.user.display_weight(@prs[:best_e1rm][:e1rm_kg]).round) %>
+                    <small class="text-muted"><%= Current.user.preferred_unit %></small>
+                  </div>
+                  <div class="pr-detail">
+                    from <%= number_with_delimiter(Current.user.display_weight(@prs[:best_e1rm][:weight_kg]).round) %> × <%= @prs[:best_e1rm][:reps] %>
+                    <span class="text-muted ms-2"><%= @prs[:best_e1rm][:date].strftime("%b %d, %Y") %></span>
+                  </div>
+                </div>
+              </div>
+            <% end %>
           </div>
         </div>
       </div>
@@ -116,6 +132,26 @@
           </div>
         </div>
       </div>
+
+      <% if @chart_data[:e1rm]&.length.to_i > 1 %>
+        <div class="row g-3 mb-4">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header">
+                <i class="bi bi-graph-up-arrow me-2"></i>Estimated 1RM Trend
+                <small class="text-muted ms-2">(Epley formula)</small>
+              </div>
+              <div class="card-body">
+                <div style="height: 200px;"
+                     data-controller="e1rm-chart"
+                     data-e1rm-chart-data-value='<%= @chart_data[:e1rm].to_json %>'>
+                  <canvas data-e1rm-chart-target="canvas"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
     <% end %>
 
     <!-- Stats Overview -->

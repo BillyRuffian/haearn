@@ -93,4 +93,25 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
     get settings_path
     assert_redirected_to new_session_path
   end
+
+  test 'should export data as JSON' do
+    get export_data_settings_path
+    assert_response :success
+    assert_equal 'application/json', response.content_type.split(';').first
+
+    data = JSON.parse(response.body)
+    assert_equal @user.email_address, data['user']['email']
+    assert data.key?('gyms')
+    assert data.key?('exercises')
+    assert data.key?('workouts')
+  end
+
+  test 'should export data as CSV' do
+    get export_csv_settings_path
+    assert_response :success
+    assert_equal 'text/csv', response.content_type.split(';').first
+
+    # CSV should have header row
+    assert_includes response.body, 'Date,Gym,Exercise'
+  end
 end

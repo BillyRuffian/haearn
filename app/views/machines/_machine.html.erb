@@ -3,6 +3,15 @@
     <div class="card-body py-2">
       <div class="d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center gap-3">
+          <%# Photo thumbnail if available %>
+          <% if machine.photos.attached? %>
+            <%= link_to edit_gym_machine_path(gym, machine), class: "flex-shrink-0" do %>
+              <%= image_tag machine.photos.first.variant(resize_to_fill: [48, 48]), 
+                  class: "rounded", 
+                  style: "width: 48px; height: 48px; object-fit: cover;",
+                  alt: machine.name %>
+            <% end %>
+          <% end %>
           <div>
             <span class="badge equipment-badge-<%= machine.equipment_type %>">
               <%= equipment_icon(machine.equipment_type) %>
@@ -26,10 +35,15 @@
                 <i class="bi bi-chat-text"></i> <%= truncate(machine.notes, length: 40) %>
               </span>
             <% end %>
+            <% if machine.photos.attached? && machine.photos.count > 1 %>
+              <span class="text-muted ms-2 small">
+                <i class="bi bi-images"></i> <%= machine.photos.count %> photos
+              </span>
+            <% end %>
           </div>
         </div>
         <div class="d-flex gap-2">
-          <%= link_to edit_gym_machine_path(gym, machine), class: "btn btn-sm btn-outline-secondary", data: { turbo_frame: dom_id(machine) } do %>
+          <%= link_to edit_gym_machine_path(gym, machine), class: "btn btn-sm btn-outline-secondary", data: { turbo_frame: "_top" } do %>
             <i class="bi bi-pencil"></i>
           <% end %>
           <%= button_to gym_machine_path(gym, machine), method: :delete, class: "btn btn-sm btn-outline-danger", data: { turbo_confirm: "Delete #{machine.name}?" } do %>

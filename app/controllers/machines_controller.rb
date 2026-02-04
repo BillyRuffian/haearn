@@ -1,6 +1,6 @@
 class MachinesController < ApplicationController
   before_action :set_gym
-  before_action :set_machine, only: %i[show edit update destroy]
+  before_action :set_machine, only: %i[show edit update destroy delete_photo]
 
   def index
     redirect_to gym_path(@gym)
@@ -66,6 +66,16 @@ class MachinesController < ApplicationController
     end
   end
 
+  def delete_photo
+    photo = @machine.photos.find(params[:photo_id])
+    photo.purge
+
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: turbo_stream.remove("photo_#{params[:photo_id]}") }
+      format.html { redirect_to edit_gym_machine_path(@gym, @machine), notice: 'Photo deleted.' }
+    end
+  end
+
   private
 
   def set_gym
@@ -77,6 +87,6 @@ class MachinesController < ApplicationController
   end
 
   def machine_params
-    params.require(:machine).permit(:name, :equipment_type, :weight_ratio, :display_unit, :notes)
+    params.require(:machine).permit(:name, :equipment_type, :weight_ratio, :display_unit, :notes, photos: [])
   end
 end

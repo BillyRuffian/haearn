@@ -98,6 +98,458 @@
       </div>
     </div>
 
+    <!-- Calendar Heatmap -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card position-relative heatmap-card">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-3" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-calendar3 me-2"></i>Workout Consistency
+            </h5>
+            <div class="heatmap-container" 
+                 data-controller="calendar-heatmap" 
+                 data-calendar-heatmap-data-value="<%= @heatmap_data.to_json %>">
+              <div data-calendar-heatmap-target="container"></div>
+              <div class="heatmap-tooltip d-none" data-calendar-heatmap-target="tooltip"></div>
+            </div>
+          </div>
+          <div class="heatmap-scroll-fade"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PR Timeline -->
+    <% if @pr_timeline_data.present? && @pr_timeline_data.any? %>
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card position-relative">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-trophy me-2"></i>PR Timeline
+            </h5>
+            <div data-controller="pr-timeline"
+                 data-pr-timeline-data-value="<%= @pr_timeline_data.to_json %>"
+                 style="height: <%= [200, 40 + (@pr_timeline_data.map { |pr| pr[:exercise] }.uniq.count * 30)].max %>px;">
+              <canvas data-pr-timeline-target="canvas"></canvas>
+            </div>
+            <div class="text-center mt-3">
+              <small class="text-muted">Bubble size represents relative weight</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent PRs Table -->
+    <% recent_prs = @pr_timeline_data.last(10).reverse %>
+    <% if recent_prs.any? %>
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="card position-relative">
+            <div class="card-body py-4">
+              <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+                <i class="bi bi-list-ol me-2"></i>Recent Personal Records
+              </h5>
+              <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0">
+                  <thead>
+                    <tr class="text-muted text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                      <th>Exercise</th>
+                      <th class="text-end">Weight</th>
+                      <th class="text-end">Reps</th>
+                      <th class="text-center">Type</th>
+                      <th class="text-end">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% recent_prs.each do |pr| %>
+                      <tr>
+                        <td class="fw-bold"><%= pr[:exercise] %></td>
+                        <td class="text-end">
+                          <span class="weight-display text-forge"><%= pr[:weight] %></span>
+                          <span class="text-muted small"><%= Current.user.preferred_unit %></span>
+                        </td>
+                        <td class="text-end"><%= pr[:reps] %></td>
+                        <td class="text-center">
+                          <% if pr[:type] == 'weight' %>
+                            <span class="badge bg-forge" style="font-size: 0.7rem;">
+                              <i class="bi bi-arrow-up"></i> MAX
+                            </span>
+                          <% else %>
+                            <span class="badge bg-iron" style="font-size: 0.7rem;">
+                              <i class="bi bi-graph-up"></i> VOL
+                            </span>
+                          <% end %>
+                        </td>
+                        <td class="text-end text-muted small">
+                          <%= Date.parse(pr[:date]).strftime("%b %d") %>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+    <% end %>
+
+    <!-- Rep Range Distribution -->
+    <% if @rep_range_data.values.sum > 0 %>
+    <div class="row mt-4">
+      <div class="col-md-6">
+        <div class="card position-relative">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-bar-chart-steps me-2"></i>Rep Range Distribution
+              <small class="text-muted ms-2">(Last 30 days)</small>
+            </h5>
+            <div data-controller="rep-range-chart"
+                 data-rep-range-chart-data-value="<%= @rep_range_data.to_json %>"
+                 style="height: 160px;">
+              <canvas data-rep-range-chart-target="canvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card position-relative h-100">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-info-circle me-2"></i>Training Zones
+            </h5>
+            <div class="small">
+              <div class="d-flex align-items-center mb-2">
+                <span class="badge me-2" style="background: #a33a0c; width: 60px;">1-5</span>
+                <span class="text-muted">Strength — Heavy loads, low reps</span>
+              </div>
+              <div class="d-flex align-items-center mb-2">
+                <span class="badge me-2" style="background: #ff6b35; width: 60px;">6-10</span>
+                <span class="text-muted">Hypertrophy — Optimal for muscle growth</span>
+              </div>
+              <div class="d-flex align-items-center mb-2">
+                <span class="badge me-2" style="background: #f0a060; width: 60px;">11-15</span>
+                <span class="text-muted">Endurance — Muscular endurance focus</span>
+              </div>
+              <div class="d-flex align-items-center">
+                <span class="badge me-2" style="background: #71797E; width: 60px;">16+</span>
+                <span class="text-muted">High rep — Conditioning, pump work</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% end %>
+
+    <!-- Session Duration Trends -->
+    <% if @session_duration_data.length > 2 %>
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card position-relative">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-clock-history me-2"></i>Session Duration Trends
+              <small class="text-muted ms-2">(Last <%= @session_duration_data.length %> workouts)</small>
+            </h5>
+            <div data-controller="session-duration"
+                 data-session-duration-data-value="<%= @session_duration_data.to_json %>"
+                 style="height: 200px;">
+              <canvas data-session-duration-target="canvas"></canvas>
+            </div>
+            <div class="text-center mt-2">
+              <small class="text-muted">
+                Average: <%= (@session_duration_data.sum { |d| d[:duration] } / @session_duration_data.length.to_f).round %> min
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% end %>
+
+    <!-- Training Density -->
+    <% if @training_density_data.length > 2 %>
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card position-relative">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-speedometer2 me-2"></i>Training Density
+              <small class="text-muted ms-2">(Volume per minute)</small>
+            </h5>
+            <div data-controller="chart"
+                 data-chart-type-value="line"
+                 data-chart-labels-value="<%= @training_density_data.map { |d| Date.parse(d[:date]).strftime('%b %d') }.to_json %>"
+                 data-chart-points-value="<%= @training_density_data.map { |d| d[:density] }.to_json %>"
+                 data-chart-label-value="<%= Current.user.preferred_unit %>/min"
+                 data-chart-color-value="#71797E"
+                 data-chart-fill-value="true"
+                 style="height: 180px;">
+              <canvas data-chart-target="canvas"></canvas>
+            </div>
+            <div class="text-center mt-2">
+              <small class="text-muted">
+                <% avg_density = (@training_density_data.sum { |d| d[:density] } / @training_density_data.length.to_f).round %>
+                Average: <%= avg_density %> <%= Current.user.preferred_unit %>/min
+                <span class="mx-2">•</span>
+                Higher = more efficient workouts
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% end %>
+
+    <!-- Consistency Streaks & Week Comparison -->
+    <div class="row mt-4 g-4">
+      <!-- Consistency Streaks -->
+      <div class="col-md-6">
+        <div class="card position-relative h-100">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-fire me-2"></i>Consistency Streaks
+            </h5>
+            <div class="row text-center">
+              <div class="col-6">
+                <div class="p-3 rounded" style="background: rgba(255, 107, 53, 0.1);">
+                  <div class="display-4 weight-display text-forge mb-1">
+                    <%= @streak_data[:current] %>
+                  </div>
+                  <p class="text-muted text-uppercase mb-0" style="font-size: 0.7rem; letter-spacing: 0.05em;">
+                    Current Streak
+                  </p>
+                  <p class="text-muted small mb-0">(weeks)</p>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-3 rounded" style="background: rgba(113, 121, 126, 0.1);">
+                  <div class="display-4 weight-display text-iron mb-1">
+                    <%= @streak_data[:longest] %>
+                  </div>
+                  <p class="text-muted text-uppercase mb-0" style="font-size: 0.7rem; letter-spacing: 0.05em;">
+                    Longest Streak
+                  </p>
+                  <p class="text-muted small mb-0">(weeks)</p>
+                </div>
+              </div>
+            </div>
+            <% if @streak_data[:last_workout_days_ago] %>
+              <div class="text-center mt-3">
+                <small class="text-muted">
+                  <% if @streak_data[:last_workout_days_ago] == 0 %>
+                    <i class="bi bi-lightning-charge text-forge"></i> You worked out today!
+                  <% elsif @streak_data[:last_workout_days_ago] == 1 %>
+                    <i class="bi bi-check-circle text-success"></i> Last workout: yesterday
+                  <% elsif @streak_data[:last_workout_days_ago] <= 3 %>
+                    <i class="bi bi-check-circle text-success"></i> Last workout: <%= @streak_data[:last_workout_days_ago] %> days ago
+                  <% elsif @streak_data[:last_workout_days_ago] <= 7 %>
+                    <i class="bi bi-exclamation-triangle text-warning"></i> Last workout: <%= @streak_data[:last_workout_days_ago] %> days ago
+                  <% else %>
+                    <i class="bi bi-exclamation-circle text-danger"></i> Last workout: <%= @streak_data[:last_workout_days_ago] %> days ago
+                  <% end %>
+                </small>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Week-over-Week Comparison -->
+      <div class="col-md-6">
+        <div class="card position-relative h-100">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-arrow-left-right me-2"></i>Week Comparison
+            </h5>
+            <div class="table-responsive">
+              <table class="table table-dark table-sm mb-0">
+                <thead>
+                  <tr class="text-muted" style="font-size: 0.75rem;">
+                    <th></th>
+                    <th class="text-end">This Week</th>
+                    <th class="text-end">Last Week</th>
+                    <th class="text-end">Change</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="text-muted">Volume</td>
+                    <td class="text-end">
+                      <span class="weight-display"><%= number_to_si(@week_comparison_data[:this_week][:volume]) %></span>
+                      <span class="text-muted small"><%= Current.user.preferred_unit %></span>
+                    </td>
+                    <td class="text-end text-muted">
+                      <%= number_to_si(@week_comparison_data[:last_week][:volume]) %>
+                    </td>
+                    <td class="text-end">
+                      <% vol_diff = @week_comparison_data[:this_week][:volume] - @week_comparison_data[:last_week][:volume] %>
+                      <% if @week_comparison_data[:last_week][:volume] > 0 %>
+                        <% vol_pct = ((vol_diff.to_f / @week_comparison_data[:last_week][:volume]) * 100).round %>
+                        <% if vol_diff > 0 %>
+                          <span class="text-success"><i class="bi bi-arrow-up-short"></i><%= vol_pct %>%</span>
+                        <% elsif vol_diff < 0 %>
+                          <span class="text-danger"><i class="bi bi-arrow-down-short"></i><%= vol_pct.abs %>%</span>
+                        <% else %>
+                          <span class="text-muted">—</span>
+                        <% end %>
+                      <% else %>
+                        <span class="text-muted">—</span>
+                      <% end %>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted">Workouts</td>
+                    <td class="text-end weight-display"><%= @week_comparison_data[:this_week][:workouts] %></td>
+                    <td class="text-end text-muted"><%= @week_comparison_data[:last_week][:workouts] %></td>
+                    <td class="text-end">
+                      <% wo_diff = @week_comparison_data[:this_week][:workouts] - @week_comparison_data[:last_week][:workouts] %>
+                      <% if wo_diff > 0 %>
+                        <span class="text-success"><i class="bi bi-arrow-up-short"></i><%= wo_diff %></span>
+                      <% elsif wo_diff < 0 %>
+                        <span class="text-danger"><i class="bi bi-arrow-down-short"></i><%= wo_diff.abs %></span>
+                      <% else %>
+                        <span class="text-muted">—</span>
+                      <% end %>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted">Sets</td>
+                    <td class="text-end weight-display"><%= @week_comparison_data[:this_week][:sets] %></td>
+                    <td class="text-end text-muted"><%= @week_comparison_data[:last_week][:sets] %></td>
+                    <td class="text-end">
+                      <% set_diff = @week_comparison_data[:this_week][:sets] - @week_comparison_data[:last_week][:sets] %>
+                      <% if set_diff > 0 %>
+                        <span class="text-success"><i class="bi bi-arrow-up-short"></i><%= set_diff %></span>
+                      <% elsif set_diff < 0 %>
+                        <span class="text-danger"><i class="bi bi-arrow-down-short"></i><%= set_diff.abs %></span>
+                      <% else %>
+                        <span class="text-muted">—</span>
+                      <% end %>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exercise Frequency Ranking -->
+    <% if @exercise_frequency_data.any? %>
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card position-relative">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-bar-chart-line me-2"></i>Most Performed Exercises
+              <small class="text-muted ms-2">(Last 90 days)</small>
+            </h5>
+            <div data-controller="chart"
+                 data-chart-type-value="bar"
+                 data-chart-labels-value="<%= @exercise_frequency_data.map { |d| d[:exercise] }.to_json %>"
+                 data-chart-points-value="<%= @exercise_frequency_data.map { |d| d[:count] }.to_json %>"
+                 data-chart-label-value="Sessions"
+                 data-chart-color-value="#ff6b35"
+                 data-chart-horizontal-value="true"
+                 style="height: <%= [180, @exercise_frequency_data.length * 32].max %>px;">
+              <canvas data-chart-target="canvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% end %>
+
+    <!-- Tonnage Tracker -->
+    <% if @tonnage_data.any? && @tonnage_data.sum { |d| d[:volume] } > 0 %>
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card position-relative">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-graph-up-arrow me-2"></i>Tonnage Tracker
+              <small class="text-muted ms-2">(Weekly volume - last 12 weeks)</small>
+            </h5>
+            <div data-controller="chart"
+                 data-chart-type-value="line"
+                 data-chart-labels-value="<%= @tonnage_data.map { |d| d[:label] }.to_json %>"
+                 data-chart-points-value="<%= @tonnage_data.map { |d| d[:volume] }.to_json %>"
+                 data-chart-label-value="Volume (<%= Current.user.preferred_unit %>)"
+                 data-chart-color-value="#ff6b35"
+                 data-chart-fill-value="true"
+                 style="height: 200px;">
+              <canvas data-chart-target="canvas"></canvas>
+            </div>
+            <div class="text-center mt-2">
+              <small class="text-muted">
+                <% total_tonnage = @tonnage_data.sum { |d| d[:volume] } %>
+                <% avg_tonnage = (total_tonnage / @tonnage_data.length.to_f).round %>
+                Total: <%= number_to_si(total_tonnage) %><%= Current.user.preferred_unit %> &middot;
+                Average: <%= number_to_si(avg_tonnage) %><%= Current.user.preferred_unit %>/week
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% end %>
+
+    <!-- Plateau Detector -->
+    <% if @plateau_data.any? %>
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card position-relative border-warning" style="border-color: rgba(255, 193, 7, 0.3) !important;">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-exclamation-triangle text-warning me-2"></i>Plateau Alert
+              <small class="text-muted ms-2">(No PR in 4+ weeks)</small>
+            </h5>
+            <div class="table-responsive">
+              <table class="table table-dark table-sm mb-0">
+                <thead>
+                  <tr class="text-muted" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                    <th>Exercise</th>
+                    <th class="text-center">Weeks Stuck</th>
+                    <th class="text-end">Best Weight</th>
+                    <th class="text-end">Last PR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% @plateau_data.each do |plateau| %>
+                    <tr>
+                      <td class="fw-bold"><%= plateau[:exercise] %></td>
+                      <td class="text-center">
+                        <span class="badge <%= plateau[:weeks_since_pr] >= 8 ? 'bg-danger' : 'bg-warning text-dark' %>">
+                          <%= plateau[:weeks_since_pr] %> weeks
+                        </span>
+                      </td>
+                      <td class="text-end">
+                        <span class="weight-display"><%= plateau[:best_weight] %></span>
+                        <span class="text-muted small"><%= Current.user.preferred_unit %></span>
+                      </td>
+                      <td class="text-end text-muted small"><%= plateau[:last_pr_date] %></td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+            <div class="mt-3">
+              <small class="text-muted">
+                <i class="bi bi-lightbulb me-1"></i>
+                Try varying rep ranges, adding volume, or taking a deload week to break through plateaus.
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% end %>
+
     <!-- Recent Workouts -->
     <% if @recent_workouts.any? %>
       <div class="row mt-5">

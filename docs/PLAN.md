@@ -67,18 +67,18 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Persistent notes field
 
 ### 2.3 Machine Photos
-- [ ] Active Storage setup (local disk storage, not cloud)
-- [ ] Multiple photos per machine (gallery)
-- [ ] Camera capture directly from mobile (not just file picker)
-- [ ] Photo use cases:
+- [x] Active Storage setup (local disk storage, not cloud)
+- [x] Multiple photos per machine (gallery)
+- [x] Camera capture directly from mobile (not just file picker)
+- [x] Photo use cases:
   - Machine identification (which leg press is this?)
   - Seat/pad position settings
   - Pin placement for adjustments
   - Cable attachment setup
   - Weight stack/plate configuration
-- [ ] Photo thumbnails on machine list
-- [ ] Full-screen photo viewer with swipe
-- [ ] Delete/reorder photos
+- [x] Photo thumbnails on machine list
+- [x] Full-screen photo viewer with swipe
+- [x] Delete/reorder photos
 - [ ] Optional: annotate photos (draw circles/arrows on settings)
 
 ### 2.4 Exercise Library
@@ -107,9 +107,9 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Show persistent notes from last time
 
 ### 3.3 Superset/Circuit Support
-- [ ] "Add to Block" vs "New Block" options
+- [x] "Add to Block" vs "New Block" options
 - [x] Visual grouping of block exercises
-- [ ] Block ordering (drag & drop later)
+- [x] Block ordering (drag & drop)
 
 ### 3.4 Set Logging
 - [x] Quick-add set form
@@ -178,22 +178,22 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Workout frequency (8-week bar chart on dashboard)
 
 ### 4.5 Advanced Visualizations (Future)
-- [ ] **Calendar Heatmap** - GitHub-style contribution graph for workout consistency
-- [ ] **PR Timeline** - Scatter plot showing when PRs were hit across all lifts
-- [ ] **Estimated 1RM Trend** - Track e1RM over time (more meaningful than raw weight)
+- [x] **Calendar Heatmap** - GitHub-style contribution graph for workout consistency
+- [x] **PR Timeline** - Scatter plot showing when PRs were hit across all lifts
+- [x] **Estimated 1RM Trend** - Track e1RM over time (more meaningful than raw weight)
 - [ ] **Volume Distribution Pie Chart** - Breakdown by muscle group (weekly/monthly)
 - [ ] **Lift Ratio Spider Chart** - Balance between major lifts (squat/bench/deadlift/OHP)
-- [ ] **Rep Range Distribution** - Bar chart showing % of sets in each rep range (1-5, 6-10, 10+)
-- [ ] **Training Density** - Volume per minute/hour over time (workout efficiency)
-- [ ] **Tonnage Tracker** - Total weight lifted per session/week/month (area chart)
+- [x] **Rep Range Distribution** - Bar chart showing % of sets in each rep range (1-5, 6-10, 10+)
+- [x] **Training Density** - Volume per minute/hour over time (workout efficiency)
+- [x] **Tonnage Tracker** - Total weight lifted per session/week/month (area chart)
 - [ ] **Strength Curve** - Performance at different rep ranges per exercise (are you better at 3s or 10s?)
-- [ ] **Session Duration Trends** - Are workouts getting longer/shorter?
+- [x] **Session Duration Trends** - Are workouts getting longer/shorter?
 - [ ] **Body Map Heatmap** - Visual showing which muscles trained recently (recovery indicator)
-- [ ] **Exercise Frequency Ranking** - Bar chart of most-performed exercises
-- [ ] **Consistency Streaks** - Current/longest streak visualizations
-- [ ] **Week-over-Week Comparison** - Side-by-side volume bars for this week vs last
+- [x] **Exercise Frequency Ranking** - Bar chart of most-performed exercises
+- [x] **Consistency Streaks** - Current/longest streak visualizations
+- [x] **Week-over-Week Comparison** - Side-by-side volume bars for this week vs last
 - [ ] **Wilks/DOTS Score Over Time** - For powerlifters tracking relative strength
-- [ ] **Plateau Detector** - Visual highlighting exercises with no PR in X weeks
+- [x] **Plateau Detector** - Visual highlighting exercises with no PR in X weeks
 - [ ] **Training Split Adherence** - Planned vs actual sessions (donut chart)
 
 ---
@@ -564,7 +564,7 @@ $text-muted: #6c757d;
 ## Phase 9: Data & Analysis
 
 ### 9.1 Data Export/Import
-- [ ] Export workouts to CSV/JSON
+- [x] Export workouts to CSV/JSON
 - [ ] Export PR history
 - [ ] Import from other apps (Strong, Hevy, etc.)
 - [ ] Backup/restore functionality
