@@ -1165,6 +1165,7 @@ select option:checked {
 
 .bottom-nav-primary {
   color: $forge-orange;
+  position: relative;
 
   i {
     font-size: 1.75rem;
@@ -1172,10 +1173,37 @@ select option:checked {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    filter: drop-shadow(0 0 8px rgba($forge-orange, 0.6)) drop-shadow(0 0 16px rgba($rust-light, 0.4));
+  }
+
+  // Glow ring behind the icon
+  &::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba($forge-orange, 0.25) 0%, transparent 70%);
+    z-index: -1;
+    animation: pulse-glow 2s ease-in-out infinite;
   }
 
   &:hover {
     color: $forge-orange;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.1);
   }
 }
 
