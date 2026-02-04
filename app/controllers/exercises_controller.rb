@@ -53,8 +53,9 @@ class ExercisesController < ApplicationController
       if @exercise.save
         # If we have a return_to URL, redirect there instead
         if params[:return_to].present?
-          format.html { redirect_to params[:return_to], notice: 'Exercise created! Now select it.' }
-          format.turbo_stream { redirect_to params[:return_to], notice: 'Exercise created! Now select it.' }
+          safe_url = safe_return_to(params[:return_to], fallback: exercises_path)
+          format.html { redirect_to safe_url, notice: 'Exercise created! Now select it.' }
+          format.turbo_stream { redirect_to safe_url, notice: 'Exercise created! Now select it.' }
         else
           format.turbo_stream do
             render turbo_stream: [

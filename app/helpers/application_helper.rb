@@ -88,4 +88,23 @@ module ApplicationHelper
     secs = seconds % 60
     format('%d:%02d', minutes, secs)
   end
+
+  # Safely sanitize a return_to URL to prevent XSS via javascript: URLs
+  # Only allows relative paths starting with /
+  def safe_return_to(url, fallback: root_path)
+    return fallback if url.blank?
+
+    # Parse the URL and only allow relative paths (starting with /)
+    # Reject javascript:, data:, external URLs, protocol-relative URLs, etc.
+    uri = URI.parse(url.to_s)
+
+    # Only allow paths with no scheme and no host (relative URLs)
+    if uri.scheme.nil? && uri.host.nil? && url.to_s.start_with?('/')
+      url
+    else
+      fallback
+    end
+  rescue URI::InvalidURIError
+    fallback
+  end
 end

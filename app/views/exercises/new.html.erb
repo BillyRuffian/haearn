@@ -3,7 +3,7 @@
 <div class="container py-4">
   <div class="mb-4">
     <% if @return_to.present? %>
-      <%= link_to @return_to, class: "text-muted text-decoration-none small" do %>
+      <%= link_to safe_return_to(@return_to, fallback: exercises_path), class: "text-muted text-decoration-none small" do %>
         <i class="bi bi-arrow-left me-1"></i>Back to add exercise
       <% end %>
     <% else %>
@@ -63,7 +63,7 @@
         <div class="d-flex gap-2">
           <%= form.submit "Create Exercise", class: "btn btn-primary" %>
           <% if @return_to.present? %>
-            <%= link_to "Cancel", @return_to, class: "btn btn-outline-secondary" %>
+            <%= link_to "Cancel", safe_return_to(@return_to, fallback: exercises_path), class: "btn btn-outline-secondary" %>
           <% else %>
             <%= link_to "Cancel", exercises_path, class: "btn btn-outline-secondary" %>
           <% end %>

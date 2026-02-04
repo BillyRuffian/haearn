@@ -3,7 +3,7 @@
 <div class="container py-4">
   <div class="mb-4">
     <% if @return_to.present? %>
-      <%= link_to @return_to, class: "text-muted text-decoration-none small" do %>
+      <%= link_to safe_return_to(@return_to, fallback: gym_path(@gym)), class: "text-muted text-decoration-none small" do %>
         <i class="bi bi-arrow-left me-1"></i>Back to exercise selection
       <% end %>
     <% else %>
