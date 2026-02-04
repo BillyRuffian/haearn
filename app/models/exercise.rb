@@ -59,18 +59,18 @@ class Exercise < ApplicationRecord
   }.freeze
 
   MUSCLE_GROUP_COLORS = {
-    'chest' => '#ff6b35',      # Rust orange
-    'back' => '#4ECDC4',       # Teal
-    'shoulders' => '#45B7D1',  # Sky blue
-    'biceps' => '#96CEB4',     # Sage green
-    'triceps' => '#FFEAA7',    # Pale yellow
-    'forearms' => '#DDA0DD',   # Plum
-    'quadriceps' => '#98D8C8', # Mint
-    'hamstrings' => '#F7DC6F', # Mellow yellow
-    'glutes' => '#BB8FCE',     # Light purple
-    'calves' => '#85C1E9',     # Light blue
-    'core' => '#F8B500',       # Gold
-    'full_body' => '#71797E'   # Gunmetal
+    'chest' => '#ff6b35',      # Forge orange (primary accent)
+    'back' => '#c94d14',       # Rust light
+    'shoulders' => '#a33a0c',  # Rust
+    'biceps' => '#7a2d09',     # Rust dark
+    'triceps' => '#b8860b',    # Warning gold
+    'forearms' => '#8b7355',   # Bronze
+    'quadriceps' => '#3d7ea6', # Info blue
+    'hamstrings' => '#2d7a3e', # Success green
+    'glutes' => '#5a6269',     # Gunmetal
+    'calves' => '#71797E',     # Steel
+    'core' => '#d4a574',       # Copper
+    'full_body' => '#43464b'   # Dark steel
   }.freeze
 
   validates :name, presence: true
