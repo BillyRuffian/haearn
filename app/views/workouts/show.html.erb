@@ -42,13 +42,22 @@
         </div>
       <% else %>
         <div class="h4 mb-2"><%= @workout.duration_minutes %> min</div>
-        <% unless Current.user.active_workout %>
-          <%= button_to copy_workout_path(@workout), method: :post, 
-              class: "btn btn-primary",
-              data: { turbo_confirm: "Start a new workout based on this one?" } do %>
-            <i class="bi bi-arrow-repeat me-1"></i>Repeat
+        <div class="d-flex gap-2 justify-content-end flex-wrap">
+          <div data-controller="clipboard" data-clipboard-url-value="<%= share_text_workout_path(@workout) %>">
+            <button type="button" class="btn btn-outline-secondary" 
+                    data-clipboard-target="button"
+                    data-action="click->clipboard#copy">
+              <i class="bi bi-clipboard me-1"></i>Copy
+            </button>
+          </div>
+          <% unless Current.user.active_workout %>
+            <%= button_to copy_workout_path(@workout), method: :post, 
+                class: "btn btn-primary",
+                data: { turbo_confirm: "Start a new workout based on this one?" } do %>
+              <i class="bi bi-arrow-repeat me-1"></i>Repeat
+            <% end %>
           <% end %>
-        <% end %>
+        </div>
       <% end %>
     </div>
   </div>

@@ -114,6 +114,7 @@ Rails.application.routes.draw do
     patch :update_password, on: :member
     get :export_data, on: :member
     get :export_csv, on: :member
+    get :export_prs, on: :member
   end
 
   # Dashboard
@@ -146,6 +147,7 @@ Rails.application.routes.draw do
       post :add_exercise
       post :copy
       patch :reorder_blocks
+      get :share_text
     end
     resources :workout_exercises, only: [ :show, :edit, :update, :destroy ] do
       resources :exercise_sets, only: [ :create, :edit, :update, :destroy ]

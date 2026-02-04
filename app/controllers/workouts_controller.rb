@@ -1,5 +1,5 @@
 class WorkoutsController < ApplicationController
-  before_action :set_workout, only: %i[show edit update destroy finish add_exercise reorder_blocks]
+  before_action :set_workout, only: %i[show edit update destroy finish add_exercise reorder_blocks share_text]
 
   def index
     @workouts = Current.user.workouts.includes(:gym, workout_exercises: { exercise_sets: [] }).order(started_at: :desc)
@@ -143,6 +143,11 @@ class WorkoutsController < ApplicationController
     head :unprocessable_entity
   end
 
+  def share_text
+    text = generate_workout_text(@workout)
+    render json: { text: text }
+  end
+
   private
 
   def add_exercise_to_workout
@@ -182,5 +187,59 @@ class WorkoutsController < ApplicationController
 
   def workout_params
     params.require(:workout).permit(:gym_id, :notes)
+  end
+
+  def generate_workout_text(workout)
+    lines = []
+    
+    # Header
+    date_str = workout.started_at.strftime("%A, %B %-d, %Y")
+    lines << "🏋️ #{date_str}"
+    lines << "📍 #{workout.gym.name}" if workout.gym
+    lines << "⏱️ #{workout.duration_minutes} min" if workout.finished_at
+    lines << ""
+
+    # Exercises grouped by block
+    workout.workout_blocks.includes(workout_exercises: [:exercise, :machine, :exercise_sets]).order(:position).each do |block|
+      block.workout_exercises.order(:position).each do |we|
+        exercise_name = we.exercise&.name || "Unknown Exercise"
+        machine_suffix = we.machine ? " (#{we.machine.name})" : ""
+        lines << "#{exercise_name}#{machine_suffix}"
+        
+        we.exercise_sets.order(:position).each_with_index do |set, idx|
+          set_line = format_set_text(set, idx + 1, workout.user.preferred_unit)
+          lines << set_line
+        end
+        lines << ""
+      end
+    end
+
+    # Notes
+    if workout.notes.present?
+      lines << "📝 Notes: #{workout.notes}"
+      lines << ""
+    end
+
+    lines.join("\n").strip
+  end
+
+  def format_set_text(set, set_num, unit)
+    warmup_tag = set.is_warmup ? " (warmup)" : ""
+    
+    if set.weight_kg.present? && set.reps.present?
+      weight = unit == 'lbs' ? (set.weight_kg * 2.20462).round(1) : set.weight_kg.round(1)
+      "Set #{set_num}: #{set.reps} × #{weight}#{unit}#{warmup_tag}"
+    elsif set.reps.present?
+      "Set #{set_num}: #{set.reps} reps#{warmup_tag}"
+    elsif set.duration_seconds.present?
+      mins = set.duration_seconds / 60
+      secs = set.duration_seconds % 60
+      duration_str = mins > 0 ? "#{mins}m #{secs}s" : "#{secs}s"
+      "Set #{set_num}: #{duration_str}#{warmup_tag}"
+    elsif set.distance_meters.present?
+      "Set #{set_num}: #{set.distance_meters}m#{warmup_tag}"
+    else
+      "Set #{set_num}: completed#{warmup_tag}"
+    end
   end
 end

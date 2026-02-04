@@ -61,6 +61,15 @@ class SettingsController < ApplicationController
               disposition: 'attachment'
   end
 
+  def export_prs
+    csv_data = generate_prs_csv
+
+    send_data csv_data,
+              filename: "haearn-prs-#{Date.current}.csv",
+              type: 'text/csv',
+              disposition: 'attachment'
+  end
+
   private
 
   def set_user
@@ -186,5 +195,126 @@ class SettingsController < ApplicationController
         end
       end
     end
+  end
+
+  def generate_prs_csv
+    # Get all exercises the user has done
+    exercises_with_sets = Exercise.for_user(@user)
+      .joins(workout_exercises: :exercise_sets)
+      .joins("INNER JOIN workout_blocks ON workout_exercises.workout_block_id = workout_blocks.id")
+      .joins("INNER JOIN workouts ON workout_blocks.workout_id = workouts.id")
+      .where(workouts: { user_id: @user.id, finished_at: ..Time.current })
+      .where(exercise_sets: { is_warmup: false })
+      .distinct
+
+    CSV.generate(headers: true) do |csv|
+      csv << [
+        'Exercise', 'PR Type', 'Value', 'Unit', 'Reps', 'Date', 'Gym', 'Machine'
+      ]
+
+      exercises_with_sets.each do |exercise|
+        prs = calculate_exercise_prs(exercise)
+        
+        prs.each do |pr|
+          csv << [
+            exercise.name,
+            pr[:type],
+            pr[:value],
+            pr[:unit],
+            pr[:reps],
+            pr[:date],
+            pr[:gym],
+            pr[:machine]
+          ]
+        end
+      end
+    end
+  end
+
+  def calculate_exercise_prs(exercise)
+    prs = []
+
+    # Get all working sets for this exercise
+    sets = ExerciseSet
+      .joins(workout_exercise: { workout_block: :workout })
+      .includes(workout_exercise: [ :machine, { workout_block: { workout: :gym } } ])
+      .where(workouts: { user_id: @user.id })
+      .where.not(workouts: { finished_at: nil })
+      .where(workout_exercises: { exercise_id: exercise.id })
+      .where(is_warmup: false)
+
+    # Heaviest weight PR
+    if exercise.has_weight?
+      heaviest_set = sets.where.not(weight_kg: nil).order(weight_kg: :desc).first
+      if heaviest_set
+        weight = @user.preferred_unit == 'lbs' ? (heaviest_set.weight_kg * 2.20462).round(1) : heaviest_set.weight_kg.round(1)
+        workout = heaviest_set.workout_exercise.workout_block.workout
+        prs << {
+          type: 'Heaviest Weight',
+          value: weight,
+          unit: @user.preferred_unit,
+          reps: heaviest_set.reps,
+          date: workout.started_at&.strftime('%Y-%m-%d'),
+          gym: workout.gym&.name,
+          machine: heaviest_set.workout_exercise.machine&.name
+        }
+      end
+
+      # Best single set volume (weight × reps)
+      best_volume_set = sets.where.not(weight_kg: nil).where.not(reps: nil)
+        .select { |s| (s.weight_kg || 0) * (s.reps || 0) > 0 }
+        .max_by { |s| s.weight_kg * s.reps }
+      
+      if best_volume_set
+        volume_kg = best_volume_set.weight_kg * best_volume_set.reps
+        volume = @user.preferred_unit == 'lbs' ? (volume_kg * 2.20462).round(1) : volume_kg.round(1)
+        workout = best_volume_set.workout_exercise.workout_block.workout
+        prs << {
+          type: 'Best Set Volume',
+          value: volume,
+          unit: @user.preferred_unit,
+          reps: best_volume_set.reps,
+          date: workout.started_at&.strftime('%Y-%m-%d'),
+          gym: workout.gym&.name,
+          machine: best_volume_set.workout_exercise.machine&.name
+        }
+      end
+    end
+
+    # Most reps (for exercises that track reps)
+    if exercise.reps?
+      most_reps_set = sets.where.not(reps: nil).order(reps: :desc).first
+      if most_reps_set
+        workout = most_reps_set.workout_exercise.workout_block.workout
+        prs << {
+          type: 'Most Reps',
+          value: most_reps_set.reps,
+          unit: 'reps',
+          reps: nil,
+          date: workout.started_at&.strftime('%Y-%m-%d'),
+          gym: workout.gym&.name,
+          machine: most_reps_set.workout_exercise.machine&.name
+        }
+      end
+    end
+
+    # Longest duration (for time-based exercises)
+    if exercise.time?
+      longest_set = sets.where.not(duration_seconds: nil).order(duration_seconds: :desc).first
+      if longest_set
+        workout = longest_set.workout_exercise.workout_block.workout
+        prs << {
+          type: 'Longest Duration',
+          value: longest_set.duration_seconds,
+          unit: 'seconds',
+          reps: nil,
+          date: workout.started_at&.strftime('%Y-%m-%d'),
+          gym: workout.gym&.name,
+          machine: longest_set.workout_exercise.machine&.name
+        }
+      end
+    end
+
+    prs
   end
 end

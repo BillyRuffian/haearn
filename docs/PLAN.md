@@ -565,7 +565,8 @@ $text-muted: #6c757d;
 
 ### 9.1 Data Export/Import
 - [x] Export workouts to CSV/JSON
-- [ ] Export PR history
+- [x] Export PR history (CSV with all PR types per exercise)
+- [x] Clipboard text export for sharing workouts (copy workout as formatted text)
 - [ ] Import from other apps (Strong, Hevy, etc.)
 - [ ] Backup/restore functionality
 
