@@ -31,7 +31,16 @@
     </div>
   </div>
 
-  <div class="col-md-4">
+  <div class="col-md-3">
+    <%= form.label :primary_muscle_group, "Muscle Group", class: "form-label" %>
+    <%= form.select :primary_muscle_group, 
+        Exercise::MUSCLE_GROUPS.map { |m| [Exercise::MUSCLE_GROUP_LABELS[m], m] }, 
+        { include_blank: "Optional..." },
+        class: "form-select",
+        data: { controller: "custom-select" } %>
+  </div>
+
+  <div class="col-md-5">
     <%= form.label :description, class: "form-label" %>
     <%= form.text_field :description, class: "form-control", placeholder: "Optional description..." %>
   </div>

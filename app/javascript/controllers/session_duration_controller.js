@@ -34,12 +34,13 @@ export default class extends Controller {
 
     const data = this.dataValue
     
-    // Transform data for Chart.js
-    const chartData = data.map(d => ({
-      x: new Date(d.date),
-      y: d.duration,
-      gym: d.gym
-    }))
+    // Use simple labels instead of time scale (avoids need for date adapter)
+    const labels = data.map(d => {
+      const date = new Date(d.date)
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    })
+    const durations = data.map(d => d.duration)
+    const gyms = data.map(d => d.gym)
 
     // Calculate average for reference line
     const avgDuration = data.reduce((sum, d) => sum + d.duration, 0) / data.length
@@ -49,10 +50,11 @@ export default class extends Controller {
     this.chart = new Chart(ctx, {
       type: 'line',
       data: {
+        labels: labels,
         datasets: [
           {
             label: 'Duration (min)',
-            data: chartData,
+            data: durations,
             backgroundColor: 'rgba(255, 107, 53, 0.2)',
             borderColor: '#ff6b35',
             borderWidth: 2,
@@ -88,44 +90,20 @@ export default class extends Controller {
             callbacks: {
               title: (items) => {
                 if (!items.length) return ''
-                const raw = items[0].raw
-                return raw.gym
+                const idx = items[0].dataIndex
+                return gyms[idx] || 'Workout'
               },
               label: (context) => {
-                const raw = context.raw
-                const date = new Date(raw.x).toLocaleDateString('en-US', { 
-                  month: 'short', 
-                  day: 'numeric'
-                })
-                return `${raw.y} min on ${date}`
+                return `${context.parsed.y} min`
               },
               afterBody: () => {
                 return `Avg: ${Math.round(avgDuration)} min`
-              }
-            }
-          },
-          annotation: {
-            annotations: {
-              avgLine: {
-                type: 'line',
-                yMin: avgDuration,
-                yMax: avgDuration,
-                borderColor: 'rgba(113, 121, 126, 0.5)',
-                borderWidth: 1,
-                borderDash: [5, 5]
               }
             }
           }
         },
         scales: {
           x: {
-            type: 'time',
-            time: {
-              unit: 'day',
-              displayFormats: {
-                day: 'MMM d'
-              }
-            },
             grid: {
               color: "rgba(255, 255, 255, 0.05)"
             },

@@ -181,20 +181,20 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] **Calendar Heatmap** - GitHub-style contribution graph for workout consistency
 - [x] **PR Timeline** - Scatter plot showing when PRs were hit across all lifts
 - [x] **Estimated 1RM Trend** - Track e1RM over time (more meaningful than raw weight)
-- [ ] **Volume Distribution Pie Chart** - Breakdown by muscle group (weekly/monthly)
-- [ ] **Lift Ratio Spider Chart** - Balance between major lifts (squat/bench/deadlift/OHP)
+- [x] **Volume Distribution Pie Chart** - Breakdown by muscle group (weekly/monthly)
+- [x] **Lift Ratio Spider Chart** - Balance between major lifts (squat/bench/deadlift/OHP)
 - [x] **Rep Range Distribution** - Bar chart showing % of sets in each rep range (1-5, 6-10, 10+)
 - [x] **Training Density** - Volume per minute/hour over time (workout efficiency)
 - [x] **Tonnage Tracker** - Total weight lifted per session/week/month (area chart)
-- [ ] **Strength Curve** - Performance at different rep ranges per exercise (are you better at 3s or 10s?)
+- [x] **Strength Curve** - Performance at different rep ranges per exercise (are you better at 3s or 10s?)
 - [x] **Session Duration Trends** - Are workouts getting longer/shorter?
-- [ ] **Body Map Heatmap** - Visual showing which muscles trained recently (recovery indicator)
+- [x] **Body Map Heatmap** - Visual showing which muscles trained recently (recovery indicator)
 - [x] **Exercise Frequency Ranking** - Bar chart of most-performed exercises
 - [x] **Consistency Streaks** - Current/longest streak visualizations
 - [x] **Week-over-Week Comparison** - Side-by-side volume bars for this week vs last
-- [ ] **Wilks/DOTS Score Over Time** - For powerlifters tracking relative strength
+- [ ] **Wilks/DOTS Score Over Time** - For powerlifters tracking relative strength (requires bodyweight tracking from Phase 8.6)
 - [x] **Plateau Detector** - Visual highlighting exercises with no PR in X weeks
-- [ ] **Training Split Adherence** - Planned vs actual sessions (donut chart)
+- [ ] **Training Split Adherence** - Planned vs actual sessions (donut chart) (requires workout templates from Phase 8.1)
 
 ---
 

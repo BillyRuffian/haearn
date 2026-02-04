@@ -307,6 +307,6 @@ class ExercisesController < ApplicationController
   end
 
   def exercise_params
-    params.require(:exercise).permit(:name, :exercise_type, :has_weight, :description)
+    params.require(:exercise).permit(:name, :exercise_type, :has_weight, :description, :primary_muscle_group)
   end
 end

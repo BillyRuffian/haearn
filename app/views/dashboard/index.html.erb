@@ -244,6 +244,190 @@
     </div>
     <% end %>
 
+    <!-- Volume Distribution by Muscle Group -->
+    <% if @muscle_group_data[:seven_days].any? || @muscle_group_data[:thirty_days].any? %>
+    <div class="row mt-4">
+      <div class="col-md-6">
+        <div class="card position-relative h-100">
+          <div class="card-body py-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="text-uppercase text-muted mb-0" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+                <i class="bi bi-pie-chart me-2"></i>Volume by Muscle
+              </h5>
+              <select class="form-select form-select-sm bg-dark text-light border-secondary" 
+                      style="width: auto;"
+                      data-muscle-group-chart-target="periodSelect"
+                      data-action="change->muscle-group-chart#changePeriod">
+                <option value="seven_days">7 Days</option>
+                <option value="thirty_days">30 Days</option>
+              </select>
+            </div>
+            <div data-controller="muscle-group-chart"
+                 data-muscle-group-chart-seven-days-value="<%= @muscle_group_data[:seven_days].to_json %>"
+                 data-muscle-group-chart-thirty-days-value="<%= @muscle_group_data[:thirty_days].to_json %>"
+                 data-muscle-group-chart-colors-value="<%= @muscle_group_data[:colors].to_json %>"
+                 data-muscle-group-chart-labels-value="<%= @muscle_group_data[:labels].to_json %>"
+                 style="height: 200px;">
+              <canvas data-muscle-group-chart-target="canvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card position-relative h-100">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-list-ul me-2"></i>Muscle Group Breakdown
+              <small class="text-muted ms-2">(Last 7 days)</small>
+            </h5>
+            <% total_volume = @muscle_group_data[:seven_days].values.sum %>
+            <% if total_volume > 0 %>
+              <div class="muscle-group-list" style="max-height: 200px; overflow-y: auto;">
+                <% @muscle_group_data[:seven_days].each do |muscle_group, volume| %>
+                  <% percentage = ((volume.to_f / total_volume) * 100).round(1) %>
+                  <div class="d-flex align-items-center mb-2">
+                    <span class="me-2" style="width: 12px; height: 12px; border-radius: 2px; background: <%= @muscle_group_data[:colors][muscle_group] %>;"></span>
+                    <span class="flex-grow-1 text-truncate"><%= @muscle_group_data[:labels][muscle_group] %></span>
+                    <span class="text-muted small me-2"><%= percentage %>%</span>
+                    <span class="weight-display" style="min-width: 60px; text-align: right;">
+                      <%= number_to_si(volume) %>
+                    </span>
+                  </div>
+                <% end %>
+              </div>
+              <div class="border-top border-secondary pt-2 mt-2">
+                <div class="d-flex justify-content-between">
+                  <span class="text-muted">Total</span>
+                  <span class="weight-display">
+                    <%= number_to_si(total_volume) %><span class="text-muted small ms-1"><%= Current.user.preferred_unit %></span>
+                  </span>
+                </div>
+              </div>
+            <% else %>
+              <p class="text-muted text-center mb-0">No workout data in the last 7 days</p>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% end %>
+
+    <!-- Muscle Training Spider Chart -->
+    <% has_muscle_data = @muscle_group_data[:seven_days].values.any? { |v| v > 0 } || @muscle_group_data[:thirty_days].values.any? { |v| v > 0 } %>
+    <% if has_muscle_data %>
+    <div class="row mt-4">
+      <div class="col-md-6">
+        <div class="card position-relative h-100">
+          <div class="card-body py-4"
+               data-controller="muscle-spider-chart"
+               data-muscle-spider-chart-seven-days-value="<%= @muscle_group_data[:seven_days].to_json %>"
+               data-muscle-spider-chart-thirty-days-value="<%= @muscle_group_data[:thirty_days].to_json %>"
+               data-muscle-spider-chart-labels-value="<%= Exercise::MUSCLE_GROUP_LABELS.to_json %>">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="text-uppercase text-muted mb-0" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+                <i class="bi bi-diagram-3 me-2"></i>Muscle Balance
+              </h5>
+              <select class="form-select form-select-sm w-auto" 
+                      data-muscle-spider-chart-target="periodSelect"
+                      data-action="change->muscle-spider-chart#periodChanged"
+                      style="background-color: #2a2a2a; border-color: #3a3a3a; color: #e0e0e0;">
+                <option value="seven_days">Last 7 days</option>
+                <option value="thirty_days">Last 30 days</option>
+              </select>
+            </div>
+            <div style="height: 280px;">
+              <canvas data-muscle-spider-chart-target="canvas"></canvas>
+            </div>
+            <div class="text-center mt-2">
+              <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                Volume distribution across muscle groups
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card position-relative h-100">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-bar-chart-fill me-2"></i>Volume Breakdown
+            </h5>
+            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+              <table class="table table-dark table-sm mb-0">
+                <thead class="sticky-top" style="background-color: #1a1a1a;">
+                  <tr class="text-muted" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                    <th>Muscle</th>
+                    <th class="text-end">7 Days</th>
+                    <th class="text-end">30 Days</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% Exercise::MUSCLE_GROUPS.each do |muscle| %>
+                    <% seven = @muscle_group_data[:seven_days][muscle] || 0 %>
+                    <% thirty = @muscle_group_data[:thirty_days][muscle] || 0 %>
+                    <% next if seven == 0 && thirty == 0 %>
+                    <% color = Exercise::MUSCLE_GROUP_COLORS[muscle] %>
+                    <tr>
+                      <td>
+                        <span class="d-inline-block rounded-circle me-2" 
+                              style="width: 10px; height: 10px; background-color: <%= color %>;"></span>
+                        <%= Exercise::MUSCLE_GROUP_LABELS[muscle] %>
+                      </td>
+                      <td class="text-end">
+                        <% if seven > 0 %>
+                          <span class="weight-display"><%= number_to_si(seven) %></span>
+                          <span class="text-muted small"><%= Current.user.preferred_unit %></span>
+                        <% else %>
+                          <span class="text-muted">—</span>
+                        <% end %>
+                      </td>
+                      <td class="text-end">
+                        <% if thirty > 0 %>
+                          <span class="weight-display"><%= number_to_si(thirty) %></span>
+                          <span class="text-muted small"><%= Current.user.preferred_unit %></span>
+                        <% else %>
+                          <span class="text-muted">—</span>
+                        <% end %>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% end %>
+
+    <!-- Strength Curve -->
+    <% if @strength_curve_data.present? && @strength_curve_data.any? %>
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card position-relative">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-graph-down me-2"></i>Strength Curve
+              <small class="text-muted ms-2">(Max weight by rep range)</small>
+            </h5>
+            <div data-controller="strength-curve"
+                 data-strength-curve-data-value="<%= @strength_curve_data.to_json %>"
+                 style="height: 250px;">
+              <canvas data-strength-curve-target="canvas"></canvas>
+            </div>
+            <div class="text-center mt-3">
+              <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                Steep curve = strength-focused | Flat curve = better endurance capacity
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% end %>
+
     <!-- Session Duration Trends -->
     <% if @session_duration_data.length > 2 %>
     <div class="row mt-4">
@@ -438,6 +622,27 @@
         </div>
       </div>
     </div>
+
+    <!-- Body Map Heatmap (Muscle Recovery) -->
+    <% if @body_map_data.any? %>
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card position-relative">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-person-arms-up me-2"></i>Muscle Recovery Status
+            </h5>
+            <div class="position-relative"
+                 data-controller="body-map"
+                 data-body-map-data-value="<%= @body_map_data.to_json %>">
+              <div data-body-map-target="container"></div>
+              <div class="body-map-tooltip d-none" data-body-map-target="tooltip"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% end %>
 
     <!-- Exercise Frequency Ranking -->
     <% if @exercise_frequency_data.any? %>

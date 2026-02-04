@@ -2,14 +2,15 @@
 #
 # Table name: exercises
 #
-#  id            :integer          not null, primary key
-#  description   :text
-#  exercise_type :string
-#  has_weight    :boolean
-#  name          :string
-#  created_at    :datetime         not null
-#  updated_at    :datetime         not null
-#  user_id       :integer
+#  id                   :integer          not null, primary key
+#  description          :text
+#  exercise_type        :string
+#  has_weight           :boolean
+#  name                 :string
+#  primary_muscle_group :string
+#  created_at           :datetime         not null
+#  updated_at           :datetime         not null
+#  user_id              :integer
 #
 # Indexes
 #

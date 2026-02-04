@@ -85,6 +85,15 @@ class DashboardController < ApplicationController
 
     # Training density (volume per minute over last 20 workouts)
     @training_density_data = calculate_training_density
+
+    # Volume distribution by muscle group
+    @muscle_group_data = calculate_volume_by_muscle_group
+
+    # Strength curve (performance at different rep ranges)
+    @strength_curve_data = calculate_strength_curve
+
+    # Body map heatmap (muscle recovery status)
+    @body_map_data = calculate_body_map_data
   end
 
   private
@@ -437,5 +446,169 @@ class DashboardController < ApplicationController
         gym: workout.gym&.name || 'Unknown'
       }
     end.compact.reverse
+  end
+
+  def calculate_volume_by_muscle_group
+    # Get volume by muscle group for the last 7 and 30 days
+    seven_days_data = volume_by_muscle_group_for_period(7.days.ago)
+    thirty_days_data = volume_by_muscle_group_for_period(30.days.ago)
+
+    {
+      seven_days: seven_days_data,
+      thirty_days: thirty_days_data,
+      colors: Exercise::MUSCLE_GROUP_COLORS,
+      labels: Exercise::MUSCLE_GROUP_LABELS
+    }
+  end
+
+  def volume_by_muscle_group_for_period(start_date)
+    # Sum volume (weight * reps) grouped by exercise's primary muscle group
+    volume_data = ExerciseSet
+      .joins(workout_exercise: [ :exercise, { workout_block: :workout } ])
+      .where(workouts: { user_id: Current.user.id })
+      .where('workouts.finished_at >= ?', start_date)
+      .where.not(workouts: { finished_at: nil })
+      .where(is_warmup: false)
+      .where.not(exercises: { primary_muscle_group: nil })
+      .group('exercises.primary_muscle_group')
+      .sum('COALESCE(exercise_sets.weight_kg, 0) * COALESCE(exercise_sets.reps, 0)')
+
+    # Convert to user's unit preference
+    if Current.user.preferred_unit == 'lbs'
+      volume_data.transform_values! { |v| (v * 2.20462).round }
+    else
+      volume_data.transform_values!(&:round)
+    end
+
+    # Sort by volume descending
+    volume_data.sort_by { |_, v| -v }.to_h
+  end
+
+  def calculate_strength_curve
+    # Analyze performance at different rep ranges for top exercises
+    # Shows if user is better at low reps (strength) or high reps (endurance)
+
+    # Get top 5 most performed weighted exercises
+    top_exercises = WorkoutExercise
+      .joins(:exercise, :exercise_sets, workout_block: :workout)
+      .where(workouts: { user_id: Current.user.id })
+      .where.not(workouts: { finished_at: nil })
+      .where(exercises: { has_weight: true })
+      .where(exercise_sets: { is_warmup: false })
+      .where.not(exercise_sets: { weight_kg: nil })
+      .group('exercises.id', 'exercises.name')
+      .order(Arel.sql('COUNT(*) DESC'))
+      .limit(5)
+      .pluck('exercises.id', 'exercises.name')
+
+    return [] if top_exercises.empty?
+
+    # Rep ranges to analyze
+    rep_ranges = {
+      '1-3' => (1..3),
+      '4-6' => (4..6),
+      '7-10' => (7..10),
+      '11-15' => (11..15)
+    }
+
+    exercises_data = []
+
+    top_exercises.each do |exercise_id, exercise_name|
+      exercise_curve = { name: exercise_name, ranges: {} }
+
+      rep_ranges.each do |range_label, range|
+        # Get max weight achieved in this rep range
+        max_weight = ExerciseSet
+          .joins(workout_exercise: { workout_block: :workout })
+          .where(workouts: { user_id: Current.user.id })
+          .where.not(workouts: { finished_at: nil })
+          .where(workout_exercises: { exercise_id: exercise_id })
+          .where(is_warmup: false)
+          .where(reps: range)
+          .where.not(weight_kg: nil)
+          .maximum(:weight_kg)
+
+        if max_weight.present?
+          exercise_curve[:ranges][range_label] = Current.user.display_weight(max_weight).round
+        else
+          exercise_curve[:ranges][range_label] = nil
+        end
+      end
+
+      # Only include if has data in at least 2 rep ranges
+      filled_ranges = exercise_curve[:ranges].values.compact.count
+      if filled_ranges >= 2
+        exercises_data << exercise_curve
+      end
+    end
+
+    exercises_data
+  end
+
+  def calculate_body_map_data
+    # Calculate days since each muscle group was trained
+    # This shows recovery status - recently trained = hot/red, rested = cool/green
+
+    muscle_groups = Exercise::MUSCLE_GROUPS
+
+    muscle_data = {}
+
+    muscle_groups.each do |muscle_group|
+      # Find the most recent workout that trained this muscle group
+      last_workout = Workout
+        .joins(workout_blocks: { workout_exercises: :exercise })
+        .where(user_id: Current.user.id)
+        .where.not(finished_at: nil)
+        .where(exercises: { primary_muscle_group: muscle_group })
+        .order(finished_at: :desc)
+        .first
+
+      if last_workout
+        days_ago = (Date.current - last_workout.finished_at.to_date).to_i
+
+        # Calculate volume in last 7 days for intensity
+        volume_7_days = ExerciseSet
+          .joins(workout_exercise: [ :exercise, { workout_block: :workout } ])
+          .where(workouts: { user_id: Current.user.id })
+          .where('workouts.finished_at >= ?', 7.days.ago)
+          .where.not(workouts: { finished_at: nil })
+          .where(exercises: { primary_muscle_group: muscle_group })
+          .where(is_warmup: false)
+          .sum('COALESCE(exercise_sets.weight_kg, 0) * COALESCE(exercise_sets.reps, 0)')
+
+        # Convert to user units
+        if Current.user.preferred_unit == 'lbs'
+          volume_7_days = (volume_7_days * 2.20462).round
+        else
+          volume_7_days = volume_7_days.round
+        end
+
+        # Determine recovery status (0-100 scale, 100 = fully rested)
+        # Assume 48-72 hours for full recovery
+        recovery = case days_ago
+                   when 0 then 10   # Just trained
+                   when 1 then 35   # Still recovering
+                   when 2 then 60   # Partially recovered
+                   when 3 then 85   # Almost recovered
+                   else 100         # Fully rested
+                   end
+
+        muscle_data[muscle_group] = {
+          days_ago: days_ago,
+          volume_7_days: volume_7_days,
+          recovery: recovery,
+          label: Exercise::MUSCLE_GROUP_LABELS[muscle_group]
+        }
+      else
+        muscle_data[muscle_group] = {
+          days_ago: nil,
+          volume_7_days: 0,
+          recovery: 100,
+          label: Exercise::MUSCLE_GROUP_LABELS[muscle_group]
+        }
+      end
+    end
+
+    muscle_data
   end
 end
