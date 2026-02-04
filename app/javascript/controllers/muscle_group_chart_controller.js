@@ -110,7 +110,7 @@ export default class extends Controller {
 
   updateChart() {
     const data = this.getDataForPeriod(this.currentPeriod)
-    
+
     this.chart.data.labels = data.labels
     this.chart.data.datasets[0].data = data.values
     this.chart.data.datasets[0].backgroundColor = data.colors

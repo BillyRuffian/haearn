@@ -36,11 +36,11 @@ export default class extends Controller {
       'chest', 'back', 'shoulders', 'biceps', 'triceps',
       'quadriceps', 'hamstrings', 'glutes', 'calves', 'core'
     ]
-    
+
     const labelMap = this.labelsValue
     const labels = muscleGroups.map(m => labelMap[m] || m.charAt(0).toUpperCase() + m.slice(1))
     const values = muscleGroups.map(m => data[m] || 0)
-    
+
     // Normalize values to percentage of max for better visualization
     const maxValue = Math.max(...values, 1)
 
@@ -112,12 +112,12 @@ export default class extends Controller {
 
   updateChart() {
     const data = this.getDataForPeriod(this.currentPeriod)
-    
+
     const muscleGroups = [
       'chest', 'back', 'shoulders', 'biceps', 'triceps',
       'quadriceps', 'hamstrings', 'glutes', 'calves', 'core'
     ]
-    
+
     const values = muscleGroups.map(m => data[m] || 0)
     const maxValue = Math.max(...values, 1)
 

@@ -13,12 +13,12 @@ export default class extends Controller {
 
   connect() {
     this.chart = null
-    
+
     // Configure Chart.js defaults for dark theme
     Chart.defaults.color = "#8a8a8a"
     Chart.defaults.borderColor = "rgba(255, 255, 255, 0.1)"
     Chart.defaults.font.family = "'Inter', sans-serif"
-    
+
     this.renderChart()
   }
 
@@ -33,7 +33,7 @@ export default class extends Controller {
     if (!this.hasCanvasTarget || !this.dataValue?.length) return
 
     const data = this.dataValue
-    
+
     // Use simple labels instead of time scale (avoids need for date adapter)
     const labels = data.map(d => {
       const date = new Date(d.date)
