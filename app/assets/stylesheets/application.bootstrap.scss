@@ -1796,3 +1796,88 @@ html {
     margin-right: 0.25rem;
   }
 }
+
+// =====================================================
+// Settings Page
+// =====================================================
+.rest-timer-display {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+// Custom range slider styling for dark theme
+.form-range {
+  &::-webkit-slider-runnable-track {
+    background: $iron-light;
+    border-radius: 0.25rem;
+    height: 0.5rem;
+  }
+
+  &::-webkit-slider-thumb {
+    background: linear-gradient(135deg, $rust-light, $forge-orange);
+    border: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-top: -0.375rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+
+    &:hover {
+      background: linear-gradient(135deg, $forge-orange, $rust-light);
+    }
+
+    &:active {
+      box-shadow: 0 2px 8px rgba($forge-orange, 0.5);
+    }
+  }
+
+  &::-moz-range-track {
+    background: $iron-light;
+    border-radius: 0.25rem;
+    height: 0.5rem;
+  }
+
+  &::-moz-range-thumb {
+    background: linear-gradient(135deg, $rust-light, $forge-orange);
+    border: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+
+    &:hover {
+      background: linear-gradient(135deg, $forge-orange, $rust-light);
+    }
+  }
+
+  &:focus {
+    &::-webkit-slider-thumb {
+      box-shadow: 0 0 0 0.2rem rgba($rust, 0.25);
+    }
+
+    &::-moz-range-thumb {
+      box-shadow: 0 0 0 0.2rem rgba($rust, 0.25);
+    }
+  }
+}
+
+// Settings button group styling
+.btn-group .btn-outline-primary {
+  border-color: $iron-light;
+  color: $gunmetal;
+
+  &:hover {
+    background: $iron-light;
+    color: $body-color;
+    border-color: $iron-light;
+  }
+}
+
+.btn-group .btn-check:checked + .btn-outline-primary {
+  background: linear-gradient(135deg, $rust, $rust-light);
+  border-color: $rust;
+  color: white;
+
+  .text-muted {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+}

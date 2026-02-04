@@ -81,4 +81,11 @@ module ApplicationHelper
   def weight_unit
     Current.user&.preferred_unit || 'kg'
   end
+
+  # Format seconds as M:SS
+  def format_seconds(seconds)
+    minutes = seconds / 60
+    secs = seconds % 60
+    format('%d:%02d', minutes, secs)
+  end
 end

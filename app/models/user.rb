@@ -12,12 +12,27 @@ class User < ApplicationRecord
   validates :email_address, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :name, presence: true
   validates :preferred_unit, inclusion: { in: %w[kg lbs], allow_nil: true }
+  validates :default_rest_seconds, numericality: {
+    only_integer: true,
+    greater_than_or_equal_to: 30,
+    less_than_or_equal_to: 300,
+    allow_nil: true
+  }
 
   # Units
   UNITS = %w[kg lbs].freeze
 
+  # Rest timer bounds
+  MIN_REST_SECONDS = 30
+  MAX_REST_SECONDS = 300
+  DEFAULT_REST_SECONDS = 90
+
   def preferred_unit
     super || 'kg'
+  end
+
+  def default_rest_seconds
+    super || DEFAULT_REST_SECONDS
   end
 
   # Convert weight from kg to user's preferred unit for display

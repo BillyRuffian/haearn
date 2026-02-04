@@ -230,8 +230,20 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Bottom navigation bar (`_bottom_nav.html.erb`)
 - [x] Safe area padding for notched devices
 - [x] iOS font-size fix to prevent zoom
+- [x] Settings button in navbar (replaces hamburger menu on mobile)
 
-### 7.3 Turbo Enhancements
+### 7.3 User Settings
+- [x] Settings page (`SettingsController`)
+- [x] Profile settings (name, email)
+- [x] Password change with current password verification
+- [x] Preferences:
+  - [x] Preferred weight unit (kg/lbs)
+  - [x] Default rest timer duration (30-300 seconds, slider)
+- [x] Sign out
+- [x] New workout blocks default to user's preferred rest duration
+- [x] `rest_slider_controller.js` for live slider display
+
+### 7.4 Turbo Enhancements
 - [x] Turbo Frames for all CRUD (already implemented)
 - [x] Turbo Streams for real-time set updates (already implemented)
 - [x] `loading_controller.js` for loading states
@@ -243,15 +255,16 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Database Schema Diagram
 
 ```
-┌─────────────────┐
-│     User        │
-├─────────────────┤
-│ id              │
-│ email           │
-│ password_digest │
-│ name            │
-│ preferred_unit  │
-└────────┬────────┘
+┌─────────────────────┐
+│        User         │
+├─────────────────────┤
+│ id                  │
+│ email               │
+│ password_digest     │
+│ name                │
+│ preferred_unit      │
+│ default_rest_seconds│
+└──────────┬──────────┘
          │
     ┌────┴────┬──────────────────┐
     │         │                  │

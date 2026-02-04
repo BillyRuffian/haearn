@@ -9,6 +9,7 @@ class WorkoutBlock < ApplicationRecord
   scope :ordered, -> { order(:position) }
 
   before_validation :set_position, on: :create
+  before_validation :set_default_rest_seconds, on: :create
 
   def superset?
     workout_exercises.count > 1
@@ -20,7 +21,7 @@ class WorkoutBlock < ApplicationRecord
 
   # Default rest time (in seconds) - can be overridden
   def rest_seconds
-    super || 90
+    super || workout&.user&.default_rest_seconds || User::DEFAULT_REST_SECONDS
   end
 
   private
@@ -29,5 +30,10 @@ class WorkoutBlock < ApplicationRecord
     return if position.present?
     max_position = workout.workout_blocks.maximum(:position) || 0
     self.position = max_position + 1
+  end
+
+  def set_default_rest_seconds
+    return if self[:rest_seconds].present?
+    self.rest_seconds = workout&.user&.default_rest_seconds
   end
 end

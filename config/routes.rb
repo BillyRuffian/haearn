@@ -4,6 +4,11 @@ Rails.application.routes.draw do
   resources :passwords, param: :token
   resource :registration, only: %i[new create]
 
+  # Settings
+  resource :settings, only: %i[show update] do
+    patch :update_password, on: :member
+  end
+
   # Dashboard
   root 'dashboard#index'
 

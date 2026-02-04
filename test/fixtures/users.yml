@@ -3,7 +3,11 @@
 one:
   email_address: one@example.com
   password_digest: <%= password_digest %>
+  name: Test User One
+  preferred_unit: kg
 
 two:
   email_address: two@example.com
   password_digest: <%= password_digest %>
+  name: Test User Two
+  preferred_unit: lbs

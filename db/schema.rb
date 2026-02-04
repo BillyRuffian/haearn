@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_03_143602) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_04_091141) do
   create_table "exercise_sets", force: :cascade do |t|
     t.datetime "completed_at"
     t.datetime "created_at", null: false
@@ -70,6 +70,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_03_143602) do
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "default_gym_id"
+    t.integer "default_rest_seconds", default: 90
     t.string "email_address", null: false
     t.string "name"
     t.string "password_digest", null: false

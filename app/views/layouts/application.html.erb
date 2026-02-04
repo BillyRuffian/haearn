@@ -42,9 +42,12 @@
           HAEARN
         <% end %>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-          <span class="navbar-toggler-icon"></span>
-        </button>
+        <%# Mobile: Settings button instead of hamburger menu (nav items are in bottom bar) %>
+        <% if Current.user %>
+          <%= link_to settings_path, class: "btn btn-link nav-link d-lg-none p-2 #{'active' if controller_name == 'settings'}" do %>
+            <i class="bi bi-gear-fill fs-5"></i>
+          <% end %>
+        <% end %>
 
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto">
@@ -81,7 +84,7 @@
                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
                   <li><span class="dropdown-item-text text-muted small"><%= Current.user.email_address %></span></li>
                   <li><hr class="dropdown-divider"></li>
-                  <li><%= link_to "Settings", "#", class: "dropdown-item" %></li>
+                  <li><%= link_to "Settings", settings_path, class: "dropdown-item" %></li>
                   <li>
                     <%= button_to "Sign out", session_path, method: :delete, class: "dropdown-item" %>
                   </li>
