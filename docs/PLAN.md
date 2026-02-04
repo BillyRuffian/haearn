@@ -528,9 +528,10 @@ $text-muted: #6c757d;
 - [ ] "Ready to progress" notifications when hitting rep targets consistently
 
 ### 8.3 1RM Calculator & Projections
-- [ ] Calculate estimated 1RM from any set (Epley, Brzycki formulas)
-- [ ] Track e1RM trends over time
-- [ ] Percentage-based programming (work at 80% of 1RM, etc.)
+- [x] Calculate estimated 1RM from any set (Epley, Brzycki, Lombardi, Mayhew, O'Conner, Wathan formulas)
+- [x] Track e1RM trends over time (displayed in exercise history)
+- [x] Percentage-based programming (calculator shows training percentages)
+- [x] Interactive 1RM calculator on dashboard with +/- buttons
 - [ ] Strength standards comparison (beginner → elite)
 
 ### 8.4 Advanced Set Types
@@ -571,15 +572,15 @@ $text-muted: #6c757d;
 - [ ] Backup/restore functionality
 
 ### 9.2 Advanced Analytics
-- [ ] Volume per muscle group (weekly/monthly)
-- [ ] Training frequency heatmap
-- [ ] Exercise balance analysis (push/pull ratio, anterior/posterior)
-- [ ] Plateau detection (no PR in X weeks)
-- [ ] Workout consistency streaks
+- [x] Volume per muscle group (weekly/monthly) - See Phase 4.5 visualizations
+- [x] Training frequency heatmap - See Phase 4.5 calendar heatmap
+- [x] Exercise balance analysis (push/pull ratio, anterior/posterior) - See Phase 4.5 muscle spider chart
+- [x] Plateau detection (no PR in X weeks) - See Phase 4.5 plateau detector
+- [x] Workout consistency streaks - See Phase 4.5 consistency streaks
 
 ### 9.3 Comparison Tools
 - [ ] Compare any two workouts side-by-side
-- [ ] Week-over-week volume comparison
+- [x] Week-over-week volume comparison - See Phase 4.5 week comparison
 - [ ] "This time last year" view
 
 ---

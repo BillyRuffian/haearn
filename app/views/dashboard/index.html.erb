@@ -755,6 +755,84 @@
     </div>
     <% end %>
 
+    <!-- 1RM Calculator Tool -->
+    <div class="row mt-5">
+      <div class="col-12">
+        <div class="card position-relative">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-calculator me-2"></i>1RM Calculator
+            </h5>
+            <div data-controller="one-rm-calculator" data-one-rm-calculator-unit-value="<%= Current.user.preferred_unit %>">
+              <div class="row g-4">
+                <div class="col-md-5">
+                  <div class="mb-3">
+                    <label class="form-label text-muted small">Weight Lifted</label>
+                    <div class="input-group">
+                      <button type="button" class="btn btn-outline-secondary" 
+                              data-action="click->one-rm-calculator#decrementWeight"
+                              data-one-rm-calculator-amount-param="<%= Current.user.preferred_unit == 'lbs' ? 5 : 2.5 %>">
+                        <i class="bi bi-dash"></i>
+                      </button>
+                      <input type="number" 
+                             class="form-control text-center fs-4" 
+                             data-one-rm-calculator-target="weight"
+                             data-action="input->one-rm-calculator#calculate"
+                             placeholder="0"
+                             min="0"
+                             step="<%= Current.user.preferred_unit == 'lbs' ? 5 : 2.5 %>">
+                      <button type="button" class="btn btn-outline-secondary"
+                              data-action="click->one-rm-calculator#incrementWeight"
+                              data-one-rm-calculator-amount-param="<%= Current.user.preferred_unit == 'lbs' ? 5 : 2.5 %>">
+                        <i class="bi bi-plus"></i>
+                      </button>
+                      <span class="input-group-text"><%= Current.user.preferred_unit %></span>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label text-muted small">Reps Completed</label>
+                    <div class="input-group">
+                      <button type="button" class="btn btn-outline-secondary" 
+                              data-action="click->one-rm-calculator#decrementReps">
+                        <i class="bi bi-dash"></i>
+                      </button>
+                      <input type="number" 
+                             class="form-control text-center fs-4" 
+                             data-one-rm-calculator-target="reps"
+                             data-action="input->one-rm-calculator#calculate"
+                             placeholder="0"
+                             min="1"
+                             max="30">
+                      <button type="button" class="btn btn-outline-secondary"
+                              data-action="click->one-rm-calculator#incrementReps">
+                        <i class="bi bi-plus"></i>
+                      </button>
+                      <span class="input-group-text">reps</span>
+                    </div>
+                    <div class="form-text text-muted small">Works best for 1-10 reps</div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div data-one-rm-calculator-target="result" class="h-100 d-flex align-items-center justify-content-center">
+                    <div class="text-center text-muted py-4">
+                      <i class="bi bi-calculator fs-1 mb-2"></i>
+                      <p class="mb-0 small">Enter weight and reps</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="small text-muted mb-2">Training Percentages</div>
+                  <div data-one-rm-calculator-target="percentageTable" style="max-height: 200px; overflow-y: auto;">
+                    <p class="text-muted small">Calculate to see percentages</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Recent Workouts -->
     <% if @recent_workouts.any? %>
       <div class="row mt-5">

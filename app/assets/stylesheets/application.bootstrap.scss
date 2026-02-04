@@ -1197,10 +1197,13 @@ select option:checked {
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.6;
     transform: translateX(-50%) scale(1);
   }
+
   50% {
     opacity: 1;
     transform: translateX(-50%) scale(1.1);

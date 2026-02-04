@@ -178,13 +178,13 @@ class ExercisesController < ApplicationController
         }
       end
 
-      # Best estimated 1RM (Epley formula)
+      # Best estimated 1RM using OneRmCalculator service
       best_e1rm_value = 0
       best_e1rm_set = nil
       all_sets.each do |s|
         next unless s.weight_kg && s.reps && s.reps > 0
-        e1rm = s.weight_kg * (1 + s.reps.to_f / 30)
-        if e1rm > best_e1rm_value
+        e1rm = OneRmCalculator.calculate_average(s.weight_kg, s.reps)
+        if e1rm && e1rm > best_e1rm_value
           best_e1rm_value = e1rm
           best_e1rm_set = s
         end
