@@ -66,6 +66,16 @@ class WorkoutExercise < ApplicationRecord
   # Alias for view compatibility
   alias_method :previous_exercise, :previous_workout_exercise
 
+  # Check if this session's volume is a PR for this exercise+machine combo
+  def volume_pr?
+    PrCalculator.volume_pr?(self)
+  end
+
+  # Get the previous best weight for this exercise+machine combo
+  def previous_best_weight
+    @previous_best_weight ||= PrCalculator.previous_best_weight(self)
+  end
+
   private
 
   def set_position

@@ -131,91 +131,23 @@ class ExercisesController < ApplicationController
       .includes(:machine, :exercise_sets, workout_block: :workout)
       .order('workouts.started_at DESC')
 
-    # Calculate PRs for this exercise
-    @prs = calculate_prs(@workout_exercises)
+    # Calculate aggregate PRs for this exercise (shown in PR card at top)
+    @prs = PrCalculator.calculate_all(@workout_exercises, exercise: @exercise)
 
     # Group by machine if applicable
     @by_machine = @workout_exercises.group_by(&:machine)
+    
+    # Calculate PRs per machine for accurate PR badges in each tab
+    @prs_by_machine = {}
+    @by_machine.each do |machine, wes|
+      @prs_by_machine[machine] = PrCalculator.calculate_all(wes, exercise: @exercise)
+    end
 
     # Build chart data for progress visualization
     @chart_data = build_chart_data(@workout_exercises)
   end
 
   private
-
-  def calculate_prs(workout_exercises)
-    prs = {
-      best_set_weight: nil,      # Heaviest single set weight
-      best_set_volume: nil,      # Highest volume single set (weight * reps)
-      best_session_volume: nil,  # Highest total volume in a session
-      best_e1rm: nil,            # Highest estimated 1RM
-      best_reps_at_weight: {}    # Best reps for each weight
-    }
-
-    all_sets = workout_exercises.flat_map(&:exercise_sets).select { |s| !s.is_warmup }
-
-    return prs if all_sets.empty?
-
-    # Best set weight
-    if @exercise.has_weight?
-      best_weight_set = all_sets.max_by(&:weight_kg)
-      if best_weight_set
-        prs[:best_set_weight] = {
-          weight_kg: best_weight_set.weight_kg,
-          reps: best_weight_set.reps,
-          date: best_weight_set.completed_at&.to_date || best_weight_set.created_at.to_date
-        }
-      end
-
-      # Best set volume (single set)
-      best_volume_set = all_sets.max_by { |s| (s.weight_kg || 0) * (s.reps || 0) }
-      if best_volume_set
-        prs[:best_set_volume] = {
-          weight_kg: best_volume_set.weight_kg,
-          reps: best_volume_set.reps,
-          volume: (best_volume_set.weight_kg || 0) * (best_volume_set.reps || 0),
-          date: best_volume_set.completed_at&.to_date || best_volume_set.created_at.to_date
-        }
-      end
-
-      # Best estimated 1RM using OneRmCalculator service
-      best_e1rm_value = 0
-      best_e1rm_set = nil
-      all_sets.each do |s|
-        next unless s.weight_kg && s.reps && s.reps > 0
-        e1rm = OneRmCalculator.calculate_average(s.weight_kg, s.reps)
-        if e1rm && e1rm > best_e1rm_value
-          best_e1rm_value = e1rm
-          best_e1rm_set = s
-        end
-      end
-      if best_e1rm_set
-        prs[:best_e1rm] = {
-          e1rm_kg: best_e1rm_value,
-          weight_kg: best_e1rm_set.weight_kg,
-          reps: best_e1rm_set.reps,
-          date: best_e1rm_set.completed_at&.to_date || best_e1rm_set.created_at.to_date
-        }
-      end
-
-      # Best session volume
-      session_volumes = workout_exercises.map do |we|
-        work_sets = we.exercise_sets.reject(&:is_warmup)
-        volume = work_sets.sum { |s| (s.weight_kg || 0) * (s.reps || 0) }
-        { workout_exercise: we, volume: volume }
-      end
-      best_session = session_volumes.max_by { |sv| sv[:volume] }
-      if best_session && best_session[:volume] > 0
-        prs[:best_session_volume] = {
-          volume: best_session[:volume],
-          workout: best_session[:workout_exercise].workout_block.workout,
-          date: best_session[:workout_exercise].workout_block.workout.started_at.to_date
-        }
-      end
-    end
-
-    prs
-  end
 
   def build_chart_data(workout_exercises)
     return {} if workout_exercises.empty?

@@ -2,6 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 // Connects to data-controller="clipboard"
 // Copies text to clipboard, either from a URL endpoint or static text
+// Uses fallback method for iOS Safari compatibility
 export default class extends Controller {
   static values = {
     url: String,      // URL to fetch text from
@@ -33,7 +34,12 @@ export default class extends Controller {
         throw new Error("No text or URL provided")
       }
 
-      await navigator.clipboard.writeText(textToCopy)
+      // Try modern Clipboard API first, fallback to legacy method for iOS
+      const success = await this.copyToClipboard(textToCopy)
+      
+      if (!success) {
+        throw new Error("Copy failed")
+      }
 
       // Show success state
       button.innerHTML = '<i class="bi bi-check2 me-1"></i>Copied!'
@@ -60,5 +66,70 @@ export default class extends Controller {
         button.classList.add('btn-outline-secondary')
       }, 2000)
     }
+  }
+
+  // Cross-browser clipboard copy with iOS Safari fallback
+  async copyToClipboard(text) {
+    // Try modern Clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(text)
+        return true
+      } catch (err) {
+        console.warn("Clipboard API failed, trying fallback:", err)
+      }
+    }
+
+    // Fallback for iOS Safari and older browsers
+    return this.fallbackCopyToClipboard(text)
+  }
+
+  // Legacy clipboard copy using textarea and execCommand
+  // This works on iOS Safari where Clipboard API may fail
+  fallbackCopyToClipboard(text) {
+    const textArea = document.createElement("textarea")
+    textArea.value = text
+    
+    // Avoid scrolling to bottom on iOS
+    textArea.style.top = "0"
+    textArea.style.left = "0"
+    textArea.style.position = "fixed"
+    textArea.style.width = "2em"
+    textArea.style.height = "2em"
+    textArea.style.padding = "0"
+    textArea.style.border = "none"
+    textArea.style.outline = "none"
+    textArea.style.boxShadow = "none"
+    textArea.style.background = "transparent"
+    // Prevent zoom on iOS
+    textArea.style.fontSize = "16px"
+    
+    document.body.appendChild(textArea)
+    
+    // iOS specific handling
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+    
+    if (isIOS) {
+      // iOS requires a range selection approach
+      const range = document.createRange()
+      range.selectNodeContents(textArea)
+      const selection = window.getSelection()
+      selection.removeAllRanges()
+      selection.addRange(range)
+      textArea.setSelectionRange(0, text.length)
+    } else {
+      textArea.focus()
+      textArea.select()
+    }
+
+    let success = false
+    try {
+      success = document.execCommand('copy')
+    } catch (err) {
+      console.error('execCommand copy failed:', err)
+    }
+
+    document.body.removeChild(textArea)
+    return success
   }
 }

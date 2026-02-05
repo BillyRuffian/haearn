@@ -22,7 +22,7 @@
         </div>
         <div class="d-flex gap-2 position-relative" style="z-index: 2;">
           <span class="badge bg-secondary">
-            <%= pluralize(gym.machines.count, "machine") %>
+            <%= pluralize(gym.machines.count, "equipment", "equipment") %>
           </span>
           <%= link_to edit_gym_path(gym), class: "btn btn-sm btn-outline-secondary", data: { turbo_frame: dom_id(gym) } do %>
             <i class="bi bi-pencil"></i>

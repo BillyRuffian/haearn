@@ -23,8 +23,10 @@
   </div>
 
   <% if @workout_exercises.any? %>
-    <!-- Personal Records -->
-    <% if @exercise.has_weight? && @prs[:best_set_weight] %>
+    <% unique_workout_count = @workout_exercises.map { |we| we.workout_block.workout_id }.uniq.count %>
+    
+    <!-- Personal Records - Only show if there are 2+ workout sessions to compare -->
+    <% if @exercise.has_weight? && @prs[:best_set_weight] && unique_workout_count >= 2 %>
       <div class="card mb-4 pr-card">
         <div class="card-header">
           <i class="bi bi-trophy-fill text-warning me-2"></i>Personal Records
@@ -186,7 +188,7 @@
       </div>
     </div>
 
-    <!-- Group by Machine if multiple machines used -->
+    <!-- Group by Equipment if multiple equipment used -->
     <% if @by_machine.keys.compact.any? %>
       <ul class="nav nav-tabs mb-3" role="tablist">
         <li class="nav-item" role="presentation">
@@ -204,7 +206,7 @@
         <% if @by_machine[nil]&.any? %>
           <li class="nav-item" role="presentation">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#no-machine" type="button">
-              No Machine (<%= @by_machine[nil].count %>)
+              No Equipment (<%= @by_machine[nil].count %>)
             </button>
           </li>
         <% end %>
@@ -212,21 +214,23 @@
 
       <div class="tab-content">
         <div class="tab-pane fade show active" id="all-machines" role="tabpanel">
-          <%= render partial: "history_sessions", locals: { workout_exercises: @workout_exercises, prs: @prs } %>
+          <%= render partial: "history_sessions", locals: { workout_exercises: @workout_exercises, prs: @prs, show_prs: unique_workout_count >= 2 } %>
         </div>
         <% @by_machine.keys.compact.each do |machine| %>
+          <% machine_workout_count = @by_machine[machine].map { |we| we.workout_block.workout_id }.uniq.count %>
           <div class="tab-pane fade" id="machine-<%= machine.id %>" role="tabpanel">
-            <%= render partial: "history_sessions", locals: { workout_exercises: @by_machine[machine], prs: @prs } %>
+            <%= render partial: "history_sessions", locals: { workout_exercises: @by_machine[machine], prs: @prs_by_machine[machine], show_prs: machine_workout_count >= 2 } %>
           </div>
         <% end %>
         <% if @by_machine[nil]&.any? %>
+          <% no_machine_workout_count = @by_machine[nil].map { |we| we.workout_block.workout_id }.uniq.count %>
           <div class="tab-pane fade" id="no-machine" role="tabpanel">
-            <%= render partial: "history_sessions", locals: { workout_exercises: @by_machine[nil], prs: @prs } %>
+            <%= render partial: "history_sessions", locals: { workout_exercises: @by_machine[nil], prs: @prs_by_machine[nil], show_prs: no_machine_workout_count >= 2 } %>
           </div>
         <% end %>
       </div>
     <% else %>
-      <%= render partial: "history_sessions", locals: { workout_exercises: @workout_exercises, prs: @prs } %>
+      <%= render partial: "history_sessions", locals: { workout_exercises: @workout_exercises, prs: @prs, show_prs: unique_workout_count >= 2 } %>
     <% end %>
 
   <% else %>

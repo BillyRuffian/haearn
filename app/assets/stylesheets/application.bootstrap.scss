@@ -647,6 +647,16 @@ select option:checked {
   &:not(:last-child) {
     border-bottom: 1px solid $iron-light;
   }
+  
+  // Volume PR highlight for the entire exercise
+  &.volume-pr {
+    background: linear-gradient(135deg, rgba(#cd7f32, 0.15) 0%, rgba(#ffd700, 0.1) 100%);
+    border-left: 3px solid #cd7f32;
+    
+    .card-header {
+      background: rgba(#cd7f32, 0.1);
+    }
+  }
 }
 
 .set-row {
@@ -659,6 +669,19 @@ select option:checked {
   &:hover {
     background: rgba($rust, 0.05);
   }
+  
+  // Weight PR highlight for individual set
+  &.pr-set-row {
+    background: linear-gradient(90deg, rgba(#ffd700, 0.15) 0%, rgba(#cd7f32, 0.1) 100%);
+    border-left: 3px solid #ffd700;
+  }
+}
+
+// PR weight text highlighting
+.pr-weight {
+  color: #ffd700 !important;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(#ffd700, 0.5);
 }
 
 .set-number {

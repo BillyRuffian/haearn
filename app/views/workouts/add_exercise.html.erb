@@ -28,47 +28,61 @@
         
         <div class="modal-body p-0">
           <% if @selected_exercise %>
-            <!-- Step 2: Machine Selection -->
+            <!-- Step 2: Equipment Selection -->
             <div class="p-3 border-bottom">
               <h6 class="mb-0"><%= @selected_exercise.name %></h6>
-              <small class="text-muted">Select equipment</small>
+              <small class="text-muted">Select equipment (optional)</small>
             </div>
             
             <% if @machines.any? %>
-              <div class="list-group list-group-flush">
-                <% @machines.each do |machine| %>
-                  <%= button_to add_exercise_workout_path(@workout, exercise_id: @selected_exercise.id, machine_id: machine.id, to_block: @target_block&.id),
-                      method: :post,
-                      class: "list-group-item list-group-item-action d-flex justify-content-between align-items-center",
-                      data: { turbo_frame: "_top" } do %>
-                    <div>
-                      <%= equipment_icon(machine.equipment_type) %>
-                      <strong class="ms-2"><%= machine.name %></strong>
-                    <% if machine.notes.present? %>
-                      <small class="text-muted d-block ms-4"><%= truncate(machine.notes, length: 40) %></small>
-                      <% end %>
-                    </div>
-                    <span class="badge bg-dark"><%= machine.equipment_type.humanize %></span>
-                  <% end %>
-                <% end %>
+              <div data-controller="equipment-filter">
+                <!-- Search Equipment -->
+                <div class="p-3 border-bottom sticky-top bg-body">
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" placeholder="Search equipment..." 
+                           data-equipment-filter-target="input"
+                           data-action="input->equipment-filter#filter">
+                  </div>
+                </div>
                 
-                <!-- Create new machine option -->
-                <%= link_to new_gym_machine_path(@workout.gym, return_to: add_exercise_workout_path(@workout, select_exercise: @selected_exercise.id, to_block: @target_block&.id)),
-                    class: "list-group-item list-group-item-action text-primary",
-                    data: { turbo_frame: "_top" } do %>
-                  <i class="bi bi-plus-lg me-2"></i>Add new machine...
-                <% end %>
+                <div class="list-group list-group-flush" data-equipment-filter-target="list">
+                  <!-- Create new equipment option -->
+                  <%= link_to new_gym_machine_path(@workout.gym, return_to: add_exercise_workout_path(@workout, select_exercise: @selected_exercise.id, to_block: @target_block&.id)),
+                      class: "list-group-item list-group-item-action text-primary",
+                      data: { turbo_frame: "_top" } do %>
+                    <i class="bi bi-plus-lg me-2"></i>Add new equipment...
+                  <% end %>
+                  
+                  <% @machines.each do |machine| %>
+                  <div data-equipment-filter-target="item" data-name="<%= machine.name.downcase %>">
+                    <%= button_to add_exercise_workout_path(@workout, exercise_id: @selected_exercise.id, machine_id: machine.id, to_block: @target_block&.id),
+                        method: :post,
+                        class: "list-group-item list-group-item-action d-flex justify-content-between align-items-center",
+                        data: { turbo_frame: "_top" } do %>
+                      <div>
+                        <%= equipment_icon(machine.equipment_type) %>
+                        <strong class="ms-2"><%= machine.name %></strong>
+                      <% if machine.notes.present? %>
+                        <small class="text-muted d-block ms-4"><%= truncate(machine.notes, length: 40) %></small>
+                        <% end %>
+                      </div>
+                      <span class="badge bg-dark"><%= machine.equipment_type.humanize %></span>
+                    <% end %>
+                  </div>
+                  <% end %>
+                </div>
               </div>
             <% else %>
-              <!-- No machines yet - prompt to create one -->
+              <!-- No equipment yet - prompt to create one -->
               <div class="p-4 text-center">
                 <i class="bi bi-gear display-4 text-muted mb-3"></i>
-                <h6>No machines at <%= @workout.gym.name %> yet</h6>
-                <p class="text-muted small">Add a machine to track your exercises.</p>
+                <h6>No equipment at <%= @workout.gym.name %> yet</h6>
+                <p class="text-muted small">Add equipment to track variations of this exercise.</p>
                 <%= link_to new_gym_machine_path(@workout.gym, return_to: add_exercise_workout_path(@workout, select_exercise: @selected_exercise.id, to_block: @target_block&.id)),
                     class: "btn btn-primary",
                     data: { turbo_frame: "_top" } do %>
-                  <i class="bi bi-plus-lg me-1"></i>Add Machine
+                  <i class="bi bi-plus-lg me-1"></i>Add Equipment
                 <% end %>
               </div>
             <% end %>

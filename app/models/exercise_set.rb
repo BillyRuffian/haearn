@@ -64,6 +64,11 @@ class ExerciseSet < ApplicationRecord
     weight_kg * reps
   end
 
+  # Check if this set is a weight PR (highest weight ever for this exercise+machine)
+  def weight_pr?
+    PrCalculator.weight_pr?(self)
+  end
+
   private
 
   def set_position

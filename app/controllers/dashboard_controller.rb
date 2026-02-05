@@ -21,7 +21,7 @@ class DashboardController < ApplicationController
     end
 
     # PR Timeline data (last 12 months of PRs across all exercises)
-    @pr_timeline_data = calculate_pr_timeline
+    @pr_timeline_data = PrCalculator.calculate_timeline(user: Current.user, since: 12.months.ago, limit: 100)
 
     # PRs this month (count from timeline data)
     start_of_month = Time.current.beginning_of_month.to_date.to_s
@@ -130,69 +130,6 @@ class DashboardController < ApplicationController
       .sort_by { |_, count| -count }
       .first(10)
       .map { |name, count| { exercise: name, count: count } }
-  end
-
-  def calculate_pr_timeline
-    prs = []
-
-    # Get all workout exercises from the last 12 months with their sets
-    workout_exercises = WorkoutExercise
-      .joins(workout_block: :workout)
-      .includes(:exercise, :exercise_sets)
-      .where(workouts: { user_id: Current.user.id })
-      .where('workouts.finished_at >= ?', 12.months.ago)
-      .where.not(workouts: { finished_at: nil })
-
-    # Group by exercise
-    exercises_data = workout_exercises.group_by(&:exercise)
-
-    exercises_data.each do |exercise, wes|
-      next unless exercise&.has_weight?
-
-      # Get all working sets in chronological order
-      all_sets = wes.flat_map { |we|
-        we.exercise_sets.select { |s| !s.is_warmup && s.weight_kg.present? }
-      }.sort_by { |s| s.completed_at || s.created_at }
-
-      next if all_sets.empty?
-
-      # Track running PRs as we go through chronologically
-      best_weight = 0
-      best_volume = 0
-
-      all_sets.each do |set|
-        date = (set.completed_at || set.created_at).to_date
-        weight = set.weight_kg
-        volume = (set.weight_kg || 0) * (set.reps || 0)
-
-        # Check for weight PR
-        if weight > best_weight
-          best_weight = weight
-          prs << {
-            exercise: exercise.name,
-            date: date.to_s,
-            weight: Current.user.display_weight(weight).round,
-            reps: set.reps || 0,
-            type: 'weight'
-          }
-        end
-
-        # Check for volume PR (same date might have both)
-        if volume > best_volume
-          best_volume = volume
-          prs << {
-            exercise: exercise.name,
-            date: date.to_s,
-            weight: Current.user.display_weight(set.weight_kg).round,
-            reps: set.reps || 0,
-            type: 'volume'
-          }
-        end
-      end
-    end
-
-    # Sort by date and limit to most recent PRs for performance
-    prs.sort_by { |pr| pr[:date] }.last(100)
   end
 
   def calculate_streaks

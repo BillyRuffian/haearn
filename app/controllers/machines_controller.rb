@@ -23,8 +23,8 @@ class MachinesController < ApplicationController
         # If we have a return_to URL, redirect there instead
         if params[:return_to].present?
           safe_url = safe_return_to(params[:return_to], fallback: gym_path(@gym))
-          format.html { redirect_to safe_url, notice: 'Machine added! Now select it.' }
-          format.turbo_stream { redirect_to safe_url, notice: 'Machine added! Now select it.' }
+          format.html { redirect_to safe_url, notice: 'Equipment added! Now select it.' }
+          format.turbo_stream { redirect_to safe_url, notice: 'Equipment added! Now select it.' }
         else
           format.turbo_stream do
             render turbo_stream: [
@@ -32,7 +32,7 @@ class MachinesController < ApplicationController
               turbo_stream.update('new_machine_form', partial: 'machines/form', locals: { machine: @gym.machines.build, gym: @gym })
             ]
           end
-          format.html { redirect_to gym_path(@gym), notice: 'Machine added successfully.' }
+          format.html { redirect_to gym_path(@gym), notice: 'Equipment added successfully.' }
         end
       else
         @return_to = params[:return_to]
@@ -49,7 +49,7 @@ class MachinesController < ApplicationController
     respond_to do |format|
       if @machine.update(machine_params)
         format.turbo_stream { render turbo_stream: turbo_stream.replace(@machine, partial: 'machines/machine', locals: { machine: @machine, gym: @gym }) }
-        format.html { redirect_to gym_path(@gym), notice: 'Machine updated successfully.' }
+        format.html { redirect_to gym_path(@gym), notice: 'Equipment updated successfully.' }
       else
         format.turbo_stream { render turbo_stream: turbo_stream.replace(@machine, partial: 'machines/edit_form', locals: { machine: @machine, gym: @gym }) }
         format.html { render :edit, status: :unprocessable_entity }
@@ -62,7 +62,7 @@ class MachinesController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream { render turbo_stream: turbo_stream.remove(@machine) }
-      format.html { redirect_to gym_path(@gym), notice: 'Machine deleted.' }
+      format.html { redirect_to gym_path(@gym), notice: 'Equipment deleted.' }
     end
   end
 

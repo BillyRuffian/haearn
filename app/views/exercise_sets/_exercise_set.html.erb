@@ -1,5 +1,6 @@
 <%= turbo_frame_tag dom_id(set) do %>
-  <div class="row align-items-center py-1 set-row <%= 'text-muted' if set.is_warmup %>">
+  <% is_weight_pr = set.weight_pr? %>
+  <div class="row align-items-center py-1 set-row <%= 'text-muted' if set.is_warmup %> <%= 'pr-set-row' if is_weight_pr %>">
     <div class="col-1 text-center">
       <% if set.is_warmup %>
         <span class="badge bg-secondary">W</span>
@@ -8,8 +9,11 @@
       <% end %>
     </div>
     <div class="col-3 text-center">
-      <span class="weight-display">
+      <span class="weight-display <%= 'pr-weight' if is_weight_pr %>">
         <%= Current.user.display_weight(set.weight_kg)&.round || "—" %>
+        <% if is_weight_pr %>
+          <i class="bi bi-trophy-fill text-warning ms-1"></i>
+        <% end %>
       </span>
       <small class="text-muted"><%= Current.user.preferred_unit %></small>
     </div>

@@ -1,6 +1,8 @@
 # Haearn Implementation Plan
 
 > Last Updated: February 3, 2026
+> 
+> **Note**: "Machine" in code/schema refers to equipment variations. UI displays "Equipment" terminology.
 
 ## Overview
 

@@ -8,8 +8,9 @@
           <i class="bi bi-pin-angle-fill me-1"></i>Persistent Notes
           <span class="text-muted fw-normal">(copied to future workouts)</span>
         </label>
-        <%= form.text_field :persistent_notes, 
+        <%= form.text_area :persistent_notes, 
             class: "form-control form-control-sm",
+            rows: 2,
             placeholder: "e.g., Seat at 4, use handle B" %>
       </div>
       <div class="col-12">
@@ -17,8 +18,9 @@
           <i class="bi bi-chat-text me-1"></i>Session Notes
           <span class="text-muted fw-normal">(for this workout only)</span>
         </label>
-        <%= form.text_field :session_notes,
+        <%= form.text_area :session_notes,
             class: "form-control form-control-sm",
+            rows: 2,
             placeholder: "e.g., Shoulder felt tight today" %>
       </div>
       <div class="col-12">

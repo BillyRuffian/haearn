@@ -9,11 +9,11 @@
     </ol>
   </nav>
 
-  <h1 class="display-heading mb-4">Edit Machine</h1>
+  <h1 class="display-heading mb-4">Edit Equipment</h1>
 
   <div class="card mb-4">
     <div class="card-header">
-      <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Machine Details</h5>
+      <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Equipment Details</h5>
     </div>
     <div class="card-body">
       <%= turbo_frame_tag @machine do %>
@@ -64,11 +64,10 @@
           <%= form.file_field :photos, 
               multiple: true,
               accept: "image/jpeg,image/png,image/webp,image/heic,image/heif",
-              capture: "environment",
               class: "form-control",
               direct_upload: false %>
           <div class="form-text">
-            JPEG, PNG, WebP, or HEIC. Max 10MB each. On mobile, tap to use camera.
+            JPEG, PNG, WebP, or HEIC. Max 10MB each.
           </div>
         </div>
         <%= form.submit "Upload Photos", class: "btn btn-primary" %>
