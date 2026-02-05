@@ -14,7 +14,7 @@ class PrCalculator
   end
 
   # Check if a set has a weight PR compared to previous sets
-  # Used during live workouts  
+  # Used during live workouts
   def self.weight_pr?(exercise_set)
     new(nil, exercise_set: exercise_set).weight_pr?
   end
@@ -227,7 +227,7 @@ class PrCalculator
       .where.not(workouts: { finished_at: nil })
 
     # Group by exercise+machine combination for proper PR scoping
-    by_exercise_machine = workout_exercises.group_by { |we| [we.exercise_id, we.machine_id] }
+    by_exercise_machine = workout_exercises.group_by { |we| [ we.exercise_id, we.machine_id ] }
 
     by_exercise_machine.each do |(exercise_id, machine_id), wes|
       exercise = wes.first.exercise

@@ -6,7 +6,7 @@ export default class extends Controller {
 
   filter() {
     const query = this.inputTarget.value.toLowerCase().trim()
-    
+
     this.itemTargets.forEach(item => {
       const name = item.dataset.name || ""
       if (query === "" || name.includes(query)) {

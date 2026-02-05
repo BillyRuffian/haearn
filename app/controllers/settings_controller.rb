@@ -201,8 +201,8 @@ class SettingsController < ApplicationController
     # Get all exercises the user has done
     exercises_with_sets = Exercise.for_user(@user)
       .joins(workout_exercises: :exercise_sets)
-      .joins("INNER JOIN workout_blocks ON workout_exercises.workout_block_id = workout_blocks.id")
-      .joins("INNER JOIN workouts ON workout_blocks.workout_id = workouts.id")
+      .joins('INNER JOIN workout_blocks ON workout_exercises.workout_block_id = workout_blocks.id')
+      .joins('INNER JOIN workouts ON workout_blocks.workout_id = workouts.id')
       .where(workouts: { user_id: @user.id, finished_at: ..Time.current })
       .where(exercise_sets: { is_warmup: false })
       .distinct
@@ -214,7 +214,7 @@ class SettingsController < ApplicationController
 
       exercises_with_sets.each do |exercise|
         prs = calculate_exercise_prs(exercise)
-        
+
         prs.each do |pr|
           csv << [
             exercise.name,
@@ -264,7 +264,7 @@ class SettingsController < ApplicationController
       best_volume_set = sets.where.not(weight_kg: nil).where.not(reps: nil)
         .select { |s| (s.weight_kg || 0) * (s.reps || 0) > 0 }
         .max_by { |s| s.weight_kg * s.reps }
-      
+
       if best_volume_set
         volume_kg = best_volume_set.weight_kg * best_volume_set.reps
         volume = @user.preferred_unit == 'lbs' ? (volume_kg * 2.20462).round(1) : volume_kg.round(1)

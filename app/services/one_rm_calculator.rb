@@ -66,7 +66,7 @@ class OneRmCalculator
 
       # Inverse Epley: reps = (100/percentage - 1) * 30
       reps = ((100.0 / percentage.to_f) - 1) * 30
-      [reps.round, 1].max
+      [ reps.round, 1 ].max
     end
 
     # Generate a percentage table for training
@@ -75,7 +75,7 @@ class OneRmCalculator
     def percentage_table(one_rm)
       return [] unless one_rm.to_f > 0
 
-      [100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50].map do |pct|
+      [ 100, 95, 90, 85, 80, 75, 70, 65, 60, 55, 50 ].map do |pct|
         {
           percentage: pct,
           weight: weight_at_percentage(one_rm, pct),

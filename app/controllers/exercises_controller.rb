@@ -136,7 +136,7 @@ class ExercisesController < ApplicationController
 
     # Group by machine if applicable
     @by_machine = @workout_exercises.group_by(&:machine)
-    
+
     # Calculate PRs per machine for accurate PR badges in each tab
     @prs_by_machine = {}
     @by_machine.each do |machine, wes|

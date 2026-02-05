@@ -191,41 +191,41 @@ class WorkoutsController < ApplicationController
 
   def generate_workout_text(workout)
     lines = []
-    
+
     # Header
-    date_str = workout.started_at.strftime("%A, %B %-d, %Y")
+    date_str = workout.started_at.strftime('%A, %B %-d, %Y')
     lines << "🏋️ #{date_str}"
     lines << "📍 #{workout.gym.name}" if workout.gym
     lines << "⏱️ #{workout.duration_minutes} min" if workout.finished_at
-    lines << ""
+    lines << ''
 
     # Exercises grouped by block
-    workout.workout_blocks.includes(workout_exercises: [:exercise, :machine, :exercise_sets]).order(:position).each do |block|
+    workout.workout_blocks.includes(workout_exercises: [ :exercise, :machine, :exercise_sets ]).order(:position).each do |block|
       block.workout_exercises.order(:position).each do |we|
-        exercise_name = we.exercise&.name || "Unknown Exercise"
-        machine_suffix = we.machine ? " (#{we.machine.name})" : ""
+        exercise_name = we.exercise&.name || 'Unknown Exercise'
+        machine_suffix = we.machine ? " (#{we.machine.name})" : ''
         lines << "#{exercise_name}#{machine_suffix}"
-        
+
         we.exercise_sets.order(:position).each_with_index do |set, idx|
           set_line = format_set_text(set, idx + 1, workout.user.preferred_unit)
           lines << set_line
         end
-        lines << ""
+        lines << ''
       end
     end
 
     # Notes
     if workout.notes.present?
       lines << "📝 Notes: #{workout.notes}"
-      lines << ""
+      lines << ''
     end
 
     lines.join("\n").strip
   end
 
   def format_set_text(set, set_num, unit)
-    warmup_tag = set.is_warmup ? " (warmup)" : ""
-    
+    warmup_tag = set.is_warmup ? ' (warmup)' : ''
+
     if set.weight_kg.present? && set.reps.present?
       weight = unit == 'lbs' ? (set.weight_kg * 2.20462).round(1) : set.weight_kg.round(1)
       "Set #{set_num}: #{set.reps} × #{weight}#{unit}#{warmup_tag}"

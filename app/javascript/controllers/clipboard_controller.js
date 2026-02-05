@@ -36,7 +36,7 @@ export default class extends Controller {
 
       // Try modern Clipboard API first, fallback to legacy method for iOS
       const success = await this.copyToClipboard(textToCopy)
-      
+
       if (!success) {
         throw new Error("Copy failed")
       }
@@ -89,7 +89,7 @@ export default class extends Controller {
   fallbackCopyToClipboard(text) {
     const textArea = document.createElement("textarea")
     textArea.value = text
-    
+
     // Avoid scrolling to bottom on iOS
     textArea.style.top = "0"
     textArea.style.left = "0"
@@ -103,12 +103,12 @@ export default class extends Controller {
     textArea.style.background = "transparent"
     // Prevent zoom on iOS
     textArea.style.fontSize = "16px"
-    
+
     document.body.appendChild(textArea)
-    
+
     // iOS specific handling
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-    
+
     if (isIOS) {
       // iOS requires a range selection approach
       const range = document.createRange()

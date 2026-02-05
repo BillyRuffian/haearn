@@ -523,12 +523,12 @@ class DashboardController < ApplicationController
         # Determine recovery status (0-100 scale, 100 = fully rested)
         # Assume 48-72 hours for full recovery
         recovery = case days_ago
-                   when 0 then 10   # Just trained
-                   when 1 then 35   # Still recovering
-                   when 2 then 60   # Partially recovered
-                   when 3 then 85   # Almost recovered
-                   else 100         # Fully rested
-                   end
+        when 0 then 10   # Just trained
+        when 1 then 35   # Still recovering
+        when 2 then 60   # Partially recovered
+        when 3 then 85   # Almost recovered
+        else 100         # Fully rested
+        end
 
         muscle_data[muscle_group] = {
           days_ago: days_ago,
