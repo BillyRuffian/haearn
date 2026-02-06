@@ -1,12 +1,18 @@
+# Displays the main dashboard with workout statistics, charts, and analytics
+# Shows workout frequency, volume tracking, PR timeline, heatmaps, and more
 class DashboardController < ApplicationController
+  # GET /dashboard
+  # Main dashboard view with comprehensive workout analytics
   def index
     return unless Current.user
 
     # Stats for dashboard
+    # Quick stats for the top of dashboard
     @workouts_this_week = Current.user.workouts
       .where(finished_at: 1.week.ago.beginning_of_day..Time.current)
       .count
 
+    # Total volume (weight × reps) for working sets this week
     @volume_this_week = Current.user.workouts
       .joins(workout_exercises: :exercise_sets)
       .where(finished_at: 1.week.ago.beginning_of_day..Time.current)
@@ -21,7 +27,7 @@ class DashboardController < ApplicationController
     end
 
     # PR Timeline data (last 12 months of PRs across all exercises)
-    @pr_timeline_data = PrCalculator.calculate_timeline(user: Current.user, since: 12.months.ago, limit: 100)
+    @pr_timeline_data = calculate_pr_timeline
 
     # PRs this month (count from timeline data)
     start_of_month = Time.current.beginning_of_month.to_date.to_s
@@ -85,21 +91,14 @@ class DashboardController < ApplicationController
 
     # Training density (volume per minute over last 20 workouts)
     @training_density_data = calculate_training_density
-
-    # Volume distribution by muscle group
-    @muscle_group_data = calculate_volume_by_muscle_group
-
-    # Strength curve (performance at different rep ranges)
-    @strength_curve_data = calculate_strength_curve
-
-    # Body map heatmap (muscle recovery status)
-    @body_map_data = calculate_body_map_data
   end
 
   private
 
+  # Calculate distribution of rep ranges (1-5, 6-10, 11-15, 16+) from last 30 days
+  # Helps identify training bias toward strength vs hypertrophy vs endurance
   def calculate_rep_range_distribution
-    # Get all working sets from the last 30 days
+    # Analyze working sets only (exclude warmups)
     sets = ExerciseSet
       .joins(workout_exercise: { workout_block: :workout })
       .where(workouts: { user_id: Current.user.id })
@@ -118,8 +117,10 @@ class DashboardController < ApplicationController
     }
   end
 
+  # Returns top 10 most frequently performed exercises in last 90 days
+  # Useful for identifying training patterns and favorites
   def calculate_exercise_frequency
-    # Count workout_exercises by exercise in last 90 days
+    # Count how many times each exercise appeared in workouts
     WorkoutExercise
       .joins(:exercise, workout_block: :workout)
       .where(workouts: { user_id: Current.user.id })
@@ -132,8 +133,75 @@ class DashboardController < ApplicationController
       .map { |name, count| { exercise: name, count: count } }
   end
 
+  # Build chronological timeline of PRs (weight and volume) over last 12 months
+  # Tracks the progressive improvement in each exercise
+  def calculate_pr_timeline
+    prs = []
+
+    # Load 12 months of workout data with sets
+    workout_exercises = WorkoutExercise
+      .joins(workout_block: :workout)
+      .includes(:exercise, :exercise_sets)
+      .where(workouts: { user_id: Current.user.id })
+      .where('workouts.finished_at >= ?', 12.months.ago)
+      .where.not(workouts: { finished_at: nil })
+
+    # Group by exercise
+    exercises_data = workout_exercises.group_by(&:exercise)
+
+    exercises_data.each do |exercise, wes|
+      next unless exercise&.has_weight?
+
+      # Get all working sets in chronological order
+      all_sets = wes.flat_map { |we|
+        we.exercise_sets.select { |s| !s.is_warmup && s.weight_kg.present? }
+      }.sort_by { |s| s.completed_at || s.created_at }
+
+      next if all_sets.empty?
+
+      # Track running PRs as we go through chronologically
+      best_weight = 0
+      best_volume = 0
+
+      all_sets.each do |set|
+        date = (set.completed_at || set.created_at).to_date
+        weight = set.weight_kg
+        volume = (set.weight_kg || 0) * (set.reps || 0)
+
+        # Check for weight PR
+        if weight > best_weight
+          best_weight = weight
+          prs << {
+            exercise: exercise.name,
+            date: date.to_s,
+            weight: Current.user.display_weight(weight).round,
+            reps: set.reps || 0,
+            type: 'weight'
+          }
+        end
+
+        # Check for volume PR (same date might have both)
+        if volume > best_volume
+          best_volume = volume
+          prs << {
+            exercise: exercise.name,
+            date: date.to_s,
+            weight: Current.user.display_weight(set.weight_kg).round,
+            reps: set.reps || 0,
+            type: 'volume'
+          }
+        end
+      end
+    end
+
+    # Sort by date and limit to most recent PRs for performance
+    prs.sort_by { |pr| pr[:date] }.last(100)
+  end
+
+  # Calculate current and longest workout streaks (consecutive weeks with workouts)
+  # Also shows days since last workout
   def calculate_streaks
-    # Get all workout dates (finished workouts only) in descending order
+    # Get all finished workout dates
     workout_dates = Current.user.workouts
       .where.not(finished_at: nil)
       .order(finished_at: :desc)
@@ -193,6 +261,8 @@ class DashboardController < ApplicationController
     }
   end
 
+  # Compare this week vs last week (volume, workout count, set count)
+  # Shows if user is improving or regressing week over week
   def calculate_week_comparison
     this_week_start = Date.current.beginning_of_week
     last_week_start = (Date.current - 1.week).beginning_of_week
@@ -260,8 +330,10 @@ class DashboardController < ApplicationController
     }
   end
 
+  # Track total weekly volume (tonnage) over last 12 weeks
+  # Shows training load trends over time
   def calculate_tonnage_tracker
-    # Weekly volume for the last 12 weeks
+    # Sum volume for each week
     (0..11).map do |weeks_ago|
       week_start = weeks_ago.weeks.ago.beginning_of_week
       week_end = weeks_ago.weeks.ago.end_of_week
@@ -286,10 +358,12 @@ class DashboardController < ApplicationController
     end.reverse
   end
 
+  # Identify exercises where user hasn't hit a PR in 4+ weeks (potential plateaus)
+  # Only shows exercises that are still being trained (within last 30 days)
   def calculate_plateaus
     plateaus = []
 
-    # Get exercises performed in the last 90 days with weighted sets
+    # Find currently active exercises with weight tracking
     active_exercises = WorkoutExercise
       .joins(:exercise, :exercise_sets, workout_block: :workout)
       .where(workouts: { user_id: Current.user.id })
@@ -350,8 +424,10 @@ class DashboardController < ApplicationController
     plateaus.sort_by { |p| -p[:weeks_since_pr] }.first(5)
   end
 
+  # Calculate training density (volume per minute) for last 20 workouts
+  # Higher density = more work in less time = improved work capacity
   def calculate_training_density
-    # Get last 20 workouts with duration and volume
+    # Analyze workout efficiency: volume divided by time
     workouts = Current.user.workouts
       .where.not(finished_at: nil)
       .where.not(started_at: nil)
@@ -383,169 +459,5 @@ class DashboardController < ApplicationController
         gym: workout.gym&.name || 'Unknown'
       }
     end.compact.reverse
-  end
-
-  def calculate_volume_by_muscle_group
-    # Get volume by muscle group for the last 7 and 30 days
-    seven_days_data = volume_by_muscle_group_for_period(7.days.ago)
-    thirty_days_data = volume_by_muscle_group_for_period(30.days.ago)
-
-    {
-      seven_days: seven_days_data,
-      thirty_days: thirty_days_data,
-      colors: Exercise::MUSCLE_GROUP_COLORS,
-      labels: Exercise::MUSCLE_GROUP_LABELS
-    }
-  end
-
-  def volume_by_muscle_group_for_period(start_date)
-    # Sum volume (weight * reps) grouped by exercise's primary muscle group
-    volume_data = ExerciseSet
-      .joins(workout_exercise: [ :exercise, { workout_block: :workout } ])
-      .where(workouts: { user_id: Current.user.id })
-      .where('workouts.finished_at >= ?', start_date)
-      .where.not(workouts: { finished_at: nil })
-      .where(is_warmup: false)
-      .where.not(exercises: { primary_muscle_group: nil })
-      .group('exercises.primary_muscle_group')
-      .sum('COALESCE(exercise_sets.weight_kg, 0) * COALESCE(exercise_sets.reps, 0)')
-
-    # Convert to user's unit preference
-    if Current.user.preferred_unit == 'lbs'
-      volume_data.transform_values! { |v| (v * 2.20462).round }
-    else
-      volume_data.transform_values!(&:round)
-    end
-
-    # Sort by volume descending
-    volume_data.sort_by { |_, v| -v }.to_h
-  end
-
-  def calculate_strength_curve
-    # Analyze performance at different rep ranges for top exercises
-    # Shows if user is better at low reps (strength) or high reps (endurance)
-
-    # Get top 5 most performed weighted exercises
-    top_exercises = WorkoutExercise
-      .joins(:exercise, :exercise_sets, workout_block: :workout)
-      .where(workouts: { user_id: Current.user.id })
-      .where.not(workouts: { finished_at: nil })
-      .where(exercises: { has_weight: true })
-      .where(exercise_sets: { is_warmup: false })
-      .where.not(exercise_sets: { weight_kg: nil })
-      .group('exercises.id', 'exercises.name')
-      .order(Arel.sql('COUNT(*) DESC'))
-      .limit(5)
-      .pluck('exercises.id', 'exercises.name')
-
-    return [] if top_exercises.empty?
-
-    # Rep ranges to analyze
-    rep_ranges = {
-      '1-3' => (1..3),
-      '4-6' => (4..6),
-      '7-10' => (7..10),
-      '11-15' => (11..15)
-    }
-
-    exercises_data = []
-
-    top_exercises.each do |exercise_id, exercise_name|
-      exercise_curve = { name: exercise_name, ranges: {} }
-
-      rep_ranges.each do |range_label, range|
-        # Get max weight achieved in this rep range
-        max_weight = ExerciseSet
-          .joins(workout_exercise: { workout_block: :workout })
-          .where(workouts: { user_id: Current.user.id })
-          .where.not(workouts: { finished_at: nil })
-          .where(workout_exercises: { exercise_id: exercise_id })
-          .where(is_warmup: false)
-          .where(reps: range)
-          .where.not(weight_kg: nil)
-          .maximum(:weight_kg)
-
-        if max_weight.present?
-          exercise_curve[:ranges][range_label] = Current.user.display_weight(max_weight).round
-        else
-          exercise_curve[:ranges][range_label] = nil
-        end
-      end
-
-      # Only include if has data in at least 2 rep ranges
-      filled_ranges = exercise_curve[:ranges].values.compact.count
-      if filled_ranges >= 2
-        exercises_data << exercise_curve
-      end
-    end
-
-    exercises_data
-  end
-
-  def calculate_body_map_data
-    # Calculate days since each muscle group was trained
-    # This shows recovery status - recently trained = hot/red, rested = cool/green
-
-    muscle_groups = Exercise::MUSCLE_GROUPS
-
-    muscle_data = {}
-
-    muscle_groups.each do |muscle_group|
-      # Find the most recent workout that trained this muscle group
-      last_workout = Workout
-        .joins(workout_blocks: { workout_exercises: :exercise })
-        .where(user_id: Current.user.id)
-        .where.not(finished_at: nil)
-        .where(exercises: { primary_muscle_group: muscle_group })
-        .order(finished_at: :desc)
-        .first
-
-      if last_workout
-        days_ago = (Date.current - last_workout.finished_at.to_date).to_i
-
-        # Calculate volume in last 7 days for intensity
-        volume_7_days = ExerciseSet
-          .joins(workout_exercise: [ :exercise, { workout_block: :workout } ])
-          .where(workouts: { user_id: Current.user.id })
-          .where('workouts.finished_at >= ?', 7.days.ago)
-          .where.not(workouts: { finished_at: nil })
-          .where(exercises: { primary_muscle_group: muscle_group })
-          .where(is_warmup: false)
-          .sum('COALESCE(exercise_sets.weight_kg, 0) * COALESCE(exercise_sets.reps, 0)')
-
-        # Convert to user units
-        if Current.user.preferred_unit == 'lbs'
-          volume_7_days = (volume_7_days * 2.20462).round
-        else
-          volume_7_days = volume_7_days.round
-        end
-
-        # Determine recovery status (0-100 scale, 100 = fully rested)
-        # Assume 48-72 hours for full recovery
-        recovery = case days_ago
-        when 0 then 10   # Just trained
-        when 1 then 35   # Still recovering
-        when 2 then 60   # Partially recovered
-        when 3 then 85   # Almost recovered
-        else 100         # Fully rested
-        end
-
-        muscle_data[muscle_group] = {
-          days_ago: days_ago,
-          volume_7_days: volume_7_days,
-          recovery: recovery,
-          label: Exercise::MUSCLE_GROUP_LABELS[muscle_group]
-        }
-      else
-        muscle_data[muscle_group] = {
-          days_ago: nil,
-          volume_7_days: 0,
-          recovery: 100,
-          label: Exercise::MUSCLE_GROUP_LABELS[muscle_group]
-        }
-      end
-    end
-
-    muscle_data
   end
 end

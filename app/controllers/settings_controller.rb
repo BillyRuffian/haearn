@@ -1,6 +1,10 @@
+# User preferences and data export functionality
+# Manages preferred units, rest timers, password changes, and workout data exports
 class SettingsController < ApplicationController
   before_action :set_user
 
+  # GET /settings
+  # Shows settings page with preferences and export options
   def show
   end
 
@@ -12,7 +16,10 @@ class SettingsController < ApplicationController
     end
   end
 
+  # PATCH /settings/update_password
+  # Changes user password with current password verification
   def update_password
+    # Verify current password before allowing change
     unless @user.authenticate(params[:current_password])
       @user.errors.add(:current_password, 'is incorrect')
       render :show, status: :unprocessable_entity
@@ -32,6 +39,9 @@ class SettingsController < ApplicationController
     end
   end
 
+  # GET /settings/export_data
+  # Exports all user data as JSON (gyms, exercises, workouts, sets)
+  # Useful for data portability and backups
   def export_data
     data = {
       exported_at: Time.current.iso8601,
@@ -52,6 +62,8 @@ class SettingsController < ApplicationController
               disposition: 'attachment'
   end
 
+  # GET /settings/export_csv
+  # Exports workout history as CSV for analysis in Excel/Google Sheets
   def export_csv
     csv_data = generate_workouts_csv
 
@@ -61,6 +73,8 @@ class SettingsController < ApplicationController
               disposition: 'attachment'
   end
 
+  # GET /settings/export_prs
+  # Exports personal records as CSV
   def export_prs
     csv_data = generate_prs_csv
 

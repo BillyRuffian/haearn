@@ -1,10 +1,16 @@
+# Manages the exercise library (both global/seeded exercises and user-created ones)
+# Supports filtering by type, weighted/bodyweight, source, and search
 class ExercisesController < ApplicationController
   before_action :set_exercise, only: %i[show edit update destroy history]
 
+  # GET /exercises
+  # Lists all exercises with optional filtering
+  # Supports filters: type (reps/time/distance), weighted, source (global/mine), and search query
   def index
+    # Shows both global (seeded) exercises and user's custom exercises
     @exercises = Exercise.for_user(Current.user).ordered
 
-    # Filter by type
+    # Apply filters based on params
     if params[:type].present? && Exercise::EXERCISE_TYPES.include?(params[:type])
       @exercises = @exercises.where(exercise_type: params[:type])
     end
@@ -46,12 +52,15 @@ class ExercisesController < ApplicationController
     @return_to = params[:return_to]
   end
 
+  # POST /exercises
+  # Creates new custom exercise for the user
+  # Supports return_to param for redirecting back to workout setup flow
   def create
     @exercise = Current.user.exercises.build(exercise_params)
 
     respond_to do |format|
       if @exercise.save
-        # If we have a return_to URL, redirect there instead
+        # Support for workout flow: create exercise, then return to exercise picker
         if params[:return_to].present?
           safe_url = safe_return_to(params[:return_to], fallback: exercises_path)
           format.html { redirect_to safe_url, notice: 'Exercise created! Now select it.' }
@@ -73,8 +82,10 @@ class ExercisesController < ApplicationController
     end
   end
 
+  # GET /exercises/:id/edit
+  # Inline edit form via Turbo Frame
   def edit
-    # Only allow editing user's own exercises
+    # Users can only edit their own custom exercises, not global ones
     unless @exercise.user_id == Current.user.id
       redirect_to exercises_path, alert: 'You can only edit your own exercises.'
     end
@@ -97,8 +108,11 @@ class ExercisesController < ApplicationController
     end
   end
 
+  # DELETE /exercises/:id
+  # Deletes exercise with safety check for usage in workouts
+  # Requires force=true confirmation if exercise has been used
   def destroy
-    # Only allow deleting user's own exercises
+    # Users can only delete their own custom exercises, not global ones
     unless @exercise.user_id == Current.user.id
       return redirect_to exercises_path, alert: 'You can only delete your own exercises.'
     end
@@ -121,8 +135,11 @@ class ExercisesController < ApplicationController
     end
   end
 
+  # GET /exercises/:id/history
+  # Shows complete workout history for this exercise with PRs and progress charts
+  # Displays PRs overall and per-machine, with detailed graphs
   def history
-    # Get all workout exercises for this exercise from the current user's workouts
+    # Load all instances of this exercise across all user's workouts
     @workout_exercises = WorkoutExercise
       .joins(:workout_block)
       .joins('INNER JOIN workouts ON workouts.id = workout_blocks.workout_id')
@@ -131,7 +148,7 @@ class ExercisesController < ApplicationController
       .includes(:machine, :exercise_sets, workout_block: :workout)
       .order('workouts.started_at DESC')
 
-    # Calculate aggregate PRs for this exercise (shown in PR card at top)
+    # Calculate overall PRs for the exercise (max weight, max volume, best E1RM)
     @prs = PrCalculator.calculate_all(@workout_exercises, exercise: @exercise)
 
     # Group by machine if applicable
@@ -149,6 +166,8 @@ class ExercisesController < ApplicationController
 
   private
 
+  # Builds chart data for progress graphs: weight progression, volume trends, and estimated 1RM
+  # Returns data formatted for Chart.js consumption
   def build_chart_data(workout_exercises)
     return {} if workout_exercises.empty?
 

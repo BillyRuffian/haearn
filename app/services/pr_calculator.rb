@@ -1,25 +1,58 @@
 # Centralized PR (Personal Record) calculation service
+# 
+# Why Centralized?
+# PR logic is complex and needs to be consistent across:
+# - Live workout tracking ("You just hit a PR!")
+# - Exercise history page (showing all-time PRs)
+# - Dashboard analytics (PR timeline, plateau detection)
+# 
+# Types of PRs Tracked:
+# 1. Weight PR: Heaviest weight lifted (regardless of reps)
+# 2. Volume PR: Highest single-set volume (weight × reps)
+# 3. Session Volume PR: Highest total volume in one session
+# 4. Estimated 1RM PR: Best calculated 1RM from any rep range
+# 
+# Key Principle: PRs are scoped by exercise+machine combination
+# Why? Same exercise on different machines = different movement patterns
+# Example: Barbell bench press vs Hammer Strength chest press
+# 
 # Ensures consistent PR logic across history views and live workout detection
 class PrCalculator
   # Calculate all PRs from a collection of workout_exercises
-  # Used by history page to show aggregate or per-machine PRs
+  # Used by exercise history page to show aggregate or per-machine PRs
+  # 
+  # @param workout_exercises [Array<WorkoutExercise>] collection to analyze
+  # @param exercise [Exercise] the exercise being analyzed
+  # @return [Hash] all PR types with details
   def self.calculate_all(workout_exercises, exercise:)
     new(workout_exercises, exercise: exercise).calculate_all
   end
 
-  # Check if a workout_exercise has a volume PR compared to previous sessions
-  # Used during live workouts
+  # Check if a workout_exercise achieved a volume PR compared to previous sessions
+  # Used during live workouts to show "PR!" badge
+  # Only compares against finished workouts from same user
+  # 
+  # @param workout_exercise [WorkoutExercise] the current workout exercise
+  # @return [Boolean] true if this session's volume is a PR
   def self.volume_pr?(workout_exercise)
     new(nil, workout_exercise: workout_exercise).volume_pr?
   end
 
-  # Check if a set has a weight PR compared to previous sets
-  # Used during live workouts
+  # Check if a set achieved a weight PR
+  # Used during live workouts to show real-time PR indicators
+  # Excludes warmup sets from PR consideration
+  # 
+  # @param exercise_set [ExerciseSet] the set to check
+  # @return [Boolean] true if this is the heaviest weight ever for this exercise+machine
   def self.weight_pr?(exercise_set)
     new(nil, exercise_set: exercise_set).weight_pr?
   end
 
   # Get the previous best weight for an exercise+machine combo
+  # Used to display "Previous best: 225lbs" during workouts
+  # 
+  # @param workout_exercise [WorkoutExercise]
+  # @return [Numeric, nil] previous best weight in kg
   def self.previous_best_weight(workout_exercise)
     new(nil, workout_exercise: workout_exercise).previous_best_weight
   end
@@ -27,6 +60,14 @@ class PrCalculator
   # Calculate PR timeline for dashboard visualization
   # Returns array of PRs achieved over time, scoped by exercise+machine
   # Only counts as PR if there was a previous record to beat
+  # 
+  # Why "no previous record" exclusion?
+  # First time doing an exercise isn't really a PR, it's just a baseline
+  # 
+  # @param user [User] the user whose PRs to calculate
+  # @param since [Time] how far back to look (default: 12 months)
+  # @param limit [Integer] max PRs to return (default: 100)
+  # @return [Array<Hash>] chronologically ordered PRs
   def self.calculate_timeline(user:, since: 12.months.ago, limit: 100)
     new(nil, user: user).calculate_timeline(since: since, limit: limit)
   end
@@ -39,13 +80,15 @@ class PrCalculator
     @user = user
   end
 
+  # Main calculation method - analyzes collection and returns all PR types
+  # Returns hash with best_set_weight, best_set_volume, best_session_volume, best_e1rm
   def calculate_all
     prs = {
-      best_set_weight: nil,
-      best_set_volume: nil,
-      best_session_volume: nil,
-      best_e1rm: nil,
-      best_reps_at_weight: {}
+      best_set_weight: nil,       # Heaviest single set
+      best_set_volume: nil,       # Highest weight×reps in one set
+      best_session_volume: nil,   # Highest total volume in one workout
+      best_e1rm: nil,             # Best estimated 1RM
+      best_reps_at_weight: {}     # Most reps at specific weights
     }
 
     return prs if @workout_exercises.blank?
@@ -63,6 +106,8 @@ class PrCalculator
     prs
   end
 
+  # Check if current workout_exercise achieved volume PR
+  # Compares total session volume against all previous sessions
   def volume_pr?
     return false unless @workout_exercise&.exercise&.has_weight?
 
@@ -75,8 +120,10 @@ class PrCalculator
     current_volume > previous_volumes.max
   end
 
+  # Check if current set achieved weight PR
+  # Only considers working sets (warmups excluded)
   def weight_pr?
-    return false if @exercise_set&.warmup?
+    return false if @exercise_set&.warmup?  # Never count warmups as PRs
     return false unless @exercise_set&.weight_kg&.positive?
     return false unless @exercise_set&.reps&.positive?
 
@@ -86,6 +133,8 @@ class PrCalculator
     @exercise_set.weight_kg > prev_best
   end
 
+  # Get previous best weight (used for comparisons)
+  # Memoized to avoid repeated database queries
   def previous_best_weight
     @previous_best_weight ||= begin
       return nil unless @workout_exercise
@@ -106,21 +155,31 @@ class PrCalculator
 
   private
 
-  # Volume calculation - used in multiple places
+  # === Helper Methods for Volume Calculations ===
+
+  # Calculate total volume for a workout_exercise session (all working sets)
+  # Volume = sum of (weight × reps) for each set
   def session_volume(workout_exercise)
     workout_exercise.exercise_sets
       .select { |s| !s.is_warmup }
       .sum { |s| set_volume(s) }
   end
 
+  # Calculate volume for a single set (weight × reps)
+  # Handles nil values gracefully
   def set_volume(set)
     (set.weight_kg || 0) * (set.reps || 0)
   end
 
+  # Extract all working sets from workout_exercises collection
+  # Excludes warmup sets
   def working_sets_from_collection
     @workout_exercises.flat_map(&:exercise_sets).select { |s| !s.is_warmup }
   end
 
+  # === Individual PR Type Calculations ===
+
+  # Find the heaviest single set (by weight)
   def calculate_best_set_weight(sets)
     best = sets.max_by(&:weight_kg)
     return nil unless best&.weight_kg
@@ -132,6 +191,8 @@ class PrCalculator
     }
   end
 
+  # Find the highest volume single set (weight × reps)
+  # Example: 225lbs×8 = 1800lbs volume beats 315lbs×3 = 945lbs
   def calculate_best_set_volume(sets)
     best = sets.max_by { |s| set_volume(s) }
     volume = set_volume(best)
@@ -145,6 +206,8 @@ class PrCalculator
     }
   end
 
+  # Find the best estimated 1RM from all sets
+  # Considers different rep ranges using OneRmCalculator
   def calculate_best_e1rm(sets)
     best_value = 0
     best_set = nil
@@ -169,6 +232,8 @@ class PrCalculator
     }
   end
 
+  # Find the workout session with highest total volume
+  # Sums all working sets from each workout_exercise
   def calculate_best_session_volume
     session_data = @workout_exercises.map do |we|
       { workout_exercise: we, volume: session_volume(we) }
@@ -185,6 +250,8 @@ class PrCalculator
     }
   end
 
+  # Get all previous session volumes for this exercise+machine combo
+  # Used to determine if current session is a volume PR
   def previous_session_volumes
     WorkoutExercise
       .joins(:workout_block)
@@ -197,6 +264,8 @@ class PrCalculator
       .map { |we| session_volume(we) }
   end
 
+  # Get the previous best weight for a specific set
+  # Used for real-time PR detection during workout
   def previous_best_weight_for_set
     return nil unless @exercise_set&.workout_exercise
 
@@ -215,6 +284,16 @@ class PrCalculator
 
   # Calculate PR timeline for dashboard - tracks when PRs were achieved
   # Scoped by exercise+machine, only counts as PR if beating a previous record
+  # 
+  # Process:
+  # 1. Get historical baseline (best before time period)
+  # 2. Process chronologically through time period
+  # 3. Flag when new PRs are achieved
+  # 4. Update running best as we go
+  # 
+  # Why chronological?
+  # We need to know what the "best" was at each point in time
+  # to determine if a new PR occurred
   def calculate_timeline(since:, limit:)
     prs = []
 

@@ -1,6 +1,10 @@
+# Manages user's gym locations and their associated equipment
+# Each gym can have multiple machines with specific configurations
 class GymsController < ApplicationController
   before_action :set_gym, only: %i[show edit update destroy set_default]
 
+  # GET /gyms
+  # Lists all user's gyms with their machines
   def index
     @gyms = Current.user.gyms.ordered.includes(:machines)
     @gym = Gym.new # For the inline new form
@@ -19,11 +23,15 @@ class GymsController < ApplicationController
     @gym = Current.user.gyms.build
   end
 
+  # POST /gyms
+  # Creates new gym location
+  # Supports return_to for redirecting back to workout creation flow
   def create
     @gym = Current.user.gyms.build(gym_params)
 
     respond_to do |format|
       if @gym.save
+        # Handle both Turbo Frame inline creation and full page flow
         format.turbo_stream {
           if turbo_frame_request?
             render turbo_stream: turbo_stream.prepend('gyms', partial: 'gyms/gym', locals: { gym: @gym }) + turbo_stream.update('new_gym_form', partial: 'gyms/form', locals: { gym: Gym.new })
@@ -63,6 +71,8 @@ class GymsController < ApplicationController
     end
   end
 
+  # PATCH /gyms/:id/set_default
+  # Sets this gym as the user's default for new workouts
   def set_default
     Current.user.update!(default_gym: @gym)
 

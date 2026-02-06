@@ -1,8 +1,20 @@
 # frozen_string_literal: true
 
-# WeightConverter handles all weight unit conversions in the app.
-# Internally, all weights are stored in kilograms (kg).
-#
+# Centralized weight unit conversion service
+# 
+# Core Principle: All weights stored in kg internally, converted for display
+# 
+# Handles three types of conversions:
+# 1. Basic unit conversion (kg ↔ lbs)
+# 2. Machine display units (what the machine shows vs what you set)
+# 3. Machine weight ratios (pulley systems where mechanical advantage affects actual load)
+# 
+# Example: Cable pulley with 2:1 ratio (ratio = 0.5)
+# - User selects 100kg on machine
+# - Machine displays in lbs (220lbs)
+# - Actual weight lifted = 100kg × 0.5 = 50kg (due to pulley)
+# - Stored in database as 50kg
+# 
 # Usage:
 #   WeightConverter.to_kg(100, "lbs")  # => 45.36
 #   WeightConverter.from_kg(45.36, "lbs")  # => 100.0
@@ -13,8 +25,9 @@
 #   WeightConverter.kg_to_machine(45.36, machine)  # reverse conversion
 #
 class WeightConverter
-  KG_TO_LBS = 2.20462
-  LBS_TO_KG = 1 / KG_TO_LBS
+  # Conversion constants
+  KG_TO_LBS = 2.20462  # 1 kg = 2.20462 lbs
+  LBS_TO_KG = 1 / KG_TO_LBS  # 1 lb = 0.453592 kg
 
   class << self
     # Convert a value to kilograms
@@ -62,6 +75,16 @@ class WeightConverter
 
     # Convert machine-displayed weight to kg for storage
     # Handles both display_unit and weight_ratio (for cables)
+    # 
+    # Process:
+    # 1. Convert from machine's display unit to kg
+    # 2. Apply weight ratio if machine is a cable/pulley system
+    # 
+    # Example: Cable machine with 2:1 pulley, displays in lbs
+    # - User selects 220 lbs on machine
+    # - Convert to kg: 220 lbs = 100 kg
+    # - Apply ratio: 100 kg × 0.5 = 50 kg (actual weight lifted)
+    # 
     # @param displayed_value [Numeric] weight shown on machine
     # @param machine [Machine] the machine record
     # @return [Float, nil] actual weight being lifted in kg
@@ -82,7 +105,17 @@ class WeightConverter
     end
 
     # Convert kg to machine display weight
-    # Reverse of machine_to_kg
+    # Reverse of machine_to_kg - tells user what to set on machine
+    # 
+    # Process:
+    # 1. Reverse the weight ratio (divide instead of multiply)
+    # 2. Convert to machine's display unit
+    # 
+    # Example: Want to lift 50kg on 2:1 cable pulley displaying lbs
+    # - Reverse ratio: 50 kg / 0.5 = 100 kg
+    # - Convert to lbs: 100 kg = 220 lbs
+    # - User sets machine to 220 lbs
+    # 
     # @param kg_value [Numeric] actual weight in kg
     # @param machine [Machine] the machine record
     # @return [Float, nil] weight to set on machine

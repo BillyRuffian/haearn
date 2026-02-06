@@ -1,8 +1,6 @@
 # Haearn Implementation Plan
 
 > Last Updated: February 3, 2026
-> 
-> **Note**: "Machine" in code/schema refers to equipment variations. UI displays "Equipment" terminology.
 
 ## Overview
 
@@ -183,20 +181,20 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] **Calendar Heatmap** - GitHub-style contribution graph for workout consistency
 - [x] **PR Timeline** - Scatter plot showing when PRs were hit across all lifts
 - [x] **Estimated 1RM Trend** - Track e1RM over time (more meaningful than raw weight)
-- [x] **Volume Distribution Pie Chart** - Breakdown by muscle group (weekly/monthly)
-- [x] **Lift Ratio Spider Chart** - Balance between major lifts (squat/bench/deadlift/OHP)
+- [ ] **Volume Distribution Pie Chart** - Breakdown by muscle group (weekly/monthly)
+- [ ] **Lift Ratio Spider Chart** - Balance between major lifts (squat/bench/deadlift/OHP)
 - [x] **Rep Range Distribution** - Bar chart showing % of sets in each rep range (1-5, 6-10, 10+)
 - [x] **Training Density** - Volume per minute/hour over time (workout efficiency)
 - [x] **Tonnage Tracker** - Total weight lifted per session/week/month (area chart)
-- [x] **Strength Curve** - Performance at different rep ranges per exercise (are you better at 3s or 10s?)
+- [ ] **Strength Curve** - Performance at different rep ranges per exercise (are you better at 3s or 10s?)
 - [x] **Session Duration Trends** - Are workouts getting longer/shorter?
-- [x] **Body Map Heatmap** - Visual showing which muscles trained recently (recovery indicator)
+- [ ] **Body Map Heatmap** - Visual showing which muscles trained recently (recovery indicator)
 - [x] **Exercise Frequency Ranking** - Bar chart of most-performed exercises
 - [x] **Consistency Streaks** - Current/longest streak visualizations
 - [x] **Week-over-Week Comparison** - Side-by-side volume bars for this week vs last
-- [ ] **Wilks/DOTS Score Over Time** - For powerlifters tracking relative strength (requires bodyweight tracking from Phase 8.6)
+- [ ] **Wilks/DOTS Score Over Time** - For powerlifters tracking relative strength
 - [x] **Plateau Detector** - Visual highlighting exercises with no PR in X weeks
-- [ ] **Training Split Adherence** - Planned vs actual sessions (donut chart) (requires workout templates from Phase 8.1)
+- [ ] **Training Split Adherence** - Planned vs actual sessions (donut chart)
 
 ---
 
@@ -530,10 +528,9 @@ $text-muted: #6c757d;
 - [ ] "Ready to progress" notifications when hitting rep targets consistently
 
 ### 8.3 1RM Calculator & Projections
-- [x] Calculate estimated 1RM from any set (Epley, Brzycki, Lombardi, Mayhew, O'Conner, Wathan formulas)
-- [x] Track e1RM trends over time (displayed in exercise history)
-- [x] Percentage-based programming (calculator shows training percentages)
-- [x] Interactive 1RM calculator on dashboard with +/- buttons
+- [ ] Calculate estimated 1RM from any set (Epley, Brzycki formulas)
+- [ ] Track e1RM trends over time
+- [ ] Percentage-based programming (work at 80% of 1RM, etc.)
 - [ ] Strength standards comparison (beginner → elite)
 
 ### 8.4 Advanced Set Types
@@ -568,21 +565,20 @@ $text-muted: #6c757d;
 
 ### 9.1 Data Export/Import
 - [x] Export workouts to CSV/JSON
-- [x] Export PR history (CSV with all PR types per exercise)
-- [x] Clipboard text export for sharing workouts (copy workout as formatted text)
+- [ ] Export PR history
 - [ ] Import from other apps (Strong, Hevy, etc.)
 - [ ] Backup/restore functionality
 
 ### 9.2 Advanced Analytics
-- [x] Volume per muscle group (weekly/monthly) - See Phase 4.5 visualizations
-- [x] Training frequency heatmap - See Phase 4.5 calendar heatmap
-- [x] Exercise balance analysis (push/pull ratio, anterior/posterior) - See Phase 4.5 muscle spider chart
-- [x] Plateau detection (no PR in X weeks) - See Phase 4.5 plateau detector
-- [x] Workout consistency streaks - See Phase 4.5 consistency streaks
+- [ ] Volume per muscle group (weekly/monthly)
+- [ ] Training frequency heatmap
+- [ ] Exercise balance analysis (push/pull ratio, anterior/posterior)
+- [ ] Plateau detection (no PR in X weeks)
+- [ ] Workout consistency streaks
 
 ### 9.3 Comparison Tools
 - [ ] Compare any two workouts side-by-side
-- [x] Week-over-week volume comparison - See Phase 4.5 week comparison
+- [ ] Week-over-week volume comparison
 - [ ] "This time last year" view
 
 ---

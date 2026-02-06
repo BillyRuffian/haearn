@@ -20,14 +20,29 @@
 #
 #  user_id  (user_id => users.id)
 #
+# Exercise library containing both global (seeded) exercises and user-created custom exercises
+# 
+# Exercise Types:
+# - reps: Counted repetitions (bench press, squats, curls)
+# - time: Duration-based (planks, dead hangs, wall sits)
+# - distance: Distance-based (farmer's walks, sled pushes)
+# 
+# Global vs Custom:
+# - user_id = nil: Global exercise (seeded, available to all users)
+# - user_id present: Custom exercise (specific to that user)
+# 
+# Weight Tracking:
+# - has_weight = true: Exercise uses external load (e.g., bench press)
+# - has_weight = false: Bodyweight only (e.g., push-ups, pull-ups)
 class Exercise < ApplicationRecord
-  belongs_to :user, optional: true # nil = global/seeded exercise
-  has_many :workout_exercises, dependent: :restrict_with_error
+  belongs_to :user, optional: true  # nil = global/seeded exercise
+  has_many :workout_exercises, dependent: :restrict_with_error  # Prevent deletion if used
 
-  # Exercise types
+  # Three types of exercises based on how they're measured
   EXERCISE_TYPES = %w[reps time distance].freeze
 
-  # Primary muscle groups for volume tracking
+  # Primary muscle groups for volume tracking and analytics
+  # Used in dashboard to show per-muscle-group volume and recovery
   MUSCLE_GROUPS = %w[
     chest
     back
@@ -78,13 +93,15 @@ class Exercise < ApplicationRecord
   validates :primary_muscle_group, inclusion: { in: MUSCLE_GROUPS }, allow_blank: true
 
   scope :global, -> { where(user_id: nil) }
-  scope :for_user, ->(user) { where(user_id: [ nil, user.id ]) }
+  scope :for_user, ->(user) { where(user_id: [ nil, user.id ]) }  # Global + user's custom
   scope :ordered, -> { order(:name) }
 
+  # Check if this is a global (seeded) exercise vs user-created
   def global?
     user_id.nil?
   end
 
+  # Exercise type convenience methods
   def reps?
     exercise_type == 'reps'
   end

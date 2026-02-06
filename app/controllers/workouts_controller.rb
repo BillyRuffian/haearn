@@ -1,6 +1,11 @@
+# Core workout management: creating sessions, logging exercises, tracking progress
+# Supports workout blocks for organizing exercises and enabling supersets
+# Each workout has a start time, optional finish time, gym, and multiple workout blocks
 class WorkoutsController < ApplicationController
   before_action :set_workout, only: %i[show edit update destroy finish add_exercise reorder_blocks share_text]
 
+  # GET /workouts
+  # Lists all workouts with optional filters (gym, date range)
   def index
     @workouts = Current.user.workouts.includes(:gym, workout_exercises: { exercise_sets: [] }).order(started_at: :desc)
 
@@ -21,7 +26,11 @@ class WorkoutsController < ApplicationController
     @active_workout = Current.user.active_workout
   end
 
+  # GET /workouts/:id
+  # Shows workout detail with all exercises, sets, and statistics
+  # This is the main workout logging interface
   def show
+    # Eager load all nested associations for performance
     @workout_blocks = @workout.workout_blocks.includes(
       workout_exercises: [ :exercise, :machine, :exercise_sets ]
     ).order(:position)
@@ -34,6 +43,8 @@ class WorkoutsController < ApplicationController
     @gyms = Current.user.gyms.ordered
   end
 
+  # POST /workouts
+  # Starts a new workout session
   def create
     @workout = Current.user.workouts.build(workout_params)
     @workout.started_at = Time.current
@@ -64,13 +75,18 @@ class WorkoutsController < ApplicationController
     redirect_to workouts_path, notice: 'Workout deleted.'
   end
 
+  # POST /workouts/:id/finish
+  # Marks workout as complete by setting finished_at timestamp
   def finish
     @workout.finish!
     redirect_to @workout, notice: 'Workout complete! 🎉'
   end
 
+  # GET/POST /workouts/:id/add_exercise
+  # Multi-step flow: 1) Select exercise, 2) Select machine (optional), 3) Add to workout
+  # Supports adding to existing block (for supersets) via to_block param
   def add_exercise
-    # GET shows exercise picker, POST adds the exercise
+    # GET shows exercise/machine picker, POST actually adds the exercise
     if request.post?
       add_exercise_to_workout
     else
@@ -92,8 +108,11 @@ class WorkoutsController < ApplicationController
     end
   end
 
+  # POST /workouts/:id/copy
+  # Creates new workout with same structure (blocks + exercises) but no sets
+  # Preserves persistent notes but not session-specific notes or sets
   def copy
-    # Create a new workout copying the structure of this one
+    # Duplicate the workout template without copying the actual logged sets
     new_workout = Current.user.workouts.build(
       gym_id: @workout.gym_id,
       started_at: Time.current,
@@ -124,6 +143,9 @@ class WorkoutsController < ApplicationController
     end
   end
 
+  # PATCH /workouts/:id/reorder_blocks
+  # Updates block positions for drag-and-drop reordering
+  # Expects block_ids array in desired order
   def reorder_blocks
     block_ids = params[:block_ids]
 
@@ -143,6 +165,10 @@ class WorkoutsController < ApplicationController
     head :unprocessable_entity
   end
 
+  # GET /workouts/:id/share_text
+  # Returns workout as formatted text for sharing/copying
+  # NOTE: This endpoint exists but is not currently used due to iOS PWA clipboard issues
+  # Text is now embedded directly in HTML for synchronous clipboard access
   def share_text
     text = generate_workout_text(@workout)
     render json: { text: text }
@@ -150,6 +176,9 @@ class WorkoutsController < ApplicationController
 
   private
 
+  # Helper to add exercise to workout (called from add_exercise POST)
+  # Handles both new blocks and adding to existing blocks (supersets)
+  # Copies persistent notes from previous workout if available
   def add_exercise_to_workout
     exercise = Exercise.for_user(Current.user).find(params[:exercise_id])
     machine = params[:machine_id].present? ? @workout.gym&.machines&.find(params[:machine_id]) : nil
@@ -189,10 +218,13 @@ class WorkoutsController < ApplicationController
     params.require(:workout).permit(:gym_id, :notes)
   end
 
+  # Generates shareable text summary of workout
+  # Format: Date, Gym, Duration, then each exercise with sets
+  # Used by clipboard controller for sharing workouts
   def generate_workout_text(workout)
     lines = []
 
-    # Header
+    # Build header with date, location, and duration
     date_str = workout.started_at.strftime('%A, %B %-d, %Y')
     lines << "🏋️ #{date_str}"
     lines << "📍 #{workout.gym.name}" if workout.gym
@@ -223,6 +255,9 @@ class WorkoutsController < ApplicationController
     lines.join("\n").strip
   end
 
+  # Formats a single set as human-readable text
+  # Handles reps, time, and distance-based exercises
+  # Converts weights to user's preferred unit
   def format_set_text(set, set_num, unit)
     warmup_tag = set.is_warmup ? ' (warmup)' : ''
 

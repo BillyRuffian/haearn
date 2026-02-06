@@ -1,10 +1,16 @@
+# Handles new user registration using Rails 8 authentication
+# Creates user account and auto-logs them in
 class RegistrationsController < ApplicationController
   allow_unauthenticated_access only: %i[new create]
 
+  # GET /registration/new
+  # Shows signup form
   def new
     @user = User.new
   end
 
+  # POST /registration
+  # Creates new user account and starts session
   def create
     @user = User.new(user_params)
 

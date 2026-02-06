@@ -17,6 +17,22 @@
 #
 #  workout_id  (workout_id => workouts.id)
 #
+# Groups exercises within a workout to enable supersets and circuits
+# 
+# Key Concept:
+# - Single exercise in block = normal straight sets
+# - Multiple exercises in block = superset/circuit
+# 
+# Example workout structure:
+# Block 1: [Bench Press]                    ← Straight sets
+# Block 2: [Lat Pulldown, Cable Row]        ← Superset
+# Block 3: [Overhead Press, Lateral Raise]  ← Superset
+# 
+# Benefits:
+# - Simplifies UI (all exercises follow same pattern)
+# - Enables drag-and-drop reordering
+# - Allows per-block rest timers
+# - Makes superset creation intuitive
 class WorkoutBlock < ApplicationRecord
   belongs_to :workout
   has_many :workout_exercises, -> { order(:position) }, dependent: :destroy
@@ -30,27 +46,32 @@ class WorkoutBlock < ApplicationRecord
   before_validation :set_position, on: :create
   before_validation :set_default_rest_seconds, on: :create
 
+  # Check if this block is a superset (multiple exercises)
   def superset?
     workout_exercises.count > 1
   end
 
+  # Check if this block has only one exercise (straight sets)
   def single_exercise?
     workout_exercises.count == 1
   end
 
-  # Default rest time (in seconds) - can be overridden
+  # Get rest time for this block (seconds)
+  # Falls back to user's default, then app default (90s)
   def rest_seconds
     super || workout&.user&.default_rest_seconds || User::DEFAULT_REST_SECONDS
   end
 
   private
 
+  # Auto-assign position as last block when created
   def set_position
     return if position.present?
     max_position = workout.workout_blocks.maximum(:position) || 0
     self.position = max_position + 1
   end
 
+  # Set rest timer to user's default when block is created
   def set_default_rest_seconds
     return if self[:rest_seconds].present?
     self.rest_seconds = workout&.user&.default_rest_seconds

@@ -43,7 +43,7 @@
       <% else %>
         <div class="h4 mb-2"><%= @workout.duration_minutes %> min</div>
         <div class="d-flex gap-2 justify-content-end flex-wrap">
-          <div data-controller="clipboard" data-clipboard-url-value="<%= share_text_workout_path(@workout) %>">
+          <div data-controller="clipboard" data-clipboard-text-value="<%= generate_workout_text(@workout) %>">
             <button type="button" class="btn btn-outline-secondary" 
                     data-clipboard-target="button"
                     data-action="click->clipboard#copy">

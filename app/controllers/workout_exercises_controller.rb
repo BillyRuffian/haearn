@@ -1,7 +1,12 @@
+# Manages individual exercise entries within a workout
+# Handles two types of notes: session_notes (temporary) and persistent_notes (carried forward)
+# Supports moving exercises between blocks for creating/breaking supersets
 class WorkoutExercisesController < ApplicationController
   before_action :set_workout
   before_action :set_workout_exercise
 
+  # GET /workouts/:workout_id/workout_exercises/:id
+  # Returns to display mode after editing notes (Turbo Stream)
   def show
     respond_to do |format|
       format.turbo_stream do
@@ -15,6 +20,8 @@ class WorkoutExercisesController < ApplicationController
     end
   end
 
+  # GET /workouts/:workout_id/workout_exercises/:id/edit
+  # Switches to inline edit form for notes (Turbo Stream)
   def edit
     respond_to do |format|
       format.turbo_stream do
@@ -54,12 +61,14 @@ class WorkoutExercisesController < ApplicationController
     end
   end
 
+  # DELETE /workouts/:workout_id/workout_exercises/:id
+  # Removes exercise from workout and cleans up empty blocks
   def destroy
     block = @workout_exercise.workout_block
 
     @workout_exercise.destroy
 
-    # If this was the only exercise in the block, delete the block too
+    # Auto-cleanup: delete the containing block if it becomes empty
     if block.workout_exercises.empty?
       block.destroy
     end
@@ -67,6 +76,9 @@ class WorkoutExercisesController < ApplicationController
     redirect_to @workout, notice: 'Exercise removed.'
   end
 
+  # POST /workouts/:workout_id/workout_exercises/:id/move_to_block
+  # Moves exercise to different block (for creating/breaking supersets)
+  # Supports creating new block via target_block_id='new'
   def move_to_block
     target_block_id = params[:target_block_id]
 
@@ -104,6 +116,9 @@ class WorkoutExercisesController < ApplicationController
     @workout_exercise = @workout.workout_exercises.find(params[:id])
   end
 
+  # Strong params for both types of notes
+  # session_notes: specific to this workout ("elbow hurt on set 3")
+  # persistent_notes: carried to future workouts ("use neutral grip handle")
   def workout_exercise_params
     params.require(:workout_exercise).permit(:session_notes, :persistent_notes)
   end

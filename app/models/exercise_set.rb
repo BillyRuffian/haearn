@@ -22,6 +22,25 @@
 #
 #  workout_exercise_id  (workout_exercise_id => workout_exercises.id)
 #
+# Individual set of an exercise (the actual work)
+# 
+# Data Tracked:
+# - weight_kg: Weight used (always stored in kg, converted for display)
+# - reps: Number of repetitions (for reps-based exercises)
+# - duration_seconds: How long held (for time-based like planks)
+# - distance_meters: Distance covered (for distance-based like farmer's walks)
+# - is_warmup: Whether this is a warmup set (excluded from volume/PR calculations)
+# - completed_at: Timestamp when set was logged
+# 
+# Weight Normalization:
+# All weights stored in kg internally, regardless of:
+# - User's preferred unit (kg/lbs)
+# - Machine's display unit
+# - Machine's weight ratio (pulley systems)
+# 
+# Logging Flow:
+# User input → WeightConverter (handles unit + ratio) → kg → Database
+# Database → User's unit preference → Display
 class ExerciseSet < ApplicationRecord
   belongs_to :workout_exercise
 
@@ -37,11 +56,12 @@ class ExerciseSet < ApplicationRecord
 
   scope :ordered, -> { order(:position) }
   scope :warmup, -> { where(is_warmup: true) }
-  scope :working, -> { where(is_warmup: false) }
+  scope :working, -> { where(is_warmup: false) }  # "Working sets" = not warmup
   scope :completed, -> { where.not(completed_at: nil) }
 
   before_validation :set_position, on: :create
 
+  # Set type checks
   def warmup?
     is_warmup == true
   end
@@ -54,23 +74,29 @@ class ExerciseSet < ApplicationRecord
     completed_at.present?
   end
 
+  # Mark set as completed with timestamp
   def complete!
     update!(completed_at: Time.current)
   end
 
-  # Volume for this set (weight × reps)
+  # Calculate training volume for this set (weight × reps)
+  # Used for volume statistics and tracking
+  # @return [Numeric] volume in kg
   def volume_kg
     return 0 unless weight_kg && reps
     weight_kg * reps
   end
 
-  # Check if this set is a weight PR (highest weight ever for this exercise+machine)
+  # Check if this set achieved a weight PR
+  # (highest weight ever lifted for this exercise+machine combo)
+  # @return [Boolean]
   def weight_pr?
     PrCalculator.weight_pr?(self)
   end
 
   private
 
+  # Auto-assign position as last set for this exercise when created
   def set_position
     return if position.present?
     max_position = workout_exercise.exercise_sets.maximum(:position) || 0

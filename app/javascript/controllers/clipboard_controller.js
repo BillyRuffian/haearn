@@ -21,15 +21,17 @@ export default class extends Controller {
     try {
       let textToCopy
 
-      if (this.hasUrlValue && this.urlValue) {
-        // Fetch text from URL
+      // Prefer static text over URL fetching for iOS PWA compatibility
+      // iOS requires clipboard operations to happen synchronously within user gesture
+      if (this.hasTextValue) {
+        textToCopy = this.textValue
+      } else if (this.hasUrlValue && this.urlValue) {
+        // Fetch text from URL (may not work reliably on iOS PWA)
         const response = await fetch(this.urlValue, {
           headers: { 'Accept': 'application/json' }
         })
         const data = await response.json()
         textToCopy = data.text
-      } else if (this.hasTextValue) {
-        textToCopy = this.textValue
       } else {
         throw new Error("No text or URL provided")
       }

@@ -17,6 +17,9 @@
 #
 #  user_id  (user_id => users.id)
 #
+# Represents an active login session for a user
+# Part of Rails 8 authentication - tracks IP and user agent for security
+# Multiple sessions allowed (user can be logged in on multiple devices)
 class Session < ApplicationRecord
   belongs_to :user
 end

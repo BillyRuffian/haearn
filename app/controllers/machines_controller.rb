@@ -1,7 +1,11 @@
+# Manages gym equipment/machines with support for photos, weight ratios, and display units
+# Weight ratios handle pulley systems (e.g., 2:1 cables where you lift half the selected weight)
+# Display units allow tracking what the machine shows vs what weight is actually lifted
 class MachinesController < ApplicationController
   before_action :set_gym
   before_action :set_machine, only: %i[show edit update destroy delete_photo]
 
+  # Redirects to gym show page (machines are displayed there)
   def index
     redirect_to gym_path(@gym)
   end
@@ -15,12 +19,15 @@ class MachinesController < ApplicationController
     @return_to = params[:return_to]
   end
 
+  # POST /gyms/:gym_id/machines
+  # Creates new equipment/machine for the gym
+  # Supports return_to for workout setup flow (create machine, then select it)
   def create
     @machine = @gym.machines.build(machine_params)
 
     respond_to do |format|
       if @machine.save
-        # If we have a return_to URL, redirect there instead
+        # Support for workout flow: create machine, then return to machine picker
         if params[:return_to].present?
           safe_url = safe_return_to(params[:return_to], fallback: gym_path(@gym))
           format.html { redirect_to safe_url, notice: 'Equipment added! Now select it.' }
@@ -66,6 +73,8 @@ class MachinesController < ApplicationController
     end
   end
 
+  # DELETE /gyms/:gym_id/machines/:id/delete_photo?photo_id=X
+  # Removes a specific photo attachment from the machine
   def delete_photo
     photo = @machine.photos.find(params[:photo_id])
     photo.purge
@@ -86,6 +95,9 @@ class MachinesController < ApplicationController
     @machine = @gym.machines.find(params[:id])
   end
 
+  # Strong params including equipment type, weight calculations, and photos
+  # weight_ratio: for pulley systems (0.5 = 2:1 ratio, you lift half)
+  # display_unit: what unit the machine displays (kg/lbs)
   def machine_params
     params.require(:machine).permit(:name, :equipment_type, :weight_ratio, :display_unit, :notes, photos: [])
   end

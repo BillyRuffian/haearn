@@ -1,3 +1,5 @@
+# Base controller for all application controllers
+# Includes Rails 8 authentication, modern browser support, and security helpers
 class ApplicationController < ActionController::Base
   include Authentication
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
@@ -10,6 +12,7 @@ class ApplicationController < ActionController::Base
 
   # Safely sanitize a return_to URL to prevent open redirect attacks
   # Only allows relative paths starting with /
+  # Used throughout the app for safe redirects after creating records
   def safe_return_to(url, fallback: root_path)
     return fallback if url.blank?
 

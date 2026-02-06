@@ -21,11 +21,23 @@
 #
 #  default_gym_id  (default_gym_id => gyms.id)
 #
+# Central user model with authentication and workout preferences
+# 
+# Key Features:
+# - Rails 8 authentication with has_secure_password
+# - Preferred weight unit (kg/lbs) - all weights stored as kg internally
+# - Default rest timer between sets (30-300 seconds)
+# - Optional default gym for quick workout creation
+# 
+# Weight Handling:
+# - All weights stored in kg in database (normalized)
+# - display_weight() converts to user's preferred unit for display
+# - normalize_weight() converts user input back to kg for storage
 class User < ApplicationRecord
   has_secure_password
   has_many :sessions, dependent: :destroy
   has_many :gyms, dependent: :destroy
-  has_many :exercises, dependent: :destroy
+  has_many :exercises, dependent: :destroy  # custom exercises only
   has_many :workouts, dependent: :destroy
   belongs_to :default_gym, class_name: 'Gym', optional: true
 
@@ -42,53 +54,61 @@ class User < ApplicationRecord
     allow_nil: true
   }
 
-  # Units
+  # Supported weight units
   UNITS = %w[kg lbs].freeze
 
-  # Rest timer bounds
-  MIN_REST_SECONDS = 30
-  MAX_REST_SECONDS = 300
-  DEFAULT_REST_SECONDS = 90
+  # Rest timer configuration (prevents too short or absurdly long rest periods)
+  MIN_REST_SECONDS = 30   # 30 seconds minimum
+  MAX_REST_SECONDS = 300  # 5 minutes maximum
+  DEFAULT_REST_SECONDS = 90  # 90 seconds default (good for most exercises)
 
+  # Always return a unit, default to kg if not set
   def preferred_unit
     super || 'kg'
   end
 
+  # Always return a rest time, default to 90 seconds if not set
   def default_rest_seconds
     super || DEFAULT_REST_SECONDS
   end
 
-  # Convert weight from kg to user's preferred unit for display
+  # Convert weight from kg (database storage) to user's preferred unit for display
+  # @param kg_value [Numeric] weight in kilograms
+  # @return [Float] weight in user's preferred unit
   def display_weight(kg_value)
     return nil if kg_value.nil?
 
     if preferred_unit == 'lbs'
-      (kg_value * 2.20462).round(1)
+      (kg_value * 2.20462).round(1)  # 1 kg = 2.20462 lbs
     else
       kg_value.round(1)
     end
   end
 
-  # Convert weight from user's input unit to kg for storage
+  # Convert weight from user's input unit to kg for database storage
+  # @param value [Numeric] weight in user's preferred unit
+  # @return [Float] weight in kilograms
   def normalize_weight(value)
     return nil if value.nil?
 
     if preferred_unit == 'lbs'
-      (value / 2.20462).round(2)
+      (value / 2.20462).round(2)  # Convert lbs to kg
     else
       value.to_f.round(2)
     end
   end
 
-  # Alias for normalize_weight
+  # Alias for normalize_weight (more intuitive name for conversion)
   alias_method :to_kg, :normalize_weight
 
-  # Get available exercises (global + user's custom)
+  # Get all available exercises for this user (global seeded + user's custom)
+  # @return [ActiveRecord::Relation<Exercise>]
   def available_exercises
     Exercise.for_user(self).ordered
   end
 
-  # Current active workout
+  # Get the user's currently in-progress workout (if any)
+  # @return [Workout, nil]
   def active_workout
     workouts.in_progress.first
   end
