@@ -97,6 +97,17 @@ class WorkoutsController < ApplicationController
       if params[:select_exercise].present?
         @selected_exercise = Exercise.for_user(Current.user).find(params[:select_exercise])
         @machines = @workout.gym.machines.ordered
+
+        # If machine_id is also present (coming back from creating a machine), auto-add the exercise
+        if params[:machine_id].present?
+          @selected_machine = @workout.gym.machines.find_by(id: params[:machine_id])
+          if @selected_machine
+            # Directly add the exercise with the selected machine
+            params[:exercise_id] = @selected_exercise.id
+            add_exercise_to_workout
+            return
+          end
+        end
       else
         # Step 1: Show exercise list
         @exercises = Exercise.for_user(Current.user)

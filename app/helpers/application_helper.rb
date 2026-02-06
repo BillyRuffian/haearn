@@ -31,10 +31,10 @@ module ApplicationHelper
   def last_weight_for(workout_exercise)
     last_set = workout_exercise.exercise_sets.order(created_at: :desc).first
     if last_set&.weight_kg
-      Current.user.display_weight(last_set.weight_kg)&.round
+      Current.user.format_weight(last_set.weight_kg)
     elsif workout_exercise.previous_exercise
       prev_set = workout_exercise.previous_exercise.exercise_sets.order(created_at: :desc).first
-      prev_set&.weight_kg ? Current.user.display_weight(prev_set.weight_kg)&.round : nil
+      prev_set&.weight_kg ? Current.user.format_weight(prev_set.weight_kg) : nil
     end
   end
 

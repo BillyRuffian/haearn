@@ -117,17 +117,21 @@ class WeightConverterTest < ActiveSupport::TestCase
     assert_equal '—', result
   end
 
-  test 'format with precision' do
+  test 'format shows decimals only when needed' do
     user = User.new(preferred_unit: 'kg')
-    result = WeightConverter.format(100.567, user: user, precision: 1)
-    assert_equal '100.6kg', result
+    # Whole number - no decimals
+    assert_equal '100kg', WeightConverter.format(100.0, user: user)
+    # 1 decimal place needed
+    assert_equal '100.5kg', WeightConverter.format(100.5, user: user)
+    # 2 decimal places needed
+    assert_equal '100.57kg', WeightConverter.format(100.567, user: user)
   end
 
   # display tests
-  test 'display returns numeric value' do
+  test 'display returns formatted string value' do
     user = User.new(preferred_unit: 'lbs')
     result = WeightConverter.display(45.36, user: user)
-    assert_in_delta 100.0, result, 0.1
+    assert_equal '100', result  # 45.36 kg ≈ 100 lbs
   end
 
   test 'display handles nil' do

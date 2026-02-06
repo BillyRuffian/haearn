@@ -28,7 +28,7 @@
         <% if we.exercise.has_weight? %>
           <div class="text-end">
             <span class="weight-display h5 mb-0">
-              <%= number_with_delimiter(Current.user.display_weight(session_volume).round) %>
+              <%= number_with_delimiter(Current.user.format_weight(session_volume)) %>
             </span>
             <small class="text-muted"><%= Current.user.preferred_unit %></small>
           </div>
@@ -42,7 +42,7 @@
               set.weight_kg == prs[:best_set_weight][:weight_kg] %>
           <span class="set-badge <%= 'pr-set' if is_weight_pr %>">
             <% if we.exercise.has_weight? %>
-              <%= number_with_delimiter(Current.user.display_weight(set.weight_kg).round) %> × <%= set.reps %>
+              <%= number_with_delimiter(Current.user.format_weight(set.weight_kg)) %> × <%= set.reps %>
             <% elsif we.exercise.exercise_type == "time" %>
               <%= set.duration_seconds %>s
             <% elsif we.exercise.exercise_type == "distance" %>

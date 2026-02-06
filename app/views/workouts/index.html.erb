@@ -81,7 +81,7 @@
           <div class="card text-center">
             <div class="card-body py-2">
               <div class="weight-display h5 mb-0">
-                <%= number_with_delimiter(Current.user.display_weight(@workouts.sum(&:total_volume_kg)).round) %>
+                <%= number_with_delimiter(Current.user.format_weight(@workouts.sum(&:total_volume_kg))) %>
               </div>
               <small class="text-muted">Total Volume</small>
             </div>
@@ -115,7 +115,7 @@
                 </div>
                 <div class="text-end me-3">
                   <span class="weight-display h5 mb-0">
-                    <%= number_with_delimiter(Current.user.display_weight(workout.total_volume_kg).round) %>
+                    <%= number_with_delimiter(Current.user.format_weight(workout.total_volume_kg)) %>
                   </span>
                   <span class="text-muted small"><%= Current.user.preferred_unit %></span>
                 </div>

@@ -610,3 +610,4 @@ $text-muted: #6c757d;
 - Integration with fitness trackers / Apple Health?
 - Heart rate zone tracking for conditioning work?
 - Video form check with rep counter (ML)?
+- **Push notifications for PRs** - Would require server-side infrastructure (web push subscription management, background sync). Local notifications for rest timer already implemented.

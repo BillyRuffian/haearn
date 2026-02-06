@@ -36,7 +36,7 @@
         <i class="bi bi-arrow-counterclockwise me-1"></i>Last:
         <% workout_exercise.previous_exercise.exercise_sets.each do |prev_set| %>
           <span class="badge bg-dark">
-            <%= Current.user.display_weight(prev_set.weight_kg)&.round %><%= Current.user.preferred_unit %> × <%= prev_set.reps %>
+            <%= Current.user.format_weight(prev_set.weight_kg) %><%= Current.user.preferred_unit %> × <%= prev_set.reps %>
           </span>
         <% end %>
       </div>

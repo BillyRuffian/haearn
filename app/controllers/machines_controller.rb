@@ -29,9 +29,10 @@ class MachinesController < ApplicationController
       if @machine.save
         # Support for workout flow: create machine, then return to machine picker
         if params[:return_to].present?
-          safe_url = safe_return_to(params[:return_to], fallback: gym_path(@gym))
-          format.html { redirect_to safe_url, notice: 'Equipment added! Now select it.' }
-          format.turbo_stream { redirect_to safe_url, notice: 'Equipment added! Now select it.' }
+          # Append machine_id param to auto-select the newly created machine
+          safe_url = safe_return_to_with_param(params[:return_to], :machine_id, @machine.id, fallback: gym_path(@gym))
+          format.html { redirect_to safe_url, notice: 'Equipment added!' }
+          format.turbo_stream { redirect_to safe_url, notice: 'Equipment added!' }
         else
           format.turbo_stream do
             render turbo_stream: [

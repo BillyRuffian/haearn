@@ -38,7 +38,7 @@
                 <div class="pr-stat">
                   <div class="pr-label">Heaviest Set</div>
                   <div class="pr-value weight-display">
-                    <%= number_with_delimiter(Current.user.display_weight(@prs[:best_set_weight][:weight_kg]).round) %>
+                    <%= number_with_delimiter(Current.user.format_weight(@prs[:best_set_weight][:weight_kg])) %>
                     <small class="text-muted"><%= Current.user.preferred_unit %></small>
                   </div>
                   <div class="pr-detail">
@@ -54,11 +54,11 @@
                 <div class="pr-stat">
                   <div class="pr-label">Best Single Set</div>
                   <div class="pr-value weight-display">
-                    <%= number_with_delimiter(Current.user.display_weight(@prs[:best_set_volume][:volume]).round) %>
+                    <%= number_with_delimiter(Current.user.format_weight(@prs[:best_set_volume][:volume])) %>
                     <small class="text-muted"><%= Current.user.preferred_unit %></small>
                   </div>
                   <div class="pr-detail">
-                    <%= number_with_delimiter(Current.user.display_weight(@prs[:best_set_volume][:weight_kg]).round) %> × <%= @prs[:best_set_volume][:reps] %>
+                    <%= number_with_delimiter(Current.user.format_weight(@prs[:best_set_volume][:weight_kg])) %> × <%= @prs[:best_set_volume][:reps] %>
                     <span class="text-muted ms-2"><%= @prs[:best_set_volume][:date].strftime("%b %d, %Y") %></span>
                   </div>
                 </div>
@@ -70,7 +70,7 @@
                 <div class="pr-stat">
                   <div class="pr-label">Best Session Volume</div>
                   <div class="pr-value weight-display">
-                    <%= number_with_delimiter(Current.user.display_weight(@prs[:best_session_volume][:volume]).round) %>
+                    <%= number_with_delimiter(Current.user.format_weight(@prs[:best_session_volume][:volume])) %>
                     <small class="text-muted"><%= Current.user.preferred_unit %></small>
                   </div>
                   <div class="pr-detail">
@@ -85,11 +85,11 @@
                 <div class="pr-stat">
                   <div class="pr-label">Best Est. 1RM</div>
                   <div class="pr-value weight-display">
-                    <%= number_with_delimiter(Current.user.display_weight(@prs[:best_e1rm][:e1rm_kg]).round) %>
+                    <%= number_with_delimiter(Current.user.format_weight(@prs[:best_e1rm][:e1rm_kg])) %>
                     <small class="text-muted"><%= Current.user.preferred_unit %></small>
                   </div>
                   <div class="pr-detail">
-                    from <%= number_with_delimiter(Current.user.display_weight(@prs[:best_e1rm][:weight_kg]).round) %> × <%= @prs[:best_e1rm][:reps] %>
+                    from <%= number_with_delimiter(Current.user.format_weight(@prs[:best_e1rm][:weight_kg])) %> × <%= @prs[:best_e1rm][:reps] %>
                     <span class="text-muted ms-2"><%= @prs[:best_e1rm][:date].strftime("%b %d, %Y") %></span>
                   </div>
                 </div>
@@ -178,9 +178,9 @@
         <div class="card text-center">
           <div class="card-body py-3">
             <div class="weight-display h4 mb-0">
-              <%= number_with_delimiter(Current.user.display_weight(
+              <%= number_with_delimiter(Current.user.format_weight(
                 @workout_exercises.sum { |we| we.exercise_sets.reject(&:is_warmup).sum { |s| (s.weight_kg || 0) * (s.reps || 0) } }
-              ).round) %>
+              )) %>
             </div>
             <small class="text-muted">Total Volume</small>
           </div>

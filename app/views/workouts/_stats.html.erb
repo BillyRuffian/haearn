@@ -20,7 +20,7 @@
       <div class="card text-center">
         <div class="card-body py-3">
           <div class="weight-display h4 mb-0">
-            <%= number_with_delimiter(Current.user.display_weight(workout.total_volume_kg).round) %>
+            <%= number_with_delimiter(Current.user.format_weight(workout.total_volume_kg)) %>
           </div>
           <small class="text-muted">Volume (<%= Current.user.preferred_unit %>)</small>
         </div>

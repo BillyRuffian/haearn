@@ -10,7 +10,7 @@
     </div>
     <div class="col-3 text-center">
       <span class="weight-display <%= 'pr-weight' if is_weight_pr %>">
-        <%= Current.user.display_weight(set.weight_kg)&.round || "—" %>
+        <%= Current.user.format_weight(set.weight_kg) || "—" %>
         <% if is_weight_pr %>
           <i class="bi bi-trophy-fill text-warning ms-1"></i>
         <% end %>

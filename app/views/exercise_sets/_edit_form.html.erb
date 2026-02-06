@@ -14,7 +14,7 @@
         <div class="col-3">
           <div class="input-group input-group-sm">
             <%= form.number_field :weight_value,
-                value: set.weight_kg ? Current.user.display_weight(set.weight_kg)&.round : nil,
+                value: set.weight_kg ? Current.user.format_weight(set.weight_kg) : nil,
                 class: "form-control form-control-sm text-center",
                 step: "any",
                 inputmode: "decimal" %>

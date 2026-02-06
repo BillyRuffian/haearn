@@ -62,9 +62,10 @@ class ExercisesController < ApplicationController
       if @exercise.save
         # Support for workout flow: create exercise, then return to exercise picker
         if params[:return_to].present?
-          safe_url = safe_return_to(params[:return_to], fallback: exercises_path)
-          format.html { redirect_to safe_url, notice: 'Exercise created! Now select it.' }
-          format.turbo_stream { redirect_to safe_url, notice: 'Exercise created! Now select it.' }
+          # Append select_exercise param to auto-select the newly created exercise
+          safe_url = safe_return_to_with_param(params[:return_to], :select_exercise, @exercise.id, fallback: exercises_path)
+          format.html { redirect_to safe_url, notice: 'Exercise created!' }
+          format.turbo_stream { redirect_to safe_url, notice: 'Exercise created!' }
         else
           format.turbo_stream do
             render turbo_stream: [

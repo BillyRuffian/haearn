@@ -1,5 +1,5 @@
 <% show_plate_calc = workout_exercise.exercise.has_weight && workout_exercise.machine&.plate_loaded? %>
-<% initial_weight = set.weight_kg ? Current.user.display_weight(set.weight_kg)&.round : last_weight_for(workout_exercise) %>
+<% initial_weight = set.weight_kg ? Current.user.format_weight(set.weight_kg) : last_weight_for(workout_exercise) %>
 
 <div <% if show_plate_calc %>data-controller="plate-calculator" 
      data-plate-calculator-weight-value="<%= initial_weight || 0 %>"

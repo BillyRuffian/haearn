@@ -134,6 +134,7 @@ export default class extends Controller {
     this.stop()
     this.playAlert()
     this.vibrate()
+    this.showNotification("Rest Complete!", "Time to lift! 💪")
 
     // Flash the timer briefly, then hide
     if (this.hasContainerTarget) {
@@ -270,6 +271,32 @@ export default class extends Controller {
     if ("vibrate" in navigator) {
       navigator.vibrate([200, 100, 200, 100, 200])
     }
+  }
+
+  showNotification(title, body) {
+    // Only show notification if page is not visible (user switched tabs/apps)
+    if (document.visibilityState === "visible") {
+      return
+    }
+
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification(title, {
+        body: body,
+        icon: "/icon.png",
+        badge: "/icon.png",
+        tag: "rest-timer", // Prevents duplicate notifications
+        requireInteraction: false,
+        silent: false
+      })
+    }
+  }
+
+  // Request notification permission - call this from settings or first timer start
+  static async requestPermission() {
+    if ("Notification" in window && Notification.permission === "default") {
+      return await Notification.requestPermission()
+    }
+    return Notification.permission
   }
 
   // Called when a set is logged - auto-start the timer

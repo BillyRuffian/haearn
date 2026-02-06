@@ -22,13 +22,13 @@
 #  default_gym_id  (default_gym_id => gyms.id)
 #
 # Central user model with authentication and workout preferences
-# 
+#
 # Key Features:
 # - Rails 8 authentication with has_secure_password
 # - Preferred weight unit (kg/lbs) - all weights stored as kg internally
 # - Default rest timer between sets (30-300 seconds)
 # - Optional default gym for quick workout creation
-# 
+#
 # Weight Handling:
 # - All weights stored in kg in database (normalized)
 # - display_weight() converts to user's preferred unit for display
@@ -74,14 +74,30 @@ class User < ApplicationRecord
 
   # Convert weight from kg (database storage) to user's preferred unit for display
   # @param kg_value [Numeric] weight in kilograms
-  # @return [Float] weight in user's preferred unit
+  # @return [Float] weight in user's preferred unit (rounded to 2 d.p.)
   def display_weight(kg_value)
     return nil if kg_value.nil?
 
     if preferred_unit == 'lbs'
-      (kg_value * 2.20462).round(1)  # 1 kg = 2.20462 lbs
+      (kg_value * 2.20462).round(2)  # 1 kg = 2.20462 lbs
     else
-      kg_value.round(1)
+      kg_value.round(2)
+    end
+  end
+
+  # Format weight for display, showing decimals only when not a whole number
+  # @param kg_value [Numeric] weight in kilograms
+  # @return [String] formatted weight (e.g., "100" or "100.5" or "100.25")
+  def format_weight(kg_value)
+    value = display_weight(kg_value)
+    return nil if value.nil?
+
+    if value == value.to_i
+      value.to_i.to_s
+    elsif value == value.round(1)
+      format('%.1f', value)
+    else
+      format('%.2f', value)
     end
   end
 

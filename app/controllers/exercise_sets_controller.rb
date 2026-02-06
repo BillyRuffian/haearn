@@ -47,14 +47,8 @@ class ExerciseSetsController < ApplicationController
   def edit
     # Calculate the set number for display (1-indexed)
     index = @workout_exercise.exercise_sets.order(:created_at).pluck(:id).index(@exercise_set.id) + 1
-    respond_to do |format|
-      format.turbo_stream do
-        render turbo_stream: turbo_stream.replace(@exercise_set,
-          partial: 'exercise_sets/edit_form',
-          locals: { set: @exercise_set, workout_exercise: @workout_exercise, workout: @workout, index: index })
-      end
-      format.html { redirect_to workout_path(@workout) }
-    end
+    render partial: 'exercise_sets/edit_form',
+           locals: { set: @exercise_set, workout_exercise: @workout_exercise, workout: @workout, index: index }
   end
 
   # PATCH /workouts/:workout_id/workout_exercises/:workout_exercise_id/exercise_sets/:id

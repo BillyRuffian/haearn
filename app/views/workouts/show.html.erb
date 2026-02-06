@@ -5,7 +5,7 @@
   <div data-controller="wake-lock"></div>
 <% end %>
 
-<div class="container py-4">
+<div class="container py-4" <% if @workout.in_progress? %>data-controller="sticky-timer" data-sticky-timer-started-at-value="<%= @workout.started_at.iso8601 %>"<% end %>>
   <!-- Workout Header -->
   <div class="d-flex justify-content-between align-items-start mb-4">
     <div>
@@ -25,8 +25,8 @@
     </div>
     <div class="text-end">
       <% if @workout.in_progress? %>
-        <div class="workout-timer h4 mb-2" data-controller="timer" data-timer-started-at-value="<%= @workout.started_at.iso8601 %>">
-          <span data-timer-target="display"><%= @workout.duration_minutes %></span> min
+        <div class="workout-timer h4 mb-2" data-sticky-timer-target="main">
+          <span data-timer-display><%= @workout.duration_minutes %></span> min
         </div>
         <div class="d-flex gap-2 justify-content-end">
           <%= button_to workout_path(@workout), 
