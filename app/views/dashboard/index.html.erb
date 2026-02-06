@@ -141,8 +141,25 @@
     </div>
 
     <!-- Recent PRs Table -->
-    <% recent_prs = @pr_timeline_data.last(10).reverse %>
-    <% if recent_prs.any? %>
+    <%# Group PRs by exercise+date to combine weight and volume PRs on same day %>
+    <% 
+      grouped_prs = @pr_timeline_data.group_by { |pr| [pr[:exercise], pr[:date]] }
+        .transform_values do |prs|
+          {
+            exercise: prs.first[:exercise],
+            date: prs.first[:date],
+            weight: prs.find { |p| p[:type] == 'weight' }&.dig(:weight),
+            weight_reps: prs.find { |p| p[:type] == 'weight' }&.dig(:reps),
+            volume: prs.find { |p| p[:type] == 'volume' },
+            has_weight_pr: prs.any? { |p| p[:type] == 'weight' },
+            has_volume_pr: prs.any? { |p| p[:type] == 'volume' }
+          }
+        end.values
+        .sort_by { |pr| pr[:date] }
+        .last(10)
+        .reverse
+    %>
+    <% if grouped_prs.any? %>
       <div class="row mt-4">
         <div class="col-12">
           <div class="card position-relative">
@@ -162,16 +179,23 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <% recent_prs.each do |pr| %>
+                    <% grouped_prs.each do |pr| %>
                       <tr>
                         <td class="fw-bold"><%= pr[:exercise] %></td>
                         <td class="text-end">
-                          <span class="weight-display text-forge"><%= pr[:weight] %></span>
+                          <span class="weight-display text-forge"><%= pr[:weight] || pr[:volume]&.dig(:weight) %></span>
                           <span class="text-muted small"><%= Current.user.preferred_unit %></span>
                         </td>
-                        <td class="text-end"><%= pr[:reps] %></td>
+                        <td class="text-end"><%= pr[:weight_reps] || pr[:volume]&.dig(:reps) %></td>
                         <td class="text-center">
-                          <% if pr[:type] == 'weight' %>
+                          <% if pr[:has_weight_pr] && pr[:has_volume_pr] %>
+                            <span class="badge bg-forge me-1" style="font-size: 0.7rem;">
+                              <i class="bi bi-arrow-up"></i> MAX
+                            </span>
+                            <span class="badge bg-iron" style="font-size: 0.7rem;">
+                              <i class="bi bi-graph-up"></i> VOL
+                            </span>
+                          <% elsif pr[:has_weight_pr] %>
                             <span class="badge bg-forge" style="font-size: 0.7rem;">
                               <i class="bi bi-arrow-up"></i> MAX
                             </span>

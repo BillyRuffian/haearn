@@ -34,18 +34,19 @@ export default class extends Controller {
 
     const data = this.dataValue
     
-    // Transform data for Chart.js time series
-    const chartData = data.map(d => ({
-      x: new Date(d.date),
-      y: d.e1rm,
-      weight: d.weight,
-      reps: d.reps
-    }))
+    // Format dates as labels for category scale (avoids need for date adapter)
+    const labels = data.map(d => {
+      const date = new Date(d.date)
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    })
+    
+    const e1rmValues = data.map(d => d.e1rm)
+    const weights = data.map(d => d.weight)
+    const reps = data.map(d => d.reps)
 
     const ctx = this.canvasTarget.getContext("2d")
 
     // Calculate min/max for better axis scaling
-    const e1rmValues = data.map(d => d.e1rm)
     const minE1rm = Math.min(...e1rmValues)
     const maxE1rm = Math.max(...e1rmValues)
     const padding = (maxE1rm - minE1rm) * 0.1 || 10
@@ -53,9 +54,10 @@ export default class extends Controller {
     this.chart = new Chart(ctx, {
       type: 'line',
       data: {
+        labels: labels,
         datasets: [{
           label: 'Estimated 1RM',
-          data: chartData,
+          data: e1rmValues,
           backgroundColor: 'rgba(255, 107, 53, 0.2)',
           borderColor: '#ff6b35',
           borderWidth: 2,
@@ -90,18 +92,13 @@ export default class extends Controller {
             callbacks: {
               title: (items) => {
                 if (!items.length) return ''
-                const date = new Date(items[0].raw.x)
-                return date.toLocaleDateString('en-US', { 
-                  month: 'short', 
-                  day: 'numeric', 
-                  year: 'numeric' 
-                })
+                return labels[items[0].dataIndex]
               },
               label: (context) => {
-                const raw = context.raw
+                const idx = context.dataIndex
                 return [
-                  `Est. 1RM: ${raw.y.toFixed(1)}`,
-                  `From: ${raw.weight} × ${raw.reps} reps`
+                  `Est. 1RM: ${e1rmValues[idx].toFixed(1)}`,
+                  `From: ${weights[idx]} × ${reps[idx]} reps`
                 ]
               }
             }
@@ -109,20 +106,14 @@ export default class extends Controller {
         },
         scales: {
           x: {
-            type: 'time',
-            time: {
-              unit: 'week',
-              displayFormats: {
-                week: 'MMM d'
-              }
-            },
             grid: {
               color: "rgba(255, 255, 255, 0.05)"
             },
             ticks: {
               color: "#6a6a6a",
               font: { size: 11 },
-              maxRotation: 45
+              maxRotation: 45,
+              maxTicksLimit: 10
             }
           },
           y: {

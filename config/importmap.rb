@@ -7,8 +7,8 @@ pin '@hotwired/stimulus-loading', to: 'stimulus-loading.js'
 pin_all_from 'app/javascript/controllers', under: 'controllers'
 pin 'bootstrap', to: 'bootstrap.bundle.min.js'
 
-# Chart.js - esm.sh bundles all dependencies inline
-pin 'chart.js/auto', to: 'https://esm.sh/chart.js@4.4.0/auto?bundle', preload: true
+# Chart.js - jsdelivr includes source maps
+pin 'chart.js/auto', to: 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/auto/+esm', preload: true
 
 # SortableJS for drag and drop
 pin 'sortablejs', to: 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/modular/sortable.esm.js'

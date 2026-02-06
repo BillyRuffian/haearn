@@ -13,12 +13,12 @@ export default class extends Controller {
 
   connect() {
     this.chart = null
-    
+
     // Configure Chart.js defaults for dark theme
     Chart.defaults.color = "#8a8a8a"
     Chart.defaults.borderColor = "rgba(255, 255, 255, 0.1)"
     Chart.defaults.font.family = "'Inter', sans-serif"
-    
+
     this.renderChart()
   }
 
@@ -33,13 +33,15 @@ export default class extends Controller {
     if (!this.hasCanvasTarget || !this.dataValue?.length) return
 
     const data = this.dataValue
+
+    // Format dates as labels for category scale (avoids need for date adapter)
+    const labels = data.map(d => {
+      const date = new Date(d.date)
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    })
     
-    // Transform data for Chart.js
-    const chartData = data.map(d => ({
-      x: new Date(d.date),
-      y: d.duration,
-      gym: d.gym
-    }))
+    const durations = data.map(d => d.duration)
+    const gyms = data.map(d => d.gym)
 
     // Calculate average for reference line
     const avgDuration = data.reduce((sum, d) => sum + d.duration, 0) / data.length
@@ -49,10 +51,11 @@ export default class extends Controller {
     this.chart = new Chart(ctx, {
       type: 'line',
       data: {
+        labels: labels,
         datasets: [
           {
             label: 'Duration (min)',
-            data: chartData,
+            data: durations,
             backgroundColor: 'rgba(255, 107, 53, 0.2)',
             borderColor: '#ff6b35',
             borderWidth: 2,
@@ -88,44 +91,21 @@ export default class extends Controller {
             callbacks: {
               title: (items) => {
                 if (!items.length) return ''
-                const raw = items[0].raw
-                return raw.gym
+                const idx = items[0].dataIndex
+                return gyms[idx]
               },
               label: (context) => {
-                const raw = context.raw
-                const date = new Date(raw.x).toLocaleDateString('en-US', { 
-                  month: 'short', 
-                  day: 'numeric'
-                })
-                return `${raw.y} min on ${date}`
+                const idx = context.dataIndex
+                return `${durations[idx]} min on ${labels[idx]}`
               },
               afterBody: () => {
                 return `Avg: ${Math.round(avgDuration)} min`
-              }
-            }
-          },
-          annotation: {
-            annotations: {
-              avgLine: {
-                type: 'line',
-                yMin: avgDuration,
-                yMax: avgDuration,
-                borderColor: 'rgba(113, 121, 126, 0.5)',
-                borderWidth: 1,
-                borderDash: [5, 5]
               }
             }
           }
         },
         scales: {
           x: {
-            type: 'time',
-            time: {
-              unit: 'day',
-              displayFormats: {
-                day: 'MMM d'
-              }
-            },
             grid: {
               color: "rgba(255, 255, 255, 0.05)"
             },

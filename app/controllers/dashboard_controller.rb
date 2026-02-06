@@ -135,42 +135,73 @@ class DashboardController < ApplicationController
 
   # Build chronological timeline of PRs (weight and volume) over last 12 months
   # Tracks the progressive improvement in each exercise
+  # Only counts as PR if it beats a previous record (not just the first occurrence)
   def calculate_pr_timeline
     prs = []
+    since = 12.months.ago
 
     # Load 12 months of workout data with sets
     workout_exercises = WorkoutExercise
       .joins(workout_block: :workout)
-      .includes(:exercise, :exercise_sets)
+      .includes(:exercise, :machine, :exercise_sets)
       .where(workouts: { user_id: Current.user.id })
-      .where('workouts.finished_at >= ?', 12.months.ago)
+      .where('workouts.finished_at >= ?', since)
       .where.not(workouts: { finished_at: nil })
 
-    # Group by exercise
-    exercises_data = workout_exercises.group_by(&:exercise)
+    # Group by exercise+machine for proper scoping
+    exercises_data = workout_exercises.group_by { |we| [ we.exercise_id, we.machine_id ] }
 
-    exercises_data.each do |exercise, wes|
+    exercises_data.each do |(exercise_id, machine_id), wes|
+      exercise = wes.first.exercise
       next unless exercise&.has_weight?
 
-      # Get all working sets in chronological order
+      # Get historical best BEFORE the time period to establish baseline
+      historical_best_weight = ExerciseSet
+        .joins(workout_exercise: { workout_block: :workout })
+        .where(workout_exercises: { exercise_id: exercise_id, machine_id: machine_id })
+        .where(workouts: { user_id: Current.user.id })
+        .where('workouts.finished_at < ?', since)
+        .where.not(workouts: { finished_at: nil })
+        .where(is_warmup: false)
+        .where.not(weight_kg: nil)
+        .maximum(:weight_kg) || 0
+
+      historical_best_volume = 0
+      WorkoutExercise
+        .joins(workout_block: :workout)
+        .includes(:exercise_sets)
+        .where(exercise_id: exercise_id, machine_id: machine_id)
+        .where(workouts: { user_id: Current.user.id })
+        .where('workouts.finished_at < ?', since)
+        .where.not(workouts: { finished_at: nil })
+        .each do |we|
+          vol = we.exercise_sets
+            .select { |s| !s.is_warmup && s.weight_kg.present? && s.reps&.positive? }
+            .sum { |s| (s.weight_kg || 0) * (s.reps || 0) }
+          historical_best_volume = vol if vol > historical_best_volume
+        end
+
+      # Get all working sets in chronological order within the time period
       all_sets = wes.flat_map { |we|
-        we.exercise_sets.select { |s| !s.is_warmup && s.weight_kg.present? }
+        we.exercise_sets.select { |s| !s.is_warmup && s.weight_kg.present? && s.reps&.positive? }
       }.sort_by { |s| s.completed_at || s.created_at }
 
       next if all_sets.empty?
 
-      # Track running PRs as we go through chronologically
-      best_weight = 0
-      best_volume = 0
+      # Track running PRs starting from historical baseline
+      best_weight = historical_best_weight
+      best_volume = historical_best_volume
+      
+      # Track if we've seen at least one set (first set is never a PR unless beating history)
+      has_previous_set = historical_best_weight > 0 || historical_best_volume > 0
 
       all_sets.each do |set|
         date = (set.completed_at || set.created_at).to_date
         weight = set.weight_kg
         volume = (set.weight_kg || 0) * (set.reps || 0)
 
-        # Check for weight PR
-        if weight > best_weight
-          best_weight = weight
+        # Check for weight PR (must beat previous best AND have previous data)
+        if weight > best_weight && has_previous_set
           prs << {
             exercise: exercise.name,
             date: date.to_s,
@@ -179,10 +210,10 @@ class DashboardController < ApplicationController
             type: 'weight'
           }
         end
+        best_weight = weight if weight > best_weight
 
-        # Check for volume PR (same date might have both)
-        if volume > best_volume
-          best_volume = volume
+        # Check for volume PR (must beat previous best AND have previous data)
+        if volume > best_volume && has_previous_set
           prs << {
             exercise: exercise.name,
             date: date.to_s,
@@ -191,6 +222,10 @@ class DashboardController < ApplicationController
             type: 'volume'
           }
         end
+        best_volume = volume if volume > best_volume
+        
+        # After the first set, we have previous data
+        has_previous_set = true
       end
     end
 
