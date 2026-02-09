@@ -2,6 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 // Connects to data-controller="sticky-timer"
 // Shows a compact timer in navbar when the main workout timer scrolls out of view
+// On mobile (< 992px), always shows the navbar timer
 export default class extends Controller {
   static values = { startedAt: String }
   static targets = ["main"]
@@ -9,6 +10,7 @@ export default class extends Controller {
   connect() {
     this.startTime = new Date(this.startedAtValue)
     this.navbarTimer = document.getElementById("navbar-workout-timer")
+    this.mobileBreakpoint = 992 // Bootstrap lg breakpoint
 
     this.updateDisplay()
     this.interval = setInterval(() => this.updateDisplay(), 60000) // Update every minute
@@ -17,14 +19,8 @@ export default class extends Controller {
     this.observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (this.navbarTimer) {
-            // Show navbar timer when main timer is NOT visible
-            if (entry.isIntersecting) {
-              this.navbarTimer.style.display = "none"
-            } else {
-              this.navbarTimer.style.display = ""
-            }
-          }
+          this.mainTimerVisible = entry.isIntersecting
+          this.updateNavbarVisibility()
         })
       },
       {
@@ -36,6 +32,38 @@ export default class extends Controller {
     if (this.hasMainTarget) {
       this.observer.observe(this.mainTarget)
     }
+
+    // Listen for window resize to handle mobile/desktop transitions
+    this.resizeHandler = () => this.updateNavbarVisibility()
+    window.addEventListener("resize", this.resizeHandler)
+    
+    // Initial visibility check
+    this.mainTimerVisible = true
+    this.updateNavbarVisibility()
+
+    // Scroll to bottom if returning to active workout (not first visit)
+    const visitKey = "haearn_workout_visited"
+    if (sessionStorage.getItem(visitKey) === "true") {
+      // Returning to workout - scroll to bottom after a brief delay for rendering
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" })
+      })
+    }
+    sessionStorage.setItem(visitKey, "true")
+  }
+
+  updateNavbarVisibility() {
+    if (!this.navbarTimer) return
+
+    const isMobile = window.innerWidth < this.mobileBreakpoint
+    
+    if (isMobile) {
+      // On mobile, always show navbar timer
+      this.navbarTimer.style.display = ""
+    } else {
+      // On desktop, show only when main timer is scrolled out of view
+      this.navbarTimer.style.display = this.mainTimerVisible ? "none" : ""
+    }
   }
 
   disconnect() {
@@ -45,10 +73,15 @@ export default class extends Controller {
     if (this.observer) {
       this.observer.disconnect()
     }
+    if (this.resizeHandler) {
+      window.removeEventListener("resize", this.resizeHandler)
+    }
     // Hide navbar timer when leaving the workout page
     if (this.navbarTimer) {
       this.navbarTimer.style.display = "none"
     }
+    // Don't clear visited flag here - we want it to persist across navigations
+    // It gets cleared when the workout is no longer active (page won't have this controller)
   }
 
   updateDisplay() {

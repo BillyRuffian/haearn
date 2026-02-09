@@ -49,6 +49,28 @@ module ApplicationHelper
     end
   end
 
+  # Get last duration used for this exercise in this workout
+  def last_duration_for(workout_exercise)
+    last_set = workout_exercise.exercise_sets.order(created_at: :desc).first
+    if last_set&.duration_seconds
+      last_set.duration_seconds
+    elsif workout_exercise.previous_exercise
+      prev_set = workout_exercise.previous_exercise.exercise_sets.order(created_at: :desc).first
+      prev_set&.duration_seconds
+    end
+  end
+
+  # Get last distance used for this exercise in this workout
+  def last_distance_for(workout_exercise)
+    last_set = workout_exercise.exercise_sets.order(created_at: :desc).first
+    if last_set&.distance_meters
+      last_set.distance_meters
+    elsif workout_exercise.previous_exercise
+      prev_set = workout_exercise.previous_exercise.exercise_sets.order(created_at: :desc).first
+      prev_set&.distance_meters
+    end
+  end
+
   # Format large numbers with SI units (K, M, etc.)
   def number_to_si(number)
     return '0' if number.nil? || number.zero?

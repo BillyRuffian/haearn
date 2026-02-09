@@ -42,6 +42,18 @@
           HAEARN
         <% end %>
 
+        <%# Navbar workout timer - always visible, positioned between brand and settings on mobile %>
+        <% if Current.user && Current.user.active_workout %>
+          <div id="navbar-workout-timer" data-sticky-timer-target="navbar" class="navbar-timer-wrapper ms-auto me-2" style="display: none;">
+            <%= link_to workout_path(Current.user.active_workout), class: "nav-link py-1 px-2" do %>
+              <span class="badge bg-primary fs-6 py-2 px-3">
+                <i class="bi bi-stopwatch me-1"></i>
+                <span data-timer-display><%= Current.user.active_workout.duration_minutes %></span> min
+              </span>
+            <% end %>
+          </div>
+        <% end %>
+
         <%# Mobile: Settings button instead of hamburger menu (nav items are in bottom bar) %>
         <% if Current.user %>
           <%= link_to settings_path, class: "btn btn-link nav-link d-lg-none p-2 #{'active' if controller_name == 'settings'}" do %>
@@ -76,17 +88,6 @@
 
           <ul class="navbar-nav align-items-center">
             <% if Current.user %>
-              <%# Sticky workout timer - shows when main timer scrolls off screen %>
-              <% if Current.user.active_workout %>
-                <li class="nav-item me-3" id="navbar-workout-timer" data-sticky-timer-target="navbar" style="display: none;">
-                  <%= link_to workout_path(Current.user.active_workout), class: "nav-link py-1 px-2" do %>
-                    <span class="badge bg-primary fs-6 py-2 px-3">
-                      <i class="bi bi-stopwatch me-1"></i>
-                      <span data-timer-display><%= Current.user.active_workout.duration_minutes %></span> min
-                    </span>
-                  <% end %>
-                </li>
-              <% end %>
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                   <i class="bi bi-person-circle me-1"></i>

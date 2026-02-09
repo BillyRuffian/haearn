@@ -40,12 +40,14 @@
         <% when 'time' %>
           <label class="form-label small text-muted mb-1">Seconds</label>
           <%= form.number_field :duration_seconds,
+              value: set.duration_seconds || last_duration_for(workout_exercise),
               class: "form-control form-control-sm text-center",
               inputmode: "numeric",
               onfocus: "this.select()" %>
         <% when 'distance' %>
           <label class="form-label small text-muted mb-1">Meters</label>
           <%= form.number_field :distance_meters,
+              value: set.distance_meters || last_distance_for(workout_exercise),
               class: "form-control form-control-sm text-center",
               inputmode: "decimal",
               step: "any",

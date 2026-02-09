@@ -18,6 +18,8 @@ $rust: #a33a0c;
 $rust-light: #c94d14;
 $rust-dark: #7a2d09;
 $forge-orange: #ff6b35;
+$bronze: #cd7f32;
+$gold: #d4a847;
 
 // Bootstrap color overrides
 $primary: $rust;
@@ -1187,16 +1189,20 @@ select option:checked {
 }
 
 .bottom-nav-primary {
-  color: $forge-orange;
+  color: $gold;
   position: relative;
 
   i {
     font-size: 1.75rem;
-    background: linear-gradient(135deg, $rust-light, $forge-orange);
+    background: linear-gradient(135deg, $bronze, $gold);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    filter: drop-shadow(0 0 8px rgba($forge-orange, 0.6)) drop-shadow(0 0 16px rgba($rust-light, 0.4));
+    filter: drop-shadow(0 0 8px rgba($gold, 0.6)) drop-shadow(0 0 16px rgba($bronze, 0.4));
+  }
+
+  span {
+    color: $gold;
   }
 
   // Glow ring behind the icon
@@ -1209,13 +1215,13 @@ select option:checked {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba($forge-orange, 0.25) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba($gold, 0.25) 0%, transparent 70%);
     z-index: -1;
     animation: pulse-glow 2s ease-in-out infinite;
   }
 
   &:hover {
-    color: $forge-orange;
+    color: $gold;
   }
 }
 

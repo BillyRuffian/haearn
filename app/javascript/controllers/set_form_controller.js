@@ -5,13 +5,6 @@ export default class extends Controller {
   static targets = ["weight", "reps", "submit"]
 
   connect() {
-    // Focus on the first input
-    if (this.hasWeightTarget) {
-      this.weightTarget.focus()
-    } else if (this.hasRepsTarget) {
-      this.repsTarget.focus()
-    }
-
     // Listen for successful turbo submissions to trigger rest timer
     this.element.addEventListener("turbo:submit-end", this.handleSubmitEnd.bind(this))
   }
@@ -24,24 +17,10 @@ export default class extends Controller {
     if (event.detail.success) {
       // Dispatch custom event for rest timer
       window.dispatchEvent(new CustomEvent("set-logged", { bubbles: true }))
-
-      // Refocus for next set
-      setTimeout(() => {
-        if (this.hasRepsTarget) {
-          this.repsTarget.focus()
-          this.repsTarget.select()
-        }
-      }, 100)
     }
   }
 
   submitted() {
-    // After form submission, clear and refocus for next set
-    setTimeout(() => {
-      if (this.hasRepsTarget) {
-        this.repsTarget.focus()
-        this.repsTarget.select()
-      }
-    }, 100)
+    // No-op: fields are prepopulated by the server via Turbo Stream replacement
   }
 }
