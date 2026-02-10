@@ -140,6 +140,9 @@ Rails.application.routes.draw do
     end
   end
 
+  # Body Metrics (weight and measurements tracking)
+  resources :body_metrics, except: [ :show ]
+
   # Workout Templates
   resources :workout_templates do
     member do

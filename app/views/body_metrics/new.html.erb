@@ -1,0 +1,138 @@
+<% content_for(:title) { "Log Body Metrics | Haearn" } %>
+
+<div class="container py-4">
+  <h1 class="display-heading mb-4">
+    <i class="bi bi-plus-lg me-2"></i>Log Body Metrics
+  </h1>
+
+  <div class="card">
+    <div class="card-body">
+      <%= form_with model: @body_metric, local: true do |form| %>
+        <% if @body_metric.errors.any? %>
+          <div class="alert alert-danger mb-4">
+            <% @body_metric.errors.full_messages.each do |message| %>
+              <div><%= message %></div>
+            <% end %>
+          </div>
+        <% end %>
+
+        <!-- Date/Time -->
+        <div class="mb-4">
+          <%= form.label :measured_at, "Date & Time", class: "form-label" %>
+          <%= form.datetime_local_field :measured_at, 
+              class: "form-control",
+              required: true %>
+          <div class="form-text">When was this measurement taken?</div>
+        </div>
+
+        <!-- Weight (Quick Entry) -->
+        <div class="mb-4">
+          <%= label_tag :weight_display, "Bodyweight", class: "form-label" %>
+          <div class="input-group">
+            <%= number_field_tag :weight_display, 
+                (@body_metric.weight_kg ? WeightConverter.kg_to_user_unit(@body_metric.weight_kg, Current.user) : nil),
+                class: "form-control",
+                step: 0.1,
+                placeholder: "Enter weight" %>
+            <span class="input-group-text"><%= Current.user.preferred_unit %></span>
+          </div>
+          <div class="form-text">Your current bodyweight.</div>
+        </div>
+
+        <!-- Measurements (Optional) -->
+        <div class="mb-3">
+          <h6 class="text-muted">Body Measurements (Optional)</h6>
+          <p class="text-muted small">Leave blank if you're only logging weight. All measurements in centimeters.</p>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <%= form.label :chest_cm, "Chest (cm)", class: "form-label" %>
+            <%= form.number_field :chest_cm, 
+                class: "form-control",
+                step: 0.1,
+                placeholder: "e.g., 105" %>
+          </div>
+          <div class="col-md-4">
+            <%= form.label :waist_cm, "Waist (cm)", class: "form-label" %>
+            <%= form.number_field :waist_cm, 
+                class: "form-control",
+                step: 0.1,
+                placeholder: "e.g., 85" %>
+          </div>
+          <div class="col-md-4">
+            <%= form.label :hips_cm, "Hips (cm)", class: "form-label" %>
+            <%= form.number_field :hips_cm, 
+                class: "form-control",
+                step: 0.1,
+                placeholder: "e.g., 100" %>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <%= form.label :left_arm_cm, "Left Arm (cm)", class: "form-label" %>
+            <%= form.number_field :left_arm_cm, 
+                class: "form-control",
+                step: 0.1,
+                placeholder: "Flexed bicep" %>
+          </div>
+          <div class="col-md-6">
+            <%= form.label :right_arm_cm, "Right Arm (cm)", class: "form-label" %>
+            <%= form.number_field :right_arm_cm, 
+                class: "form-control",
+                step: 0.1,
+                placeholder: "Flexed bicep" %>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <%= form.label :left_leg_cm, "Left Leg (cm)", class: "form-label" %>
+            <%= form.number_field :left_leg_cm, 
+                class: "form-control",
+                step: 0.1,
+                placeholder: "Thigh circumference" %>
+          </div>
+          <div class="col-md-6">
+            <%= form.label :right_leg_cm, "Right Leg (cm)", class: "form-label" %>
+            <%= form.number_field :right_leg_cm, 
+                class: "form-control",
+                step: 0.1,
+                placeholder: "Thigh circumference" %>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="mb-4">
+          <%= form.label :notes, "Notes", class: "form-label" %>
+          <%= form.text_area :notes, 
+              class: "form-control",
+              rows: 2,
+              placeholder: "Morning weigh-in, feeling bloated, etc." %>
+          <div class="form-text">Any observations about this measurement.</div>
+        </div>
+
+        <div class="d-flex gap-2 justify-content-end">
+          <%= link_to "Cancel", body_metrics_path, class: "btn btn-secondary" %>
+          <%= form.submit "Save Entry", class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Tips -->
+  <div class="card mt-4">
+    <div class="card-body">
+      <h6 class="text-muted mb-2"><i class="bi bi-lightbulb me-2"></i>Measurement Tips</h6>
+      <ul class="text-muted small mb-0">
+        <li>Weigh yourself at the same time each day (morning is most consistent)</li>
+        <li>Take measurements in the same conditions (e.g., after waking, before eating)</li>
+        <li>Measure chest at the widest point, usually at nipple level</li>
+        <li>Measure waist at the narrowest point, usually just above belly button</li>
+        <li>Measure arms and legs at the thickest point while flexed</li>
+        <li>Track trends over several weeks rather than day-to-day fluctuations</li>
+      </ul>
+    </div>
+  </div>
+</div>

@@ -135,6 +135,20 @@
                 </div>
               </div>
             <% end %>
+
+            <% if @relative_strength %>
+              <div class="col-md-4">
+                <div class="pr-stat">
+                  <div class="pr-label">Bodyweight Relative</div>
+                  <div class="pr-value text-forge">
+                    <%= @relative_strength[:ratio] %>x
+                  </div>
+                  <div class="pr-detail">
+                    <%= number_with_delimiter(Current.user.format_weight(@relative_strength[:max_weight_kg])) %> <%= Current.user.preferred_unit %> @ <%= number_with_delimiter(Current.user.format_weight(@relative_strength[:bodyweight_kg])) %> <%= Current.user.preferred_unit %> BW
+                  </div>
+                </div>
+              </div>
+            <% end %>
           </div>
         </div>
       </div>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_10_111040) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_10_133242) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -37,6 +37,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_111040) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "body_metrics", force: :cascade do |t|
+    t.decimal "chest_cm", precision: 5, scale: 1
+    t.datetime "created_at", null: false
+    t.decimal "hips_cm", precision: 5, scale: 1
+    t.decimal "left_arm_cm", precision: 5, scale: 1
+    t.decimal "left_leg_cm", precision: 5, scale: 1
+    t.datetime "measured_at", null: false
+    t.text "notes"
+    t.decimal "right_arm_cm", precision: 5, scale: 1
+    t.decimal "right_leg_cm", precision: 5, scale: 1
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.decimal "waist_cm", precision: 5, scale: 1
+    t.decimal "weight_kg", precision: 5, scale: 2
+    t.index ["user_id", "measured_at"], name: "index_body_metrics_on_user_id_and_measured_at"
+    t.index ["user_id"], name: "index_body_metrics_on_user_id"
   end
 
   create_table "exercise_sets", force: :cascade do |t|
@@ -183,6 +201,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_111040) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "body_metrics", "users"
   add_foreign_key "exercise_sets", "workout_exercises"
   add_foreign_key "exercises", "users"
   add_foreign_key "gyms", "users"

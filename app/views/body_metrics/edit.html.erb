@@ -1,0 +1,123 @@
+<% content_for(:title) { "Edit Body Metrics | Haearn" } %>
+
+<div class="container py-4">
+  <h1 class="display-heading mb-4">
+    <i class="bi bi-pencil me-2"></i>Edit Body Metrics
+  </h1>
+
+  <div class="card">
+    <div class="card-body">
+      <%= form_with model: @body_metric, local: true do |form| %>
+        <% if @body_metric.errors.any? %>
+          <div class="alert alert-danger mb-4">
+            <% @body_metric.errors.full_messages.each do |message| %>
+              <div><%= message %></div>
+            <% end %>
+          </div>
+        <% end %>
+
+        <!-- Date/Time -->
+        <div class="mb-4">
+          <%= form.label :measured_at, "Date & Time", class: "form-label" %>
+          <%= form.datetime_local_field :measured_at, 
+              class: "form-control",
+              required: true %>
+          <div class="form-text">When was this measurement taken?</div>
+        </div>
+
+        <!-- Weight -->
+        <div class="mb-4">
+          <%= label_tag :weight_display, "Bodyweight", class: "form-label" %>
+          <div class="input-group">
+            <%= number_field_tag :weight_display, 
+                @weight_display,
+                class: "form-control",
+                step: 0.1,
+                placeholder: "Enter weight" %>
+            <span class="input-group-text"><%= Current.user.preferred_unit %></span>
+          </div>
+          <div class="form-text">Your current bodyweight.</div>
+        </div>
+
+        <!-- Measurements (Optional) -->
+        <div class="mb-3">
+          <h6 class="text-muted">Body Measurements (Optional)</h6>
+          <p class="text-muted small">Leave blank if you're only logging weight. All measurements in centimeters.</p>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <%= form.label :chest_cm, "Chest (cm)", class: "form-label" %>
+            <%= form.number_field :chest_cm, 
+                class: "form-control",
+                step: 0.1,
+                placeholder: "e.g., 105" %>
+          </div>
+          <div class="col-md-4">
+            <%= form.label :waist_cm, "Waist (cm)", class: "form-label" %>
+            <%= form.number_field :waist_cm, 
+                class: "form-control",
+                step: 0.1,
+                placeholder: "e.g., 85" %>
+          </div>
+          <div class="col-md-4">
+            <%= form.label :hips_cm, "Hips (cm)", class: "form-label" %>
+            <%= form.number_field :hips_cm, 
+                class: "form-control",
+                step: 0.1,
+                placeholder: "e.g., 100" %>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <%= form.label :left_arm_cm, "Left Arm (cm)", class: "form-label" %>
+            <%= form.number_field :left_arm_cm, 
+                class: "form-control",
+                step: 0.1,
+                placeholder: "Flexed bicep" %>
+          </div>
+          <div class="col-md-6">
+            <%= form.label :right_arm_cm, "Right Arm (cm)", class: "form-label" %>
+            <%= form.number_field :right_arm_cm, 
+                class: "form-control",
+                step: 0.1,
+                placeholder: "Flexed bicep" %>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-6">
+            <%= form.label :left_leg_cm, "Left Leg (cm)", class: "form-label" %>
+            <%= form.number_field :left_leg_cm, 
+                class: "form-control",
+                step: 0.1,
+                placeholder: "Thigh circumference" %>
+          </div>
+          <div class="col-md-6">
+            <%= form.label :right_leg_cm, "Right Leg (cm)", class: "form-label" %>
+            <%= form.number_field :right_leg_cm, 
+                class: "form-control",
+                step: 0.1,
+                placeholder: "Thigh circumference" %>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="mb-4">
+          <%= form.label :notes, "Notes", class: "form-label" %>
+          <%= form.text_area :notes, 
+              class: "form-control",
+              rows: 2,
+              placeholder: "Morning weigh-in, feeling bloated, etc." %>
+          <div class="form-text">Any observations about this measurement.</div>
+        </div>
+
+        <div class="d-flex gap-2 justify-content-end">
+          <%= link_to "Cancel", body_metrics_path, class: "btn btn-secondary" %>
+          <%= form.submit "Update Entry", class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
