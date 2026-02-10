@@ -85,7 +85,7 @@ class FatigueAnalyzer
   private
 
   def has_current_performance?
-    workout_exercise.sets.working.any?
+    workout_exercise.exercise_sets.working.any?
   end
 
   def baseline_sessions
@@ -93,7 +93,7 @@ class FatigueAnalyzer
       cutoff_date = LOOKBACK_DAYS.days.ago
 
       WorkoutExercise
-        .joins(:workout, :sets)
+        .joins(:workout, :exercise_sets)
         .where(exercise_id: workout_exercise.exercise_id)
         .where.not(id: workout_exercise.id) # Exclude current session
         .where('workouts.finished_at IS NOT NULL') # Only completed workouts
@@ -113,7 +113,7 @@ class FatigueAnalyzer
   end
 
   def calculate_current_performance
-    sets = workout_exercise.sets.working
+    sets = workout_exercise.exercise_sets.working
     total_volume = sets.sum { |s| (s.weight_kg || 0) * (s.reps || 0) }
     avg_reps = sets.average(:reps)&.to_f || 0
     avg_rpe = sets.where.not(rpe: nil).average(:rpe)&.to_f
@@ -133,7 +133,7 @@ class FatigueAnalyzer
 
     # Group by session and calculate per-session metrics, then average across sessions
     session_volumes = baseline_sessions.map do |we|
-      we.sets.working.sum { |s| (s.weight_kg || 0) * (s.reps || 0) }
+      we.exercise_sets.working.sum { |s| (s.weight_kg || 0) * (s.reps || 0) }
     end
 
     avg_volume = session_volumes.sum / baseline_sessions.count.to_f

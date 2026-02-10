@@ -75,7 +75,7 @@ class ProgressionReadinessChecker
       cutoff_date = LOOKBACK_DAYS.days.ago
 
       scope = WorkoutExercise
-        .joins(:workout, :sets)
+        .joins(:workout, :exercise_sets)
         .where(exercise_id: exercise.id)
         .where('workouts.finished_at IS NOT NULL')
         .where('workouts.finished_at >= ?', cutoff_date)
@@ -94,7 +94,7 @@ class ProgressionReadinessChecker
 
   # Detect target rep range from recent sessions (modal range)
   def detect_rep_range
-    all_reps = recent_sessions.flat_map { |we| we.sets.working.pluck(:reps).compact }
+    all_reps = recent_sessions.flat_map { |we| we.exercise_sets.working.pluck(:reps).compact }
     return nil if all_reps.empty?
 
     # Find the most common rep count (mode)
@@ -129,7 +129,7 @@ class ProgressionReadinessChecker
     return false if recent_sessions.count < 2
 
     weights = recent_sessions.reverse.map do |we|
-      we.sets.working.average(:weight_kg)&.to_f || 0
+      we.exercise_sets.working.average(:weight_kg)&.to_f || 0
     end
 
     # Simple trend: is most recent session lighter than oldest in window?
@@ -141,11 +141,11 @@ class ProgressionReadinessChecker
     return false if recent_sessions.count < 3
 
     last_two = recent_sessions[0..1].map do |we|
-      we.sets.working.average(:weight_kg)&.to_f || 0
+      we.exercise_sets.working.average(:weight_kg)&.to_f || 0
     end
 
     older_sessions = recent_sessions[2..-1].map do |we|
-      we.sets.working.average(:weight_kg)&.to_f || 0
+      we.exercise_sets.working.average(:weight_kg)&.to_f || 0
     end
 
     avg_recent = last_two.sum / last_two.count

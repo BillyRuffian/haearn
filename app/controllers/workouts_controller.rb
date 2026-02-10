@@ -39,8 +39,8 @@ class WorkoutsController < ApplicationController
     # Fatigue Analysis for active workout
     @fatigue_data = []
     if @workout.in_progress?
-      @workout.workout_exercises.includes(:exercise, :machine, :sets).each do |we|
-        next if we.sets.working.empty? # Skip if no working sets yet
+      @workout.workout_exercises.includes(:exercise, :machine, :exercise_sets).each do |we|
+        next if we.exercise_sets.working.empty? # Skip if no working sets yet
 
         analyzer = FatigueAnalyzer.new(workout_exercise: we, user: Current.user)
         analysis = analyzer.analyze

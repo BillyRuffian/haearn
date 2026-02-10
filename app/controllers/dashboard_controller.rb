@@ -46,7 +46,7 @@ class DashboardController < ApplicationController
     @fatigue_data = []
     if Current.user.active_workout
       Current.user.active_workout.workout_exercises.includes(:exercise, :machine).each do |we|
-        next if we.sets.working.empty? # Skip if no working sets yet
+        next if we.exercise_sets.working.empty? # Skip if no working sets yet
 
         analyzer = FatigueAnalyzer.new(workout_exercise: we, user: Current.user)
         analysis = analyzer.analyze
