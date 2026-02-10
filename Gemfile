@@ -25,6 +25,9 @@ gem 'bcrypt', '~> 3.1.7'
 # CSV support (no longer bundled in Ruby 4)
 gem 'csv'
 
+# Use rdoc version bundled with Ruby 4.0.1 to avoid conflicts
+gem 'rdoc', '~> 7.0.3'
+
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: %i[ windows jruby ]
 
