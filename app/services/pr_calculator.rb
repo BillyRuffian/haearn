@@ -1,26 +1,26 @@
 # Centralized PR (Personal Record) calculation service
-# 
+#
 # Why Centralized?
 # PR logic is complex and needs to be consistent across:
 # - Live workout tracking ("You just hit a PR!")
 # - Exercise history page (showing all-time PRs)
 # - Dashboard analytics (PR timeline, plateau detection)
-# 
+#
 # Types of PRs Tracked:
 # 1. Weight PR: Heaviest weight lifted (regardless of reps)
 # 2. Volume PR: Highest single-set volume (weight × reps)
 # 3. Session Volume PR: Highest total volume in one session
 # 4. Estimated 1RM PR: Best calculated 1RM from any rep range
-# 
+#
 # Key Principle: PRs are scoped by exercise+machine combination
 # Why? Same exercise on different machines = different movement patterns
 # Example: Barbell bench press vs Hammer Strength chest press
-# 
+#
 # Ensures consistent PR logic across history views and live workout detection
 class PrCalculator
   # Calculate all PRs from a collection of workout_exercises
   # Used by exercise history page to show aggregate or per-machine PRs
-  # 
+  #
   # @param workout_exercises [Array<WorkoutExercise>] collection to analyze
   # @param exercise [Exercise] the exercise being analyzed
   # @return [Hash] all PR types with details
@@ -31,7 +31,7 @@ class PrCalculator
   # Check if a workout_exercise achieved a volume PR compared to previous sessions
   # Used during live workouts to show "PR!" badge
   # Only compares against finished workouts from same user
-  # 
+  #
   # @param workout_exercise [WorkoutExercise] the current workout exercise
   # @return [Boolean] true if this session's volume is a PR
   def self.volume_pr?(workout_exercise)
@@ -41,7 +41,7 @@ class PrCalculator
   # Check if a set achieved a weight PR
   # Used during live workouts to show real-time PR indicators
   # Excludes warmup sets from PR consideration
-  # 
+  #
   # @param exercise_set [ExerciseSet] the set to check
   # @return [Boolean] true if this is the heaviest weight ever for this exercise+machine
   def self.weight_pr?(exercise_set)
@@ -50,7 +50,7 @@ class PrCalculator
 
   # Get the previous best weight for an exercise+machine combo
   # Used to display "Previous best: 225lbs" during workouts
-  # 
+  #
   # @param workout_exercise [WorkoutExercise]
   # @return [Numeric, nil] previous best weight in kg
   def self.previous_best_weight(workout_exercise)
@@ -60,10 +60,10 @@ class PrCalculator
   # Calculate PR timeline for dashboard visualization
   # Returns array of PRs achieved over time, scoped by exercise+machine
   # Only counts as PR if there was a previous record to beat
-  # 
+  #
   # Why "no previous record" exclusion?
   # First time doing an exercise isn't really a PR, it's just a baseline
-  # 
+  #
   # @param user [User] the user whose PRs to calculate
   # @param since [Time] how far back to look (default: 12 months)
   # @param limit [Integer] max PRs to return (default: 100)
@@ -284,13 +284,13 @@ class PrCalculator
 
   # Calculate PR timeline for dashboard - tracks when PRs were achieved
   # Scoped by exercise+machine, only counts as PR if beating a previous record
-  # 
+  #
   # Process:
   # 1. Get historical baseline (best before time period)
   # 2. Process chronologically through time period
   # 3. Flag when new PRs are achieved
   # 4. Update running best as we go
-  # 
+  #
   # Why chronological?
   # We need to know what the "best" was at each point in time
   # to determine if a new PR occurred

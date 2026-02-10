@@ -19,13 +19,13 @@
 #  user_id  (user_id => users.id)
 #
 # Represents a physical gym location where the user trains
-# 
+#
 # Features:
 # - Each gym can have multiple machines/equipment with specific configurations
 # - Tracks location (address/area) and notes for the gym
 # - When deleted, machines are destroyed but workouts keep the gym_id (nullified)
 # - User can set a default gym for quick workout creation
-# 
+#
 # Why track gyms?
 # - Same exercise on different machines feels different (important for PRs)
 # - Different gyms have different equipment (cable ratios, plate increments)

@@ -22,16 +22,16 @@
 #  user_id  (user_id => users.id)
 #
 # Represents a single training session at a gym
-# 
+#
 # Structure:
 # Workout → WorkoutBlocks → WorkoutExercises → ExerciseSets
-# 
+#
 # Key Concepts:
 # - started_at: When the workout began
 # - finished_at: When completed (nil = still in progress)
 # - workout_blocks: Groups of exercises (enables supersets/circuits)
 # - notes: Overall session notes ("felt tired today")
-# 
+#
 # Supersets:
 # Block with multiple exercises = superset
 # User alternates between exercises in the block

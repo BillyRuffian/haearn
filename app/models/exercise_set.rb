@@ -23,7 +23,7 @@
 #  workout_exercise_id  (workout_exercise_id => workout_exercises.id)
 #
 # Individual set of an exercise (the actual work)
-# 
+#
 # Data Tracked:
 # - weight_kg: Weight used (always stored in kg, converted for display)
 # - reps: Number of repetitions (for reps-based exercises)
@@ -31,13 +31,13 @@
 # - distance_meters: Distance covered (for distance-based like farmer's walks)
 # - is_warmup: Whether this is a warmup set (excluded from volume/PR calculations)
 # - completed_at: Timestamp when set was logged
-# 
+#
 # Weight Normalization:
 # All weights stored in kg internally, regardless of:
 # - User's preferred unit (kg/lbs)
 # - Machine's display unit
 # - Machine's weight ratio (pulley systems)
-# 
+#
 # Logging Flow:
 # User input → WeightConverter (handles unit + ratio) → kg → Database
 # Database → User's unit preference → Display

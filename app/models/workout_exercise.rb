@@ -25,16 +25,16 @@
 #  workout_block_id  (workout_block_id => workout_blocks.id)
 #
 # Represents a specific exercise within a workout block
-# 
+#
 # The bridge between abstract exercises and actual workout performance
 # Tracks which exercise, which machine, and which position in the block
-# 
+#
 # Two Types of Notes:
 # 1. session_notes: Temporary notes specific to this workout
 #    Example: "Shoulder felt off on set 3, stopped early"
 # 2. persistent_notes: Carried forward to future workouts
 #    Example: "Use neutral grip handle, seat at position 4"
-# 
+#
 # Why separate notes?
 # - Session notes are logged once, help with injury tracking
 # - Persistent notes automatically copy to next workout for setup reminders

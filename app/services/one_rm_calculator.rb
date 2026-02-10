@@ -1,26 +1,26 @@
 # frozen_string_literal: true
 
 # Calculates estimated one-rep max (e1RM) from submaximal lifts
-# 
+#
 # Why?
 # Testing your true 1RM is risky and fatiguing. Instead, we estimate it from
 # submaximal reps (e.g., 3×225lbs estimates ~245lbs 1RM).
-# 
+#
 # Multiple Formulas:
 # Different formulas work better for different rep ranges:
 # - Brzycki: Best for low reps (1-5)
 # - Epley: Good all-around, most widely used
 # - Lombardi: Simple power formula
 # - Mayhew/Wathan: Research-based, complex
-# 
+#
 # The calculate_average method uses all formulas for better accuracy.
-# 
+#
 # Used For:
 # - Tracking strength progress over time
 # - Programming percentages ("work at 80% of 1RM")
 # - Comparing performance at different rep ranges
 # - Identifying plateau periods
-# 
+#
 # Note: Estimates become less accurate above 10 reps
 class OneRmCalculator
   # Available formulas for 1RM calculation
@@ -50,7 +50,7 @@ class OneRmCalculator
     # - Epley: 247lbs
     # - Brzycki: 245lbs
     # - Average: 246lbs (more reliable)
-    # 
+    #
     # @param weight [Numeric] the weight lifted
     # @param reps [Integer] number of reps completed
     # @return [Float, nil] average estimated 1RM or nil if invalid input
@@ -76,10 +76,10 @@ class OneRmCalculator
 
     # Calculate what weight to use for a target percentage of 1RM
     # Used for programming: "do 3 sets of 5 at 80% of 1RM"
-    # 
+    #
     # Example: 1RM = 300lbs, target 85%
     # Result: 255lbs
-    # 
+    #
     # @param one_rm [Numeric] the estimated or known 1RM
     # @param percentage [Numeric] target percentage (e.g., 80 for 80%)
     # @return [Float] weight for that percentage
@@ -91,13 +91,13 @@ class OneRmCalculator
 
     # Calculate estimated reps possible at a given percentage of 1RM
     # Uses inverse of Epley formula
-    # 
+    #
     # Example percentages:
     # - 100% = 1 rep
     # - 90% = ~4 reps
     # - 80% = ~8 reps
     # - 70% = ~12 reps
-    # 
+    #
     # @param percentage [Numeric] percentage of 1RM (e.g., 80 for 80%)
     # @return [Integer] estimated reps possible
     def reps_at_percentage(percentage)
@@ -125,12 +125,12 @@ class OneRmCalculator
 
     # Find the best estimated 1RM from a collection of sets
     # Useful for finding PRs when sets use different rep ranges
-    # 
+    #
     # Example sets:
     # - Set 1: 225lbs × 5 = ~254lbs e1RM
     # - Set 2: 245lbs × 3 = ~267lbs e1RM ← best
     # - Set 3: 205lbs × 8 = ~257lbs e1RM
-    # 
+    #
     # @param sets [Array] array of objects responding to weight_kg and reps
     # @return [Hash, nil] {weight:, reps:, estimated_1rm:, formula:} or nil
     def best_estimated_1rm(sets)
