@@ -152,9 +152,8 @@ class DashboardController < ApplicationController
   # Helps identify training bias toward strength vs hypertrophy vs endurance
   def calculate_rep_range_distribution
     # Analyze working sets only (exclude warmups)
-    sets = ExerciseSet
+    sets = Current.user.exercise_sets
       .joins(workout_exercise: { workout_block: :workout })
-      .where(workouts: { user_id: Current.user.id })
       .where('workouts.finished_at >= ?', 30.days.ago)
       .where.not(workouts: { finished_at: nil })
       .where(is_warmup: false)
@@ -174,9 +173,8 @@ class DashboardController < ApplicationController
   # Useful for identifying training patterns and favorites
   def calculate_exercise_frequency
     # Count how many times each exercise appeared in workouts
-    WorkoutExercise
+    Current.user.workout_exercises
       .joins(:exercise, workout_block: :workout)
-      .where(workouts: { user_id: Current.user.id })
       .where('workouts.finished_at >= ?', 90.days.ago)
       .where.not(workouts: { finished_at: nil })
       .group(Arel.sql('exercises.name'))
@@ -194,10 +192,9 @@ class DashboardController < ApplicationController
     since = 12.months.ago
 
     # Load 12 months of workout data with sets
-    workout_exercises = WorkoutExercise
+    workout_exercises = Current.user.workout_exercises
       .joins(workout_block: :workout)
       .includes(:exercise, :machine, :exercise_sets)
-      .where(workouts: { user_id: Current.user.id })
       .where('workouts.finished_at >= ?', since)
       .where.not(workouts: { finished_at: nil })
 
@@ -209,10 +206,9 @@ class DashboardController < ApplicationController
       next unless exercise&.has_weight?
 
       # Get historical best BEFORE the time period to establish baseline
-      historical_best_weight = ExerciseSet
+      historical_best_weight = Current.user.exercise_sets
         .joins(workout_exercise: { workout_block: :workout })
         .where(workout_exercises: { exercise_id: exercise_id, machine_id: machine_id })
-        .where(workouts: { user_id: Current.user.id })
         .where('workouts.finished_at < ?', since)
         .where.not(workouts: { finished_at: nil })
         .where(is_warmup: false)
@@ -220,11 +216,10 @@ class DashboardController < ApplicationController
         .maximum(:weight_kg) || 0
 
       historical_best_volume = 0
-      WorkoutExercise
+      Current.user.workout_exercises
         .joins(workout_block: :workout)
         .includes(:exercise_sets)
         .where(exercise_id: exercise_id, machine_id: machine_id)
-        .where(workouts: { user_id: Current.user.id })
         .where('workouts.finished_at < ?', since)
         .where.not(workouts: { finished_at: nil })
         .each do |we|
@@ -380,17 +375,15 @@ class DashboardController < ApplicationController
       .count
 
     # This week's total sets
-    this_week_sets = ExerciseSet
+    this_week_sets = Current.user.exercise_sets
       .joins(workout_exercise: { workout_block: :workout })
-      .where(workouts: { user_id: Current.user.id })
       .where(workouts: { finished_at: this_week_start..this_week_start.end_of_week })
       .where(is_warmup: false)
       .count
 
     # Last week's total sets
-    last_week_sets = ExerciseSet
+    last_week_sets = Current.user.exercise_sets
       .joins(workout_exercise: { workout_block: :workout })
-      .where(workouts: { user_id: Current.user.id })
       .where(workouts: { finished_at: last_week_start..last_week_start.end_of_week })
       .where(is_warmup: false)
       .count
@@ -452,9 +445,8 @@ class DashboardController < ApplicationController
     plateaus = []
 
     # Find currently active exercises with weight tracking
-    active_exercises = WorkoutExercise
+    active_exercises = Current.user.workout_exercises
       .joins(:exercise, :exercise_sets, workout_block: :workout)
-      .where(workouts: { user_id: Current.user.id })
       .where('workouts.finished_at >= ?', 90.days.ago)
       .where.not(workouts: { finished_at: nil })
       .where(exercises: { has_weight: true })
@@ -466,9 +458,8 @@ class DashboardController < ApplicationController
 
     active_exercises.each do |exercise_id, exercise_name|
       # Get all working sets for this exercise, chronologically
-      all_sets = ExerciseSet
+      all_sets = Current.user.exercise_sets
         .joins(workout_exercise: { workout_block: :workout })
-        .where(workouts: { user_id: Current.user.id })
         .where(workout_exercises: { exercise_id: exercise_id })
         .where.not(workouts: { finished_at: nil })
         .where(is_warmup: false)
@@ -556,10 +547,9 @@ class DashboardController < ApplicationController
     seven_days_ago = 7.days.ago.beginning_of_day
 
     # Get all workout exercises from last 7 days with their exercise's muscle group
-    workout_exercises = WorkoutExercise
+    workout_exercises = Current.user.workout_exercises
       .joins(:exercise, workout_block: :workout)
       .includes(:exercise_sets)
-      .where(workouts: { user_id: Current.user.id })
       .where('workouts.finished_at >= ?', seven_days_ago)
       .where.not(workouts: { finished_at: nil })
       .where.not(exercises: { primary_muscle_group: nil })
@@ -663,10 +653,9 @@ class DashboardController < ApplicationController
     thirty_days_ago = 30.days.ago.beginning_of_day
 
     # Get all workout exercises from last 30 days
-    workout_exercises = WorkoutExercise
+    workout_exercises = Current.user.workout_exercises
       .joins(:exercise, workout_block: :workout)
       .includes(:exercise_sets)
-      .where(workouts: { user_id: Current.user.id })
       .where('workouts.finished_at >= ?', thirty_days_ago)
       .where.not(workouts: { finished_at: nil })
       .where.not(exercises: { primary_muscle_group: nil })

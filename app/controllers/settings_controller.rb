@@ -249,10 +249,9 @@ class SettingsController < ApplicationController
     prs = []
 
     # Get all working sets for this exercise
-    sets = ExerciseSet
+    sets = @user.exercise_sets
       .joins(workout_exercise: { workout_block: :workout })
       .includes(workout_exercise: [ :machine, { workout_block: { workout: :gym } } ])
-      .where(workouts: { user_id: @user.id })
       .where.not(workouts: { finished_at: nil })
       .where(workout_exercises: { exercise_id: exercise.id })
       .where(is_warmup: false)

@@ -74,12 +74,11 @@ class ProgressionReadinessChecker
     @recent_sessions ||= begin
       cutoff_date = LOOKBACK_DAYS.days.ago
 
-      scope = WorkoutExercise
-        .joins(:workout, :exercise_sets)
+      scope = user.workout_exercises
+        .joins(:exercise_sets, workout_block: :workout)
         .where(exercise_id: exercise.id)
         .where('workouts.finished_at IS NOT NULL')
         .where('workouts.finished_at >= ?', cutoff_date)
-        .where('workouts.user_id = ?', user.id)
         .where('exercise_sets.is_warmup = ?', false)
 
       # Filter by machine if specified

@@ -32,6 +32,9 @@ class User < ApplicationRecord
   has_many :gyms, dependent: :destroy
   has_many :exercises, dependent: :destroy  # custom exercises only
   has_many :workouts, dependent: :destroy
+  has_many :workout_blocks, through: :workouts
+  has_many :workout_exercises, through: :workout_blocks
+  has_many :exercise_sets, through: :workout_exercises
   has_many :workout_templates, dependent: :destroy
   has_many :body_metrics, dependent: :destroy
   belongs_to :default_gym, class_name: 'Gym', optional: true

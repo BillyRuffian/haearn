@@ -59,12 +59,9 @@ class WorkoutExercise < ApplicationRecord
   # Used to display previous performance during workout ("Last time: 3×225lbs")
   # Only considers finished workouts from same user
   def previous_workout_exercise
-    WorkoutExercise
-      .joins(:workout_block)
-      .joins('INNER JOIN workouts ON workouts.id = workout_blocks.workout_id')
-      .where(exercise_id: exercise_id)
-      .where(machine_id: machine_id)
-      .where('workouts.user_id = ?', workout.user_id)
+    workout.user.workout_exercises
+      .where(exercise_id: exercise_id, machine_id: machine_id)
+      .joins(workout_block: :workout)
       .where('workouts.id != ?', workout.id)
       .where('workouts.finished_at IS NOT NULL')
       .order(Arel.sql('workouts.started_at DESC'))

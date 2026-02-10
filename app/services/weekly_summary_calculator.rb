@@ -43,9 +43,9 @@ class WeeklySummaryCalculator
   def this_week_stats
     workouts = user.workouts.where(finished_at: week_start..week_end)
 
-    working_sets = ExerciseSet
+    working_sets = user.exercise_sets
       .joins(workout_exercise: { workout_block: :workout })
-      .where(workouts: { id: workouts.pluck(:id), user_id: user.id })
+      .where(workouts: { id: workouts.pluck(:id) })
       .where(is_warmup: false)
 
     total_volume = working_sets.sum('weight_kg * reps')
@@ -72,9 +72,9 @@ class WeeklySummaryCalculator
 
     avg_workout_count = (historical_workouts.count / num_weeks).round(1)
 
-    working_sets = ExerciseSet
+    working_sets = user.exercise_sets
       .joins(workout_exercise: { workout_block: :workout })
-      .where(workouts: { id: historical_workouts.pluck(:id), user_id: user.id })
+      .where(workouts: { id: historical_workouts.pluck(:id) })
       .where(is_warmup: false)
 
     avg_volume = (working_sets.sum('weight_kg * reps') / num_weeks).round
@@ -129,7 +129,7 @@ class WeeklySummaryCalculator
   def top_exercises
     workouts = user.workouts.where(finished_at: week_start..week_end)
 
-    ExerciseSet
+    user.exercise_sets
       .joins(workout_exercise: { workout_block: :workout })
       .joins('INNER JOIN exercises ON exercises.id = workout_exercises.exercise_id')
       .where(workouts: { id: workouts.pluck(:id) })

@@ -139,13 +139,13 @@ class PrCalculator
     @previous_best_weight ||= begin
       return nil unless @workout_exercise
 
-      ExerciseSet
+      user = @workout_exercise.workout.user
+      user.exercise_sets
         .joins(workout_exercise: { workout_block: :workout })
         .where(workout_exercises: {
           exercise_id: @workout_exercise.exercise_id,
           machine_id: @workout_exercise.machine_id
         })
-        .where(workouts: { user_id: @workout_exercise.workout.user_id })
         .where.not(workouts: { id: @workout_exercise.workout.id })
         .where.not(workouts: { finished_at: nil })
         .where(is_warmup: false)
@@ -253,11 +253,10 @@ class PrCalculator
   # Get all previous session volumes for this exercise+machine combo
   # Used to determine if current session is a volume PR
   def previous_session_volumes
-    WorkoutExercise
-      .joins(:workout_block)
-      .joins('INNER JOIN workouts ON workouts.id = workout_blocks.workout_id')
+    user = @workout_exercise.workout.user
+    user.workout_exercises
       .where(exercise_id: @workout_exercise.exercise_id, machine_id: @workout_exercise.machine_id)
-      .where('workouts.user_id = ?', @workout_exercise.workout.user_id)
+      .joins(workout_block: :workout)
       .where('workouts.id != ?', @workout_exercise.workout.id)
       .where('workouts.finished_at IS NOT NULL')
       .includes(:exercise_sets)
@@ -270,10 +269,10 @@ class PrCalculator
     return nil unless @exercise_set&.workout_exercise
 
     we = @exercise_set.workout_exercise
-    ExerciseSet
+    user = we.workout.user
+    user.exercise_sets
       .joins(workout_exercise: { workout_block: :workout })
       .where(workout_exercises: { exercise_id: we.exercise_id, machine_id: we.machine_id })
-      .where(workouts: { user_id: we.workout.user_id })
       .where.not(workouts: { id: we.workout.id })
       .where.not(workouts: { finished_at: nil })
       .where(is_warmup: false)
@@ -298,10 +297,9 @@ class PrCalculator
     prs = []
 
     # Get all workout exercises from the time period
-    workout_exercises = WorkoutExercise
+    workout_exercises = @user.workout_exercises
       .joins(workout_block: :workout)
       .includes(:exercise, :machine, :exercise_sets)
-      .where(workouts: { user_id: @user.id })
       .where('workouts.finished_at >= ?', since)
       .where.not(workouts: { finished_at: nil })
 
@@ -317,21 +315,19 @@ class PrCalculator
       sorted_wes = wes.sort_by { |we| we.workout_block.workout.finished_at }
 
       # Get all historical sets BEFORE the time period to establish baseline
-      historical_best_weight = ExerciseSet
+      historical_best_weight = @user.exercise_sets
         .joins(workout_exercise: { workout_block: :workout })
         .where(workout_exercises: { exercise_id: exercise_id, machine_id: machine_id })
-        .where(workouts: { user_id: @user.id })
         .where('workouts.finished_at < ?', since)
         .where.not(workouts: { finished_at: nil })
         .where(is_warmup: false)
         .maximum(:weight_kg) || 0
 
       historical_best_volume = 0
-      WorkoutExercise
+      @user.workout_exercises
         .joins(workout_block: :workout)
         .includes(:exercise_sets)
         .where(exercise_id: exercise_id, machine_id: machine_id)
-        .where(workouts: { user_id: @user.id })
         .where('workouts.finished_at < ?', since)
         .where.not(workouts: { finished_at: nil })
         .each do |we|

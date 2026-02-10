@@ -138,10 +138,10 @@ class BodyMetricsController < ApplicationController
     exercise = Exercise.find_by(name: exercise_name, user_id: nil) # Global exercise
     return nil unless exercise
 
-    Current.user.workouts
-      .joins(workout_exercises: { exercise_sets: :workout_exercise })
+    Current.user.exercise_sets
+      .joins(:workout_exercise)
       .where(workout_exercises: { exercise_id: exercise.id })
-      .where(exercise_sets: { is_warmup: false })
-      .maximum('exercise_sets.weight_kg')
+      .where(is_warmup: false)
+      .maximum(:weight_kg)
   end
 end
