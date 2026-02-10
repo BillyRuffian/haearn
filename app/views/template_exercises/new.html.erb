@@ -1,0 +1,113 @@
+<div class="container py-4">
+  <div class="mb-4">
+    <h1 class="display-6">
+      <i class="bi bi-plus-lg me-2"></i>Add Exercise to Template
+    </h1>
+    <p class="text-muted"><%= @template.name %></p>
+  </div>
+
+  <%= form_with model: @template_exercise, 
+                url: workout_template_template_exercises_path(@template),
+                local: true do |f| %>
+    <% if @template_exercise&.errors&.any? %>
+      <div class="alert alert-danger">
+        <h5>Please fix the following errors:</h5>
+        <ul class="mb-0">
+          <% @template_exercise.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="card mb-3">
+      <div class="card-body">
+        <!-- Exercise Selection -->
+        <div class="mb-3">
+          <%= f.label :exercise_id, "Exercise", class: "form-label" %>
+          <%= f.select :exercise_id,
+              grouped_options_for_select(
+                @exercises.group_by(&:primary_muscle_group).map do |muscle_group, exercises|
+                  [
+                    muscle_group&.titleize || "Other",
+                    exercises.map { |e| [e.name, e.id] }
+                  ]
+                end
+              ),
+              { include_blank: "Select an exercise" },
+              { class: "form-select", required: true } %>
+          <div class="form-text">
+            <%= link_to "Can't find it? Create a new exercise", new_exercise_path, target: "_blank", class: "text-decoration-none" %>
+          </div>
+        </div>
+
+        <!-- Machine Selection (optional) -->
+        <div class="mb-3">
+          <%= f.label :machine_id, "Machine (optional)", class: "form-label" %>
+          <%= f.select :machine_id,
+              grouped_options_for_select(
+                @machines.group_by { |m| m.gym.name }.map do |gym_name, machines|
+                  [
+                    gym_name,
+                    machines.map { |m| [m.name, m.id] }
+                  ]
+                end
+              ),
+              { include_blank: "None / Free weight" },
+              { class: "form-select" } %>
+          <div class="form-text">Specify which machine at which gym to use</div>
+        </div>
+
+        <hr>
+
+        <!-- Target Sets/Reps/Weight -->
+        <h6 class="mb-3">Target Guidelines (optional)</h6>
+        
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <%= f.label :target_sets, "Sets", class: "form-label" %>
+            <%= f.number_field :target_sets,
+                class: "form-control",
+                min: 1,
+                placeholder: "e.g., 3" %>
+          </div>
+          
+          <div class="col-md-4">
+            <%= f.label :target_reps, "Reps", class: "form-label" %>
+            <%= f.number_field :target_reps,
+                class: "form-control",
+                min: 1,
+                placeholder: "e.g., 10" %>
+          </div>
+          
+          <div class="col-md-4">
+            <%= f.label :target_weight_kg, "Weight (#{Current.user.preferred_unit})", class: "form-label" %>
+            <%= f.number_field :target_weight_kg,
+                class: "form-control",
+                step: 0.5,
+                min: 0,
+                placeholder: "e.g., 100" %>
+          </div>
+        </div>
+
+        <!-- Persistent Notes -->
+        <div class="mb-3">
+          <%= f.label :persistent_notes, "Persistent Notes (optional)", class: "form-label" %>
+          <%= f.text_area :persistent_notes,
+              class: "form-control",
+              rows: 2,
+              placeholder: "Equipment setup, form cues, etc." %>
+          <div class="form-text">These notes will appear every time you use this template</div>
+        </div>
+
+        <!-- Block Position (for supersets in future) -->
+        <%= f.hidden_field :block_position, value: @template_block.position %>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2">
+      <%= f.submit "Add Exercise", class: "btn btn-primary" %>
+      <%= link_to "Cancel", @template, class: "btn btn-outline-secondary" %>
+    </div>
+  <% end %>
+</div>

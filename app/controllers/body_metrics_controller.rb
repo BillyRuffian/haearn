@@ -91,7 +91,7 @@ class BodyMetricsController < ApplicationController
   # GET /body_metrics/:id/edit
   def edit
     # Pre-fill weight_display for form
-    @weight_display = WeightConverter.kg_to_user_unit(@body_metric.weight_kg, Current.user) if @body_metric.weight_kg
+    @weight_display = WeightConverter.from_kg(@body_metric.weight_kg, Current.user.preferred_unit) if @body_metric.weight_kg
   end
 
   # PATCH /body_metrics/:id
@@ -109,7 +109,7 @@ class BodyMetricsController < ApplicationController
     if @body_metric.update(body_metric_params.except(:weight_kg))
       redirect_to body_metrics_path, notice: 'Body metrics updated successfully.'
     else
-      @weight_display = WeightConverter.kg_to_user_unit(@body_metric.weight_kg, Current.user) if @body_metric.weight_kg
+      @weight_display = WeightConverter.from_kg(@body_metric.weight_kg, Current.user.preferred_unit) if @body_metric.weight_kg
       render :edit, status: :unprocessable_entity
     end
   end

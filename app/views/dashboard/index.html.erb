@@ -91,11 +91,11 @@
                   <span><i class="bi bi-clipboard-data me-1"></i> <%= pluralize(analysis[:sessions_analyzed], 'session') %> baseline</span>
                   <span>
                     <i class="bi bi-arrow-down-up me-1"></i>
-                    Current: <%= WeightConverter.kg_to_user_unit(analysis[:current_performance][:volume_kg], Current.user) %> vol
+                    Current: <%= WeightConverter.from_kg(analysis[:current_performance][:volume_kg], Current.user.preferred_unit) %> vol
                   </span>
                   <span>
                     <i class="bi bi-clock-history me-1"></i>
-                    Baseline: <%= WeightConverter.kg_to_user_unit(analysis[:baseline_performance][:volume_kg], Current.user) %> vol
+                    Baseline: <%= WeightConverter.from_kg(analysis[:baseline_performance][:volume_kg], Current.user.preferred_unit) %> vol
                   </span>
                   <% if analysis[:current_performance][:avg_rpe] %>
                     <span><i class="bi bi-speedometer2 me-1"></i> RPE <%= analysis[:current_performance][:avg_rpe].round(1) %></span>
@@ -142,7 +142,7 @@
             <div class="card-body py-4">
               <% if @current_weight_kg %>
                 <h2 class="display-3 weight-display mb-0">
-                  <%= WeightConverter.kg_to_user_unit(@current_weight_kg, Current.user).round(1) %>
+                  <%= WeightConverter.from_kg(@current_weight_kg, Current.user.preferred_unit).round(1) %>
                 </h2>
                 <p class="text-muted text-uppercase mb-0" style="letter-spacing: 0.1em; font-size: 0.75rem;">
                   Bodyweight (<%= Current.user.preferred_unit %>)

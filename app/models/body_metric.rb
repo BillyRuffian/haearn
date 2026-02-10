@@ -37,6 +37,7 @@ class BodyMetric < ApplicationRecord
   validates :weight_kg, numericality: { greater_than: 0, less_than: 500 }, allow_nil: true
   validates :chest_cm, :waist_cm, :hips_cm, :left_arm_cm, :right_arm_cm, :left_leg_cm, :right_leg_cm,
             numericality: { greater_than: 0, less_than: 300 }, allow_nil: true
+  validate :at_least_one_metric_present
 
   scope :ordered, -> { order(measured_at: :desc) }
   scope :recent, -> { where('measured_at >= ?', 90.days.ago).ordered }
@@ -74,6 +75,15 @@ class BodyMetric < ApplicationRecord
   def weight_display
     return '—' unless weight_kg
 
-    WeightConverter.kg_to_user_unit_display(weight_kg, user)
+    WeightConverter.format(weight_kg, user: user)
+  end
+
+  private
+
+  # Ensure at least one metric is present (weight or measurement)
+  def at_least_one_metric_present
+    if weight_kg.blank? && !has_measurements?
+      errors.add(:base, 'Please enter at least weight or one measurement')
+    end
   end
 end

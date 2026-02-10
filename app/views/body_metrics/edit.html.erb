@@ -27,9 +27,9 @@
 
         <!-- Weight -->
         <div class="mb-4">
-          <%= label_tag :weight_display, "Bodyweight", class: "form-label" %>
+          <%= label_tag "body_metric[weight_display]", "Bodyweight", class: "form-label" %>
           <div class="input-group">
-            <%= number_field_tag :weight_display, 
+            <%= number_field_tag "body_metric[weight_display]", 
                 @weight_display,
                 class: "form-control",
                 step: 0.1,

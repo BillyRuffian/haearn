@@ -150,10 +150,10 @@
                     <%= pluralize(analysis[:sessions_analyzed], 'session') %> baseline
                   </span>
                   <span>
-                    Current: <%= WeightConverter.kg_to_user_unit(analysis[:current_performance][:volume_kg], Current.user).round %> vol
+                    Current: <%= WeightConverter.from_kg(analysis[:current_performance][:volume_kg], Current.user.preferred_unit).round %> vol
                   </span>
                   <span>
-                    Baseline: <%= WeightConverter.kg_to_user_unit(analysis[:baseline_performance][:volume_kg], Current.user).round %> vol
+                    Baseline: <%= WeightConverter.from_kg(analysis[:baseline_performance][:volume_kg], Current.user.preferred_unit).round %> vol
                   </span>
                   <% if analysis[:current_performance][:avg_rpe] %>
                     <span>RPE <%= analysis[:current_performance][:avg_rpe].round(1) %></span>

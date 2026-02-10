@@ -27,10 +27,10 @@
 
         <!-- Weight (Quick Entry) -->
         <div class="mb-4">
-          <%= label_tag :weight_display, "Bodyweight", class: "form-label" %>
+          <%= label_tag "body_metric[weight_display]", "Bodyweight", class: "form-label" %>
           <div class="input-group">
-            <%= number_field_tag :weight_display, 
-                (@body_metric.weight_kg ? WeightConverter.kg_to_user_unit(@body_metric.weight_kg, Current.user) : nil),
+            <%= number_field_tag "body_metric[weight_display]", 
+                (@body_metric.weight_kg ? WeightConverter.from_kg(@body_metric.weight_kg, Current.user.preferred_unit) : nil),
                 class: "form-control",
                 step: 0.1,
                 placeholder: "Enter weight" %>

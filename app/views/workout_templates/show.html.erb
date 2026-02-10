@@ -29,62 +29,87 @@
 
   <!-- Template Structure -->
   <div class="workout-blocks">
-    <% @template_blocks.each_with_index do |block, block_index| %>
-      <div class="card mb-3">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <div>
-            <strong>Block <%= block_index + 1 %></strong>
-            <% if block.superset? %>
-              <span class="badge bg-warning text-dark ms-2">
-                <i class="bi bi-arrow-repeat me-1"></i>Superset
-              </span>
-            <% end %>
-          </div>
-          <small class="text-muted">
-            <i class="bi bi-clock me-1"></i><%= block.rest_seconds %>s rest
-          </small>
-        </div>
-        
-        <div class="card-body">
-          <% block.template_exercises.each_with_index do |template_exercise, ex_index| %>
-            <div class="d-flex align-items-center <%= 'mb-3' unless ex_index == block.template_exercises.count - 1 %>">
+    <% if @template_blocks.any? %>
+      <% @template_blocks.each_with_index do |block, block_index| %>
+        <div class="card mb-3">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+              <strong>Block <%= block_index + 1 %></strong>
               <% if block.superset? %>
-                <span class="badge bg-secondary me-2">
-                  <%= ('A'.ord + block_index).chr %><%= ex_index + 1 %>
+                <span class="badge bg-warning text-dark ms-2">
+                  <i class="bi bi-arrow-repeat me-1"></i>Superset
                 </span>
               <% end %>
-              
-              <div class="flex-grow-1">
-                <strong><%= template_exercise.exercise.name %></strong>
-                <% if template_exercise.machine %>
-                  <small class="text-muted ms-2">
-                    <i class="bi bi-gear me-1"></i><%= template_exercise.machine.name %>
-                  </small>
+            </div>
+            <small class="text-muted">
+              <i class="bi bi-clock me-1"></i><%= block.rest_seconds %>s rest
+            </small>
+          </div>
+          
+          <div class="card-body">
+            <% block.template_exercises.each_with_index do |template_exercise, ex_index| %>
+              <div class="d-flex align-items-center <%= 'mb-3' unless ex_index == block.template_exercises.count - 1 %>">
+                <% if block.superset? %>
+                  <span class="badge bg-secondary me-2">
+                    <%= ('A'.ord + block_index).chr %><%= ex_index + 1 %>
+                  </span>
                 <% end %>
                 
-                <div class="text-muted small mt-1">
-                  <% if template_exercise.target_sets %>
-                    <%= template_exercise.target_sets %> sets
+                <div class="flex-grow-1">
+                  <strong><%= template_exercise.exercise.name %></strong>
+                  <% if template_exercise.machine %>
+                    <small class="text-muted ms-2">
+                      <i class="bi bi-gear me-1"></i><%= template_exercise.machine.name %>
+                    </small>
                   <% end %>
-                  <% if template_exercise.target_reps %>
-                    × <%= template_exercise.target_reps %> reps
-                  <% end %>
-                  <% if template_exercise.target_weight_kg %>
-                    @ <%= Current.user.format_weight(template_exercise.target_weight_kg) %><%= Current.user.preferred_unit %>
+                  
+                  <div class="text-muted small mt-1">
+                    <% if template_exercise.target_sets %>
+                      <%= template_exercise.target_sets %> sets
+                    <% end %>
+                    <% if template_exercise.target_reps %>
+                      × <%= template_exercise.target_reps %> reps
+                    <% end %>
+                    <% if template_exercise.target_weight_kg %>
+                      @ <%= WeightConverter.format(template_exercise.target_weight_kg, user: Current.user) %>
+                    <% end %>
+                  </div>
+                  
+                  <% if template_exercise.persistent_notes.present? %>
+                    <div class="text-muted small mt-1">
+                      <i class="bi bi-sticky me-1"></i><%= template_exercise.persistent_notes %>
+                    </div>
                   <% end %>
                 </div>
                 
-                <% if template_exercise.persistent_notes.present? %>
-                  <div class="text-muted small mt-1">
-                    <i class="bi bi-sticky me-1"></i><%= template_exercise.persistent_notes %>
-                  </div>
-                <% end %>
+                <div class="ms-2">
+                  <%= link_to edit_workout_template_template_exercise_path(@template, template_exercise),
+                      class: "btn btn-sm btn-outline-secondary" do %>
+                    <i class="bi bi-pencil"></i>
+                  <% end %>
+                </div>
               </div>
-            </div>
-          <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="card mb-3">
+        <div class="card-body text-center py-5">
+          <i class="bi bi-folder-plus display-4 text-muted mb-3"></i>
+          <h5 class="mb-2">No Exercises Yet</h5>
+          <p class="text-muted">Add exercises to this template to make it usable</p>
         </div>
       </div>
     <% end %>
+    
+    <!-- Add Exercise Button -->
+    <div class="text-center mb-4">
+      <%= link_to new_workout_template_template_exercise_path(@template),
+          class: "btn btn-lg btn-primary" do %>
+        <i class="bi bi-plus-lg me-2"></i>Add Exercise
+      <% end %>
+    </div>
   </div>
 
   <div class="mt-4">

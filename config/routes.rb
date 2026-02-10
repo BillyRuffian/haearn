@@ -148,6 +148,7 @@ Rails.application.routes.draw do
     member do
       post :start_workout
     end
+    resources :exercises, controller: 'template_exercises', as: 'template_exercises'
   end
   post 'workouts/:workout_id/save_as_template', to: 'workout_templates#create_from_workout', as: :save_workout_as_template
 
