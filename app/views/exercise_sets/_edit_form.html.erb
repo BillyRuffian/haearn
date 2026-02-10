@@ -42,14 +42,33 @@
         <% end %>
       </div>
 
-      <div class="col-3">
+      <div class="col-2">
+        <%= form.number_field :rpe,
+            class: "form-control form-control-sm text-center",
+            placeholder: "RPE",
+            min: 1,
+            max: 10,
+            step: 0.5,
+            inputmode: "decimal" %>
+      </div>
+
+      <div class="col-2">
+        <%= form.number_field :rir,
+            class: "form-control form-control-sm text-center",
+            placeholder: "RIR",
+            min: 0,
+            max: 10,
+            inputmode: "numeric" %>
+      </div>
+
+      <div class="col-2">
         <div class="form-check">
           <%= form.check_box :is_warmup, class: "form-check-input" %>
           <label class="form-check-label small">Warmup</label>
         </div>
       </div>
 
-      <div class="col-2 text-end">
+      <div class="col-3 text-end">
         <%= form.submit "Save", class: "btn btn-primary btn-sm" %>
         <%= link_to "Cancel", workout_path(workout), class: "btn btn-outline-secondary btn-sm ms-1", data: { turbo_frame: "_top" } %>
       </div>

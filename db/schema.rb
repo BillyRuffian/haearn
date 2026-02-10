@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_10_103100) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_10_111040) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -47,6 +47,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_10_103100) do
     t.boolean "is_warmup"
     t.integer "position"
     t.integer "reps"
+    t.integer "rir"
+    t.decimal "rpe"
     t.datetime "updated_at", null: false
     t.decimal "weight_kg"
     t.integer "workout_exercise_id", null: false

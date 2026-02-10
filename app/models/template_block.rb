@@ -1,4 +1,24 @@
 # Template blocks mirror workout_blocks structure for reusable workout templates
+# == Schema Information
+#
+# Table name: template_blocks
+#
+#  id                  :integer          not null, primary key
+#  position            :integer          default(0), not null
+#  rest_seconds        :integer          default(90)
+#  created_at          :datetime         not null
+#  updated_at          :datetime         not null
+#  workout_template_id :integer          not null
+#
+# Indexes
+#
+#  index_template_blocks_on_workout_template_id               (workout_template_id)
+#  index_template_blocks_on_workout_template_id_and_position  (workout_template_id,position)
+#
+# Foreign Keys
+#
+#  workout_template_id  (workout_template_id => workout_templates.id)
+#
 class TemplateBlock < ApplicationRecord
   belongs_to :workout_template
   has_many :template_exercises, dependent: :destroy

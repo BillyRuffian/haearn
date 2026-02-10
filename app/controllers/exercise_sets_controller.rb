@@ -116,7 +116,7 @@ class ExerciseSetsController < ApplicationController
   # Converts user's input weight (in their preferred unit) to kg for database storage
   # Handles machine-specific weight ratios (e.g., 2:1 pulley systems)
   def exercise_set_params
-    permitted = params.require(:exercise_set).permit(:weight_kg, :weight_value, :reps, :duration_seconds, :distance_meters, :is_warmup)
+    permitted = params.require(:exercise_set).permit(:weight_kg, :weight_value, :reps, :duration_seconds, :distance_meters, :is_warmup, :rpe, :rir)
 
     # Convert weight from user's input unit to kg for normalized storage
     if permitted[:weight_value].present?

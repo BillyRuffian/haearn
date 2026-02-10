@@ -9,6 +9,8 @@
 #  is_warmup           :boolean
 #  position            :integer
 #  reps                :integer
+#  rir                 :integer
+#  rpe                 :decimal(, )
 #  weight_kg           :decimal(, )
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null

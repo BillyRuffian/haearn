@@ -50,6 +50,11 @@
             <% else %>
               <%= set.reps %> reps
             <% end %>
+            <% if set.rpe.present? %>
+              <small class="text-muted ms-1">@<%= set.rpe %></small>
+            <% elsif set.rir.present? %>
+              <small class="text-muted ms-1">-<%= set.rir %></small>
+            <% end %>
             <% if is_weight_pr %>
               <i class="bi bi-trophy-fill text-warning"></i>
             <% end %>

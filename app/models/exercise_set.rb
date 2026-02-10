@@ -9,6 +9,8 @@
 #  is_warmup           :boolean
 #  position            :integer
 #  reps                :integer
+#  rir                 :integer
+#  rpe                 :decimal(, )
 #  weight_kg           :decimal(, )
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
@@ -37,6 +39,8 @@ class ExerciseSet < ApplicationRecord
   validates :reps, numericality: { greater_than: 0, only_integer: true }, allow_nil: true
   validates :duration_seconds, numericality: { greater_than: 0, only_integer: true }, allow_nil: true
   validates :distance_meters, numericality: { greater_than: 0 }, allow_nil: true
+  validates :rpe, numericality: { greater_than_or_equal_to: 1, less_than_or_equal_to: 10 }, allow_nil: true
+  validates :rir, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 10, only_integer: true }, allow_nil: true
 
   scope :ordered, -> { order(:position) }
   scope :warmup, -> { where(is_warmup: true) }

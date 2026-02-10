@@ -17,7 +17,7 @@
       </span>
       <small class="text-muted"><%= Current.user.preferred_unit %></small>
     </div>
-    <div class="col-3 text-center">
+    <div class="col-2 text-center">
       <% case workout_exercise.exercise.exercise_type %>
       <% when 'reps' %>
         <span class="reps-display"><%= set.reps || "—" %></span>
@@ -27,7 +27,16 @@
         <span><%= set.distance_meters ? "#{set.distance_meters}m" : "—" %></span>
       <% end %>
     </div>
-    <div class="col-3 text-center">
+    <div class="col-2 text-center">
+      <% if set.rpe.present? %>
+        <small class="text-muted">RPE <%= set.rpe %></small>
+      <% elsif set.rir.present? %>
+        <small class="text-muted">RIR <%= set.rir %></small>
+      <% else %>
+        <span class="text-muted">—</span>
+      <% end %>
+    </div>
+    <div class="col-2 text-center">
       <% if workout.in_progress? && set.reps %>
         <%= button_to workout_workout_exercise_exercise_sets_path(workout, workout_exercise),
             method: :post,
@@ -36,7 +45,9 @@
               exercise_set: { 
                 weight_kg: set.weight_kg, 
                 reps: set.reps + 1,
-                is_warmup: set.is_warmup 
+                is_warmup: set.is_warmup,
+                rpe: set.rpe,
+                rir: set.rir
               }
             } do %>
           <%= set.reps + 1 %> <i class="bi bi-plus"></i>

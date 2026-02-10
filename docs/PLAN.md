@@ -524,8 +524,8 @@ $text-muted: #6c757d;
 - [ ] Program progression rules (linear, double progression, wave loading)
 
 ### 8.2 Auto-Regulation & Suggestions
-- [ ] RPE (Rate of Perceived Exertion) logging per set
-- [ ] RIR (Reps in Reserve) tracking
+- [x] RPE (Rate of Perceived Exertion) logging per set
+- [x] RIR (Reps in Reserve) tracking
 - [ ] Auto-suggest weight increases based on performance
 - [ ] Fatigue indicator (compare current vs typical performance)
 - [ ] "Ready to progress" notifications when hitting rep targets consistently
