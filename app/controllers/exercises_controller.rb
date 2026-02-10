@@ -152,6 +152,19 @@ class ExercisesController < ApplicationController
     # Calculate overall PRs for the exercise (max weight, max volume, best E1RM)
     @prs = PrCalculator.calculate_all(@workout_exercises, exercise: @exercise)
 
+    # Calculate bodyweight-relative strength if we have current weight and weight PRs
+    @relative_strength = nil
+    if @exercise.has_weight? && @prs[:best_set_weight]
+      current_weight_kg = Current.user.body_metrics.current_weight_kg
+      if current_weight_kg && current_weight_kg > 0
+        @relative_strength = {
+          bodyweight_kg: current_weight_kg,
+          max_weight_kg: @prs[:best_set_weight][:weight_kg],
+          ratio: (@prs[:best_set_weight][:weight_kg] / current_weight_kg).round(2)
+        }
+      end
+    end
+
     # Group by machine if applicable
     @by_machine = @workout_exercises.group_by(&:machine)
 

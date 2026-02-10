@@ -33,6 +33,9 @@ class DashboardController < ApplicationController
     start_of_month = Time.current.beginning_of_month.to_date.to_s
     @prs_this_month = @pr_timeline_data.count { |pr| pr[:date] >= start_of_month }
 
+    # Current bodyweight (most recent entry)
+    @current_weight_kg = Current.user.body_metrics.current_weight_kg
+
     # Recent workouts (last 5 completed)
     @recent_workouts = Current.user.workouts
       .where.not(finished_at: nil)

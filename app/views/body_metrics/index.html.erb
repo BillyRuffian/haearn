@@ -1,0 +1,265 @@
+<% content_for(:title) { "Body Metrics | Haearn" } %>
+
+<div class="container py-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-heading mb-0">
+      <i class="bi bi-person-fill me-2"></i>Body Metrics
+    </h1>
+    <%= link_to new_body_metric_path, class: "btn btn-primary" do %>
+      <i class="bi bi-plus-lg me-1"></i>Log Entry
+    <% end %>
+  </div>
+
+  <!-- Current Stats -->
+  <% if @current_weight_kg %>
+    <div class="row g-4 mb-4">
+      <!-- Current Weight -->
+      <div class="col-md-4">
+        <div class="card text-center">
+          <div class="card-body py-4">
+            <h2 class="display-4 weight-display text-rust mb-0">
+              <%= WeightConverter.kg_to_user_unit(@current_weight_kg, Current.user).round(1) %>
+            </h2>
+            <p class="text-muted text-uppercase mb-0" style="letter-spacing: 0.1em; font-size: 0.75rem;">
+              Current Weight (<%= Current.user.preferred_unit %>)
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wilks Score -->
+      <% if @wilks_score %>
+        <div class="col-md-4">
+          <div class="card text-center">
+            <div class="card-body py-4">
+              <h2 class="display-4 text-forge mb-0"><%= @wilks_score %></h2>
+              <p class="text-muted text-uppercase mb-0" style="letter-spacing: 0.1em; font-size: 0.75rem;">
+                Wilks Score
+              </p>
+              <% calculator = WilksCalculator.new(bodyweight_kg: @current_weight_kg, total_kg: [@best_squat_kg, @best_bench_kg, @best_deadlift_kg].compact.sum, sex: :male) %>
+              <span class="badge bg-<%= {novice: 'secondary', intermediate: 'info', advanced: 'warning', elite: 'danger', world_class: 'success'}[calculator.classification] %> mt-2">
+                <%= calculator.classification_label %>
+              </span>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Total (for Wilks) -->
+      <% if @best_squat_kg || @best_bench_kg || @best_deadlift_kg %>
+        <div class="col-md-4">
+          <div class="card text-center">
+            <div class="card-body py-4">
+              <h2 class="display-4 weight-display mb-0">
+                <%= WeightConverter.kg_to_user_unit(([@best_squat_kg, @best_bench_kg, @best_deadlift_kg].compact.sum), Current.user).round %>
+              </h2>
+              <p class="text-muted text-uppercase mb-0" style="letter-spacing: 0.1em; font-size: 0.75rem;">
+                Competition Total (<%= Current.user.preferred_unit %>)
+              </p>
+              <p class="text-muted small mb-0 mt-1">
+                <% if @best_squat_kg %>
+                  S: <%= WeightConverter.kg_to_user_unit(@best_squat_kg, Current.user).round %>
+                <% end %>
+                <% if @best_bench_kg %>
+                  B: <%= WeightConverter.kg_to_user_unit(@best_bench_kg, Current.user).round %>
+                <% end %>
+                <% if @best_deadlift_kg %>
+                  D: <%= WeightConverter.kg_to_user_unit(@best_deadlift_kg, Current.user).round %>
+                <% end %>
+              </p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <!-- Relative Strength -->
+  <% if @relative_strength.any? %>
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="text-uppercase text-muted mb-3" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+          <i class="bi bi-speedometer me-2"></i>Bodyweight-Relative Strength
+        </h5>
+        <div class="row g-3">
+          <% @relative_strength.each do |exercise_name, ratio| %>
+            <div class="col-md-3 col-6">
+              <div class="text-center">
+                <h3 class="mb-1 text-forge"><%= ratio %>x</h3>
+                <p class="text-muted small mb-0"><%= exercise_name %></p>
+              </div>
+            </div>
+          <% end %>
+        </div>
+        <p class="text-muted small mb-0 mt-3">
+          <i class="bi bi-info-circle me-1"></i>
+          Ratio of best lift to current bodyweight (e.g., 2.0x = lifting 2x your bodyweight)
+        </p>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Weight Trend Chart -->
+  <% if @weight_trend_data.any? %>
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+          <i class="bi bi-graph-up me-2"></i>Weight Trend (Last 90 Days)
+        </h5>
+        <div data-controller="chart"
+             data-chart-type-value="line"
+             data-chart-labels-value="<%= @weight_trend_data.map(&:first).to_json %>"
+             data-chart-points-value="<%= @weight_trend_data.map { |_, w| Current.user.preferred_unit == 'lbs' ? (w * 2.20462).round(1) : w.round(1) }.to_json %>"
+             data-chart-label-value="Weight (<%= Current.user.preferred_unit %>)"
+             data-chart-color-value="#ff6b35"
+             style="height: 250px;">
+          <canvas data-chart-target="canvas"></canvas>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Recent Weight Entries -->
+  <% if @recent_weight_entries.any? %>
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="text-uppercase text-muted mb-3" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+          <i class="bi bi-clock-history me-2"></i>Recent Weight Entries
+        </h5>
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th class="text-end">Weight</th>
+                <th class="text-end">Change</th>
+                <th>Notes</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @recent_weight_entries.each do |entry| %>
+                <tr>
+                  <td>
+                    <%= entry.measured_at.strftime("%b %-d, %Y") %>
+                    <span class="text-muted small">
+                      <%= entry.measured_at.strftime("%-I:%M %p") %>
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <strong><%= entry.weight_display %></strong>
+                  </td>
+                  <td class="text-end">
+                    <% if entry.weight_change_kg %>
+                      <% change = WeightConverter.kg_to_user_unit(entry.weight_change_kg.abs, Current.user) %>
+                      <span class="<%= entry.weight_change_kg > 0 ? 'text-success' : 'text-danger' %>">
+                        <%= entry.weight_change_kg > 0 ? '↑' : '↓' %>
+                        <%= change.round(1) %> <%= Current.user.preferred_unit %>
+                      </span>
+                    <% else %>
+                      <span class="text-muted">—</span>
+                    <% end %>
+                  </td>
+                  <td>
+                    <% if entry.notes.present? %>
+                      <span class="text-muted small"><%= entry.notes.truncate(40) %></span>
+                    <% end %>
+                  </td>
+                  <td class="text-end">
+                    <div class="btn-group btn-group-sm">
+                      <%= link_to edit_body_metric_path(entry), class: "btn btn-outline-secondary btn-sm" do %>
+                        <i class="bi bi-pencil"></i>
+                      <% end %>
+                      <%= button_to body_metric_path(entry), method: :delete, 
+                          class: "btn btn-outline-danger btn-sm",
+                          data: { turbo_confirm: "Delete this entry?" } do %>
+                        <i class="bi bi-trash"></i>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Measurement Entries -->
+  <% if @measurement_entries.any? %>
+    <div class="card">
+      <div class="card-body">
+        <h5 class="text-uppercase text-muted mb-3" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+          <i class="bi bi-rulers me-2"></i>Body Measurements
+        </h5>
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th class="text-end">Chest</th>
+                <th class="text-end">Waist</th>
+                <th class="text-end">Hips</th>
+                <th class="text-end">Arms</th>
+                <th class="text-end">Legs</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @measurement_entries.each do |entry| %>
+                <tr>
+                  <td><%= entry.measured_at.strftime("%b %-d, %Y") %></td>
+                  <td class="text-end"><%= entry.chest_cm ? "#{entry.chest_cm} cm" : "—" %></td>
+                  <td class="text-end"><%= entry.waist_cm ? "#{entry.waist_cm} cm" : "—" %></td>
+                  <td class="text-end"><%= entry.hips_cm ? "#{entry.hips_cm} cm" : "—" %></td>
+                  <td class="text-end">
+                    <% if entry.left_arm_cm || entry.right_arm_cm %>
+                      <%= entry.left_arm_cm || "—" %> / <%= entry.right_arm_cm || "—" %> cm
+                    <% else %>
+                      —
+                    <% end %>
+                  </td>
+                  <td class="text-end">
+                    <% if entry.left_leg_cm || entry.right_leg_cm %>
+                      <%= entry.left_leg_cm || "—" %> / <%= entry.right_leg_cm || "—" %> cm
+                    <% else %>
+                      —
+                    <% end %>
+                  </td>
+                  <td class="text-end">
+                    <div class="btn-group btn-group-sm">
+                      <%= link_to edit_body_metric_path(entry), class: "btn btn-outline-secondary btn-sm" do %>
+                        <i class="bi bi-pencil"></i>
+                      <% end %>
+                      <%= button_to body_metric_path(entry), method: :delete, 
+                          class: "btn btn-outline-danger btn-sm",
+                          data: { turbo_confirm: "Delete this entry?" } do %>
+                        <i class="bi bi-trash"></i>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Empty State -->
+  <% if @body_metrics.empty? %>
+    <div class="card">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-person-fill display-1 text-muted mb-3"></i>
+        <h3 class="mb-2">No Body Metrics Yet</h3>
+        <p class="text-muted mb-4">Start tracking your weight and measurements to see trends and calculate relative strength.</p>
+        <%= link_to new_body_metric_path, class: "btn btn-primary" do %>
+          <i class="bi bi-plus-lg me-1"></i>Log First Entry
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

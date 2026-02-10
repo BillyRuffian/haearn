@@ -86,6 +86,9 @@
               <li class="nav-item">
                 <%= link_to "Gyms", gyms_path, class: "nav-link #{'active' if controller_name.in?(%w[gyms machines])}" %>
               </li>
+              <li class="nav-item">
+                <%= link_to "Body Metrics", body_metrics_path, class: "nav-link #{'active' if controller_name == 'body_metrics'}" %>
+              </li>
             <% end %>
           </ul>
 

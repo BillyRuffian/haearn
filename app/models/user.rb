@@ -32,6 +32,7 @@ class User < ApplicationRecord
   has_many :exercises, dependent: :destroy  # custom exercises only
   has_many :workouts, dependent: :destroy
   has_many :workout_templates, dependent: :destroy
+  has_many :body_metrics, dependent: :destroy
   belongs_to :default_gym, class_name: 'Gym', optional: true
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
