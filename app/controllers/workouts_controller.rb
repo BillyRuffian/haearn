@@ -35,6 +35,25 @@ class WorkoutsController < ApplicationController
       workout_exercises: [ :exercise, { machine: :photos_attachments }, :exercise_sets ]
     ).order(:position)
     @editing_notes = params[:editing_notes].present?
+
+    # Fatigue Analysis for active workout
+    @fatigue_data = []
+    if @workout.in_progress?
+      @workout.workout_exercises.includes(:exercise, :machine, :sets).each do |we|
+        next if we.sets.working.empty? # Skip if no working sets yet
+
+        analyzer = FatigueAnalyzer.new(workout_exercise: we, user: Current.user)
+        analysis = analyzer.analyze
+        next unless analysis # Skip if insufficient data
+
+        @fatigue_data << {
+          workout_exercise: we,
+          analysis: analysis,
+          message: analyzer.status_message,
+          color: analyzer.status_color
+        }
+      end
+    end
   end
 
   def new

@@ -35,18 +35,18 @@ class ProgressionSuggester
     # Analyze performance metrics
     avg_weight = recent_working_sets.map(&:weight_kg).compact.sum / recent_working_sets.count.to_f
     avg_reps = recent_working_sets.map(&:reps).compact.sum / recent_working_sets.count.to_f
-    
+
     # Check RPE/RIR if available
     sets_with_rpe = recent_working_sets.select { |s| s.rpe.present? }
     sets_with_rir = recent_working_sets.select { |s| s.rir.present? }
-    
+
     avg_rpe = if sets_with_rpe.any?
                 sets_with_rpe.map(&:rpe).sum / sets_with_rpe.count.to_f
-              end
-    
+    end
+
     avg_rir = if sets_with_rir.any?
                 sets_with_rir.map(&:rir).sum / sets_with_rir.count.to_f
-              end
+    end
 
     # Determine if progression is recommended
     ready_to_progress = false
@@ -99,7 +99,7 @@ class ProgressionSuggester
     current_display = user.format_weight(suggestion[:current_weight_kg])
     suggested_display = user.format_weight(suggestion[:suggested_weight_kg])
     increase_display = user.format_weight(suggestion[:increase_kg])
-    
+
     "Ready to progress! You've been #{suggestion[:reasons].join(', ')}. " \
     "Try increasing from #{current_display}#{user.preferred_unit} to " \
     "#{suggested_display}#{user.preferred_unit} (+#{increase_display}#{user.preferred_unit})."
@@ -135,13 +135,13 @@ class ProgressionSuggester
     # Use smaller increments for lighter weights, larger for heavier
     increment_kg = if current_weight_kg < 20
                      2.5 # 2.5kg for lighter weights
-                   elsif current_weight_kg < 60
+    elsif current_weight_kg < 60
                      5.0 # 5kg for moderate weights
-                   elsif current_weight_kg < 100
+    elsif current_weight_kg < 100
                      7.5 # 7.5kg for heavier weights
-                   else
+    else
                      10.0 # 10kg for very heavy weights
-                   end
+    end
 
     # Round to nearest 2.5kg for cleaner increments
     ((current_weight_kg + increment_kg) / 2.5).round * 2.5
