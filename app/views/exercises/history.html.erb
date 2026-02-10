@@ -25,6 +25,46 @@
   <% if @workout_exercises.any? %>
     <% unique_workout_count = @workout_exercises.map { |we| we.workout_block.workout_id }.uniq.count %>
     
+    <!-- Progression Suggestion -->
+    <% if @exercise.has_weight? && Current.user.active_workout %>
+      <% # Get most recent workout exercise to analyze %>
+      <% most_recent_we = @workout_exercises.first %>
+      <% suggester = ProgressionSuggester.new(workout_exercise: most_recent_we, user: Current.user) %>
+      <% if (suggestion = suggester.suggest) %>
+        <div class="alert alert-success mb-4" role="alert">
+          <div class="d-flex align-items-start">
+            <i class="bi bi-arrow-up-circle-fill fs-3 me-3 text-success"></i>
+            <div class="flex-grow-1">
+              <h5 class="alert-heading mb-2">
+                <i class="bi bi-lightbulb-fill me-1"></i>Ready to Progress!
+              </h5>
+              <p class="mb-2">
+                Based on your last <%= suggestion[:sessions_analyzed] %> workouts, you're ready to increase weight:
+              </p>
+              <div class="progression-details mb-2">
+                <span class="badge bg-dark me-2">
+                  Current: <%= Current.user.format_weight(suggestion[:current_weight_kg]) %><%= Current.user.preferred_unit %>
+                </span>
+                <i class="bi bi-arrow-right mx-2"></i>
+                <span class="badge bg-success me-2">
+                  Try: <%= Current.user.format_weight(suggestion[:suggested_weight_kg]) %><%= Current.user.preferred_unit %>
+                </span>
+                <span class="text-muted small">(+<%= Current.user.format_weight(suggestion[:increase_kg]) %><%= Current.user.preferred_unit %>)</span>
+              </div>
+              <p class="mb-0 small text-muted">
+                <strong>Why:</strong> <%= suggestion[:reasons].join(', ').capitalize %>
+                <% if suggestion[:avg_rpe] %>
+                  (avg RPE: <%= suggestion[:avg_rpe].round(1) %>)
+                <% elsif suggestion[:avg_rir] %>
+                  (avg RIR: <%= suggestion[:avg_rir].round %>)
+                <% end %>
+              </p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+    
     <!-- Personal Records - Only show if there are 2+ workout sessions to compare -->
     <% if @exercise.has_weight? && @prs[:best_set_weight] && unique_workout_count >= 2 %>
       <div class="card mb-4 pr-card">
