@@ -550,11 +550,11 @@ $text-muted: #6c757d;
 - [x] One-tap "add warmups" to exercise
 
 ### 8.6 Body Metrics Tracking
-- [ ] Bodyweight log (morning weigh-ins)
-- [ ] Body measurements (arms, chest, waist, legs)
+- [x] Bodyweight log (morning weigh-ins) _(BodyMetric model with datetime, weight_kg, measurements in cm, trend charts)_
+- [x] Body measurements (arms, chest, waist, legs) _(Optional measurements: chest, waist, hips, left/right arms, left/right legs in cm)_
 - [ ] Progress photos with date overlay
-- [ ] Wilks/DOTS/IPF GL score calculation for powerlifters
-- [ ] Bodyweight-relative strength tracking (e.g., 2x BW squat)
+- [x] Wilks/DOTS/IPF GL score calculation for powerlifters _(WilksCalculator service with 2020 formula, shows score + classification: novice → world class)_
+- [x] Bodyweight-relative strength tracking (e.g., 2x BW squat) _(Displays on exercise history PRs, shows ratio like "2.1x BW" with best lift @ bodyweight)_
 
 ### 8.7 Recovery & Readiness
 - [ ] Sleep quality logging (hours, rating)
