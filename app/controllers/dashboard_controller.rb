@@ -67,7 +67,7 @@ class DashboardController < ApplicationController
       .where.not(finished_at: nil)
       .where('finished_at >= ?', 30.days.ago)
       .joins(workout_exercises: :exercise)
-      .pluck('DISTINCT exercises.id, workout_exercises.machine_id')
+      .pluck(Arel.sql('DISTINCT exercises.id, workout_exercises.machine_id'))
       .first(10) # Limit to 10 most recent exercise combinations
 
     recent_exercise_machine_combos.each do |exercise_id, machine_id|
@@ -179,7 +179,7 @@ class DashboardController < ApplicationController
       .where(workouts: { user_id: Current.user.id })
       .where('workouts.finished_at >= ?', 90.days.ago)
       .where.not(workouts: { finished_at: nil })
-      .group('exercises.name')
+      .group(Arel.sql('exercises.name'))
       .count
       .sort_by { |_, count| -count }
       .first(10)
@@ -460,9 +460,9 @@ class DashboardController < ApplicationController
       .where(exercises: { has_weight: true })
       .where(exercise_sets: { is_warmup: false })
       .where.not(exercise_sets: { weight_kg: nil })
-      .select('exercises.id, exercises.name')
+      .select(Arel.sql('exercises.id, exercises.name'))
       .distinct
-      .pluck('exercises.id', 'exercises.name')
+      .pluck(Arel.sql('exercises.id'), Arel.sql('exercises.name'))
 
     active_exercises.each do |exercise_id, exercise_name|
       # Get all working sets for this exercise, chronologically
@@ -473,8 +473,8 @@ class DashboardController < ApplicationController
         .where.not(workouts: { finished_at: nil })
         .where(is_warmup: false)
         .where.not(weight_kg: nil)
-        .order('workouts.finished_at ASC')
-        .pluck(:weight_kg, :reps, 'workouts.finished_at')
+        .order(Arel.sql('workouts.finished_at ASC'))
+        .pluck(:weight_kg, :reps, Arel.sql('workouts.finished_at'))
 
       next if all_sets.length < 3  # Need history to detect plateau
 
@@ -628,7 +628,7 @@ class DashboardController < ApplicationController
     day_pattern = Current.user.workouts
       .where('finished_at >= ?', 90.days.ago)
       .where.not(finished_at: nil)
-      .group("strftime('%w', finished_at)") # 0=Sunday, 1=Monday, etc.
+      .group(Arel.sql("strftime('%w', finished_at)")) # 0=Sunday, 1=Monday, etc.
       .count
 
     # Convert to Monday-first ordering
@@ -645,7 +645,7 @@ class DashboardController < ApplicationController
     month_workouts = Current.user.workouts
       .where(finished_at: month_start..month_end)
       .where.not(finished_at: nil)
-      .group('DATE(finished_at)')
+      .group(Arel.sql('DATE(finished_at)'))
       .count
       .transform_keys { |date| date.to_s }
 

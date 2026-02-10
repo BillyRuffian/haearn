@@ -117,7 +117,7 @@ class ProgressionSuggester
                   .where(exercise: exercise)
                   .where('workouts.finished_at >= ?', LOOKBACK_DAYS.days.ago)
                   .where('workouts.finished_at < ?', workout_exercise.workout.started_at || Time.current)
-                  .order('workouts.finished_at DESC')
+                  .order(Arel.sql('workouts.finished_at DESC'))
                   .limit(5) # Look at last 5 sessions max
 
       # Filter by machine if one is selected

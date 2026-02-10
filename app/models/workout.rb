@@ -78,7 +78,7 @@ class Workout < ApplicationRecord
     workout_exercises
       .joins(:exercise)
       .where.not(exercises: { primary_muscle_group: nil })
-      .pluck('exercises.primary_muscle_group')
+      .pluck(Arel.sql('exercises.primary_muscle_group'))
       .uniq
       .sort
   end

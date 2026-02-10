@@ -147,7 +147,7 @@ class ExercisesController < ApplicationController
       .where(workouts: { user_id: Current.user.id })
       .where(exercise_id: @exercise.id)
       .includes(:machine, :exercise_sets, workout_block: :workout)
-      .order('workouts.started_at DESC')
+      .order(Arel.sql('workouts.started_at DESC'))
 
     # Calculate overall PRs for the exercise (max weight, max volume, best E1RM)
     @prs = PrCalculator.calculate_all(@workout_exercises, exercise: @exercise)

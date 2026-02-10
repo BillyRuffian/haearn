@@ -87,7 +87,7 @@ class ProgressionReadinessChecker
 
       scope
         .distinct
-        .order('workouts.finished_at DESC')
+        .order(Arel.sql('workouts.finished_at DESC'))
         .limit(10)
     end
   end

@@ -134,9 +134,9 @@ class WeeklySummaryCalculator
       .joins('INNER JOIN exercises ON exercises.id = workout_exercises.exercise_id')
       .where(workouts: { id: workouts.pluck(:id) })
       .where(is_warmup: false)
-      .group('exercises.id, exercises.name')
-      .select('exercises.name, SUM(weight_kg * reps) as total_volume_kg, COUNT(*) as set_count')
-      .order('total_volume_kg DESC')
+      .group(Arel.sql('exercises.id, exercises.name'))
+      .select(Arel.sql('exercises.name, SUM(weight_kg * reps) as total_volume_kg, COUNT(*) as set_count'))
+      .order(Arel.sql('total_volume_kg DESC'))
       .limit(5)
       .map do |result|
         {
@@ -180,7 +180,7 @@ class WeeklySummaryCalculator
     last_4_weeks = user.workouts.where(finished_at: (week_start - 4.weeks)..week_end)
 
     weeks_with_workouts = last_4_weeks
-      .group("strftime('%Y-%W', finished_at)")
+      .group(Arel.sql("strftime('%Y-%W', finished_at)"))
       .count
       .count
 

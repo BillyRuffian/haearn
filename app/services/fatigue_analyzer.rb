@@ -107,7 +107,7 @@ class FatigueAnalyzer
           end
         end
         .distinct
-        .order('workouts.finished_at DESC')
+        .order(Arel.sql('workouts.finished_at DESC'))
         .limit(BASELINE_SESSIONS)
     end
   end

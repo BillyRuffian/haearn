@@ -67,7 +67,7 @@ class WorkoutExercise < ApplicationRecord
       .where('workouts.user_id = ?', workout.user_id)
       .where('workouts.id != ?', workout.id)
       .where('workouts.finished_at IS NOT NULL')
-      .order('workouts.started_at DESC')
+      .order(Arel.sql('workouts.started_at DESC'))
       .first
   end
 
