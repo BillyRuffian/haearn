@@ -33,9 +33,9 @@ class WeeklySummaryCalculator
 
   def week_label
     if week_start.to_date == Time.current.beginning_of_week.to_date
-      "This Week"
+      'This Week'
     else
-      week_start.strftime("%b %-d") + " - " + week_end.strftime("%b %-d, %Y")
+      week_start.strftime('%b %-d') + ' - ' + week_end.strftime('%b %-d, %Y')
     end
   end
 
@@ -55,7 +55,7 @@ class WeeklySummaryCalculator
       total_volume_kg: total_volume.round,
       total_sets: working_sets.count,
       total_reps: working_sets.sum(:reps) || 0,
-      total_duration_minutes: workouts.sum("CAST((julianday(finished_at) - julianday(started_at)) * 24 * 60 AS INTEGER)") || 0,
+      total_duration_minutes: workouts.sum('CAST((julianday(finished_at) - julianday(started_at)) * 24 * 60 AS INTEGER)') || 0,
       unique_exercises: workouts.joins(workout_blocks: :workout_exercises).distinct.count('workout_exercises.exercise_id')
     }
   end
@@ -79,7 +79,7 @@ class WeeklySummaryCalculator
 
     avg_volume = (working_sets.sum('weight_kg * reps') / num_weeks).round
     avg_sets = (working_sets.count / num_weeks).round
-    avg_duration = (historical_workouts.sum("CAST((julianday(finished_at) - julianday(started_at)) * 24 * 60 AS INTEGER)") / num_weeks).round
+    avg_duration = (historical_workouts.sum('CAST((julianday(finished_at) - julianday(started_at)) * 24 * 60 AS INTEGER)') / num_weeks).round
 
     this_week = this_week_stats
 
@@ -155,7 +155,7 @@ class WeeklySummaryCalculator
     workouts.each do |workout|
       workout.workout_blocks.each do |block|
         block.workout_exercises.each do |we|
-          we_prs = PrCalculator.calculate_all([we], exercise: we.exercise)
+          we_prs = PrCalculator.calculate_all([ we ], exercise: we.exercise)
 
           # Check if this session has a PR that's actually from this week
           if we_prs[:best_set_weight] && we_prs[:best_set_weight][:date] >= week_start.to_date
@@ -171,7 +171,7 @@ class WeeklySummaryCalculator
       end
     end
 
-    prs.uniq { |pr| [pr[:exercise_name], pr[:pr_type]] }.take(5)
+    prs.uniq { |pr| [ pr[:exercise_name], pr[:pr_type] ] }.take(5)
   end
 
   # Consistency metrics
