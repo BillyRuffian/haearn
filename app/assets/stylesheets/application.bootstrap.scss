@@ -1260,8 +1260,9 @@ select option:checked {
   }
 }
 
-// Warmup Generator disclosure toggle
-.warmup-generator-section {
+// Disclosure toggle - hide default marker
+.warmup-generator-section,
+.card {
   summary {
     list-style: none;
 
