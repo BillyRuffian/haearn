@@ -62,14 +62,15 @@
       <div class="row small text-muted mb-1 d-none d-sm-flex">
         <div class="col-1 text-center">#</div>
         <div class="col-3 text-center">Weight</div>
-        <div class="col-3 text-center">
+        <div class="col-2 text-center">
           <%= case workout_exercise.exercise.exercise_type
               when 'reps' then 'Reps'
               when 'time' then 'Time'
               when 'distance' then 'Distance'
               end %>
         </div>
-        <div class="col-3 text-center">
+        <div class="col-2 text-center">RPE/RIR</div>
+        <div class="col-2 text-center">
           <% if workout.in_progress? %>+1 Rep<% end %>
         </div>
         <div class="col-2"></div>
