@@ -2260,3 +2260,31 @@ html {
     border-top: 5px solid $iron-light;
   }
 }
+
+// Photo preview modal
+.photo-preview-modal {
+  .photo-display {
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .modal-header {
+    background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+    padding: 1rem 1.5rem;
+  }
+
+  .btn-dark {
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.9);
+      border-color: $rust;
+      transform: scale(1.1);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+}

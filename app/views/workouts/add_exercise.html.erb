@@ -58,9 +58,26 @@
                   <div data-equipment-filter-target="item" data-name="<%= machine.name.downcase %>">
                     <%= button_to add_exercise_workout_path(@workout, exercise_id: @selected_exercise.id, machine_id: machine.id, to_block: @target_block&.id),
                         method: :post,
-                        class: "list-group-item list-group-item-action d-flex justify-content-between align-items-center",
+                        class: "list-group-item list-group-item-action d-flex align-items-center gap-3",
                         data: { turbo_frame: "_top" } do %>
-                      <div>
+                      <% if machine.photos.attached? %>
+                        <div class="flex-shrink-0 position-relative" 
+                             data-controller="photo-preview"
+                             data-action="click->photo-preview#show:stop"
+                             data-photo-preview-urls-value='<%= machine.photos.map { |photo| url_for(photo.variant(resize_to_limit: [800, 800])) }.to_json %>'
+                             style="cursor: pointer;">
+                          <%= image_tag machine.photos.first.variant(resize_to_limit: [60, 60]), 
+                              class: "rounded", 
+                              style: "width: 60px; height: 60px; object-fit: cover;",
+                              alt: machine.name %>
+                          <% if machine.photos.count > 1 %>
+                            <span class="badge bg-dark position-absolute" style="font-size: 0.65rem; top: 2px; left: 2px;">
+                              <%= machine.photos.count %>
+                            </span>
+                          <% end %>
+                        </div>
+                      <% end %>
+                      <div class="flex-grow-1">
                         <%= equipment_icon(machine.equipment_type) %>
                         <strong class="ms-2"><%= machine.name %></strong>
                       <% if machine.notes.present? %>

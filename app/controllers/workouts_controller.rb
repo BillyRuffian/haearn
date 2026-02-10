@@ -111,7 +111,7 @@ class WorkoutsController < ApplicationController
       # Step 2: If exercise selected, show machine picker
       if params[:select_exercise].present?
         @selected_exercise = Exercise.for_user(Current.user).find(params[:select_exercise])
-        @machines = @workout.gym.machines.ordered
+        @machines = @workout.gym.machines.with_attached_photos.ordered
 
         # If machine_id is also present (coming back from creating a machine), auto-add the exercise
         if params[:machine_id].present?
