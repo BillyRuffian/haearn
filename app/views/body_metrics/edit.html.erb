@@ -33,6 +33,7 @@
                 @weight_display,
                 class: "form-control",
                 step: 0.1,
+                inputmode: "decimal",
                 placeholder: "Enter weight" %>
             <span class="input-group-text"><%= Current.user.preferred_unit %></span>
           </div>
@@ -51,6 +52,7 @@
             <%= form.number_field :chest_cm, 
                 class: "form-control",
                 step: 0.1,
+                inputmode: "decimal",
                 placeholder: "e.g., 105" %>
           </div>
           <div class="col-md-4">
@@ -58,6 +60,7 @@
             <%= form.number_field :waist_cm, 
                 class: "form-control",
                 step: 0.1,
+                inputmode: "decimal",
                 placeholder: "e.g., 85" %>
           </div>
           <div class="col-md-4">
@@ -65,6 +68,7 @@
             <%= form.number_field :hips_cm, 
                 class: "form-control",
                 step: 0.1,
+                inputmode: "decimal",
                 placeholder: "e.g., 100" %>
           </div>
         </div>
@@ -75,6 +79,7 @@
             <%= form.number_field :left_arm_cm, 
                 class: "form-control",
                 step: 0.1,
+                inputmode: "decimal",
                 placeholder: "Flexed bicep" %>
           </div>
           <div class="col-md-6">
@@ -82,6 +87,7 @@
             <%= form.number_field :right_arm_cm, 
                 class: "form-control",
                 step: 0.1,
+                inputmode: "decimal",
                 placeholder: "Flexed bicep" %>
           </div>
         </div>
@@ -92,6 +98,7 @@
             <%= form.number_field :left_leg_cm, 
                 class: "form-control",
                 step: 0.1,
+                inputmode: "decimal",
                 placeholder: "Thigh circumference" %>
           </div>
           <div class="col-md-6">
@@ -99,6 +106,7 @@
             <%= form.number_field :right_leg_cm, 
                 class: "form-control",
                 step: 0.1,
+                inputmode: "decimal",
                 placeholder: "Thigh circumference" %>
           </div>
         </div>
