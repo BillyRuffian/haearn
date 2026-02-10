@@ -163,6 +163,7 @@ Rails.application.routes.draw do
       resources :exercise_sets, only: [ :create, :edit, :update, :destroy ]
       member do
         patch :move_to_block
+        post :generate_warmups
       end
     end
   end

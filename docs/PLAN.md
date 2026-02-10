@@ -545,9 +545,9 @@ $text-muted: #6c757d;
 - [ ] Tempo tracking (eccentric/pause/concentric, e.g., 3-1-2)
 
 ### 8.5 Warm-up Generator
-- [ ] Auto-generate warmup sets for working weight
-- [ ] Configurable progression (e.g., bar → 50% → 70% → 85% → work sets)
-- [ ] One-tap "add warmups" to exercise
+- [x] Auto-generate warmup sets for working weight
+- [x] Configurable progression (e.g., bar → 50% → 70% → 85% → work sets)
+- [x] One-tap "add warmups" to exercise
 
 ### 8.6 Body Metrics Tracking
 - [ ] Bodyweight log (morning weigh-ins)
