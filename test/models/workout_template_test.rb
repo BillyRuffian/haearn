@@ -17,7 +17,7 @@
 #
 #  user_id  (user_id => users.id)
 #
-require "test_helper"
+require 'test_helper'
 
 class WorkoutTemplateTest < ActiveSupport::TestCase
   # test "the truth" do
