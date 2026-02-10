@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_04_194726) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_10_103100) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -96,6 +96,32 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_04_194726) do
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
+  create_table "template_blocks", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "position", default: 0, null: false
+    t.integer "rest_seconds", default: 90
+    t.datetime "updated_at", null: false
+    t.integer "workout_template_id", null: false
+    t.index ["workout_template_id", "position"], name: "index_template_blocks_on_workout_template_id_and_position"
+    t.index ["workout_template_id"], name: "index_template_blocks_on_workout_template_id"
+  end
+
+  create_table "template_exercises", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "exercise_id", null: false
+    t.integer "machine_id"
+    t.text "persistent_notes"
+    t.integer "target_reps"
+    t.integer "target_sets"
+    t.decimal "target_weight_kg", precision: 8, scale: 2
+    t.integer "template_block_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["exercise_id"], name: "index_template_exercises_on_exercise_id"
+    t.index ["machine_id"], name: "index_template_exercises_on_machine_id"
+    t.index ["template_block_id", "exercise_id"], name: "index_template_exercises_on_template_block_id_and_exercise_id"
+    t.index ["template_block_id"], name: "index_template_exercises_on_template_block_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "default_gym_id"
@@ -132,6 +158,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_04_194726) do
     t.index ["workout_block_id"], name: "index_workout_exercises_on_workout_block_id"
   end
 
+  create_table "workout_templates", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "name"
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id"], name: "index_workout_templates_on_user_id"
+  end
+
   create_table "workouts", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "finished_at"
@@ -151,11 +186,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_04_194726) do
   add_foreign_key "gyms", "users"
   add_foreign_key "machines", "gyms"
   add_foreign_key "sessions", "users"
+  add_foreign_key "template_blocks", "workout_templates"
+  add_foreign_key "template_exercises", "exercises"
+  add_foreign_key "template_exercises", "machines"
+  add_foreign_key "template_exercises", "template_blocks"
   add_foreign_key "users", "gyms", column: "default_gym_id"
   add_foreign_key "workout_blocks", "workouts"
   add_foreign_key "workout_exercises", "exercises"
   add_foreign_key "workout_exercises", "machines"
   add_foreign_key "workout_exercises", "workout_blocks"
+  add_foreign_key "workout_templates", "users"
   add_foreign_key "workouts", "gyms"
   add_foreign_key "workouts", "users"
 end

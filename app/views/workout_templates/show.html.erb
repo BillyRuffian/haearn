@@ -1,0 +1,95 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="display-6 mb-1"><%= @template.name %></h1>
+      <% if @template.description.present? %>
+        <p class="text-muted"><%= @template.description %></p>
+      <% end %>
+    </div>
+    
+    <div class="d-flex gap-2">
+      <%= button_to start_workout_workout_template_path(@template),
+          class: "btn btn-primary",
+          data: { turbo_frame: "_top" } do %>
+        <i class="bi bi-play-fill me-1"></i>Start Workout
+      <% end %>
+      
+      <%= link_to edit_workout_template_path(@template), class: "btn btn-outline-secondary" do %>
+        <i class="bi bi-pencil"></i>
+      <% end %>
+      
+      <%= button_to @template,
+          method: :delete,
+          class: "btn btn-outline-danger",
+          data: { turbo_confirm: "Delete this template?" } do %>
+        <i class="bi bi-trash"></i>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Template Structure -->
+  <div class="workout-blocks">
+    <% @template_blocks.each_with_index do |block, block_index| %>
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <div>
+            <strong>Block <%= block_index + 1 %></strong>
+            <% if block.superset? %>
+              <span class="badge bg-warning text-dark ms-2">
+                <i class="bi bi-arrow-repeat me-1"></i>Superset
+              </span>
+            <% end %>
+          </div>
+          <small class="text-muted">
+            <i class="bi bi-clock me-1"></i><%= block.rest_seconds %>s rest
+          </small>
+        </div>
+        
+        <div class="card-body">
+          <% block.template_exercises.each_with_index do |template_exercise, ex_index| %>
+            <div class="d-flex align-items-center <%= 'mb-3' unless ex_index == block.template_exercises.count - 1 %>">
+              <% if block.superset? %>
+                <span class="badge bg-secondary me-2">
+                  <%= ('A'.ord + block_index).chr %><%= ex_index + 1 %>
+                </span>
+              <% end %>
+              
+              <div class="flex-grow-1">
+                <strong><%= template_exercise.exercise.name %></strong>
+                <% if template_exercise.machine %>
+                  <small class="text-muted ms-2">
+                    <i class="bi bi-gear me-1"></i><%= template_exercise.machine.name %>
+                  </small>
+                <% end %>
+                
+                <div class="text-muted small mt-1">
+                  <% if template_exercise.target_sets %>
+                    <%= template_exercise.target_sets %> sets
+                  <% end %>
+                  <% if template_exercise.target_reps %>
+                    × <%= template_exercise.target_reps %> reps
+                  <% end %>
+                  <% if template_exercise.target_weight_kg %>
+                    @ <%= Current.user.format_weight(template_exercise.target_weight_kg) %><%= Current.user.preferred_unit %>
+                  <% end %>
+                </div>
+                
+                <% if template_exercise.persistent_notes.present? %>
+                  <div class="text-muted small mt-1">
+                    <i class="bi bi-sticky me-1"></i><%= template_exercise.persistent_notes %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="mt-4">
+    <%= link_to workout_templates_path, class: "btn btn-outline-secondary" do %>
+      <i class="bi bi-arrow-left me-1"></i>Back to Templates
+    <% end %>
+  </div>
+</div>

@@ -517,7 +517,7 @@ $text-muted: #6c757d;
 ## Phase 8: Advanced Training Features
 
 ### 8.1 Workout Templates & Programs
-- [ ] Create reusable workout templates from past workouts
+- [x] Create reusable workout templates from past workouts
 - [ ] Program builder (weekly schedules, mesocycles)
 - [ ] Popular split templates (PPL, Upper/Lower, Full Body)
 - [ ] Deload week automation (reduce volume/intensity by %)

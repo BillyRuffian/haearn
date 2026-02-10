@@ -51,6 +51,13 @@
               <i class="bi bi-play-circle me-1"></i>Continue
             <% end %>
           <% end %>
+          <%= button_to save_workout_as_template_path(@workout), 
+              method: :post,
+              params: { name: "#{@workout.gym&.name} - #{@workout.started_at.strftime('%b %d')}" },
+              class: "btn btn-outline-primary",
+              data: { turbo_confirm: "Save this workout as a template?" } do %>
+            <i class="bi bi-journal-bookmark me-1"></i>Save as Template
+          <% end %>
           <div data-controller="clipboard" data-clipboard-text-value="<%= generate_workout_text(@workout) %>">
             <button type="button" class="btn btn-outline-secondary" 
                     data-clipboard-target="button"

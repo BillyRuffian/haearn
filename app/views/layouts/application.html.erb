@@ -78,6 +78,9 @@
                 <% end %>
               </li>
               <li class="nav-item">
+                <%= link_to "Templates", workout_templates_path, class: "nav-link #{'active' if controller_name == 'workout_templates'}" %>
+              </li>
+              <li class="nav-item">
                 <%= link_to "Exercises", exercises_path, class: "nav-link #{'active' if controller_name == 'exercises'}" %>
               </li>
               <li class="nav-item">
