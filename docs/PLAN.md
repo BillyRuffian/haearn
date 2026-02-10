@@ -526,7 +526,7 @@ $text-muted: #6c757d;
 ### 8.2 Auto-Regulation & Suggestions
 - [x] RPE (Rate of Perceived Exertion) logging per set
 - [x] RIR (Reps in Reserve) tracking
-- [ ] Auto-suggest weight increases based on performance
+- [x] Auto-suggest weight increases based on performance _(ProgressionSuggester analyzes RPE/RIR trends, suggests when RPE < 8 or RIR > 2, dynamic increments 2.5-10kg, shown inline during workout and in exercise history)_
 - [ ] Fatigue indicator (compare current vs typical performance)
 - [ ] "Ready to progress" notifications when hitting rep targets consistently
 
