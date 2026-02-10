@@ -156,6 +156,9 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Filter by gym, date range
 - [x] Workout detail view
 - [x] Copy workout (duplicate to new session)
+- [x] Edit historical workouts (metadata, exercises, sets)
+- [x] Continue recently finished workouts (within 1 hour)
+- [x] Muscle group badges on workout cards
 
 ### 4.2 Exercise History
 - [x] View all sessions for an exercise
@@ -528,8 +531,8 @@ $text-muted: #6c757d;
 - [ ] "Ready to progress" notifications when hitting rep targets consistently
 
 ### 8.3 1RM Calculator & Projections
-- [ ] Calculate estimated 1RM from any set (Epley, Brzycki formulas)
-- [ ] Track e1RM trends over time
+- [x] Calculate estimated 1RM from any set (Epley, Brzycki formulas) _(OneRmCalculator service, shown on exercise history)_
+- [x] Track e1RM trends over time _(e1RM trend chart on exercise history page)_
 - [ ] Percentage-based programming (work at 80% of 1RM, etc.)
 - [ ] Strength standards comparison (beginner → elite)
 
@@ -564,17 +567,17 @@ $text-muted: #6c757d;
 ## Phase 9: Data & Analysis
 
 ### 9.1 Data Export/Import
-- [x] Export workouts to CSV/JSON
+- [ ] Export workouts to CSV/JSON (routes defined but not implemented)
 - [ ] Export PR history
 - [ ] Import from other apps (Strong, Hevy, etc.)
 - [ ] Backup/restore functionality
 
 ### 9.2 Advanced Analytics
-- [ ] Volume per muscle group (weekly/monthly)
+- [x] Volume per muscle group (7-day recovery map on dashboard)
 - [ ] Training frequency heatmap
 - [ ] Exercise balance analysis (push/pull ratio, anterior/posterior)
-- [ ] Plateau detection (no PR in X weeks)
-- [ ] Workout consistency streaks
+- [x] Plateau detection (no PR in X weeks)
+- [x] Workout consistency streaks
 
 ### 9.3 Comparison Tools
 - [ ] Compare any two workouts side-by-side
