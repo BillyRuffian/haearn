@@ -1,39 +1,39 @@
 <div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h1 class="display-6 mb-1"><%= @template.name %></h1>
-      <% if @template.description.present? %>
-        <p class="text-muted"><%= @template.description %></p>
-      <% end %>
-    </div>
-    
-    <div class="d-flex gap-2">
-      <%= button_to start_workout_workout_template_path(@template),
-          class: "btn btn-primary",
-          data: { turbo_frame: "_top" } do %>
-        <i class="bi bi-play-fill me-1"></i>Start Workout
-      <% end %>
-      
-      <%= link_to edit_workout_template_path(@template), class: "btn btn-outline-secondary" do %>
-        <i class="bi bi-pencil"></i>
-      <% end %>
-      
-      <%= button_to @template,
-          method: :delete,
-          class: "btn btn-outline-danger",
-          data: { turbo_confirm: "Delete this template?" } do %>
-        <i class="bi bi-trash"></i>
-      <% end %>
-    </div>
+  <!-- Template Header -->
+  <div class="mb-3">
+    <h1 class="display-heading mb-1"><%= @template.name %></h1>
+    <% if @template.description.present? %>
+      <p class="text-muted mb-0"><%= @template.description %></p>
+    <% end %>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    <%= button_to start_workout_workout_template_path(@template),
+        class: "btn btn-primary btn-sm",
+        data: { turbo_frame: "_top" } do %>
+      <i class="bi bi-play-fill me-1"></i>Start Workout
+    <% end %>
+    <%= link_to edit_workout_template_path(@template), class: "btn btn-outline-secondary btn-sm" do %>
+      <i class="bi bi-pencil me-1"></i>Edit
+    <% end %>
+    <%= button_to @template,
+        method: :delete,
+        class: "btn btn-outline-danger btn-sm ms-auto",
+        data: { turbo_confirm: "Delete this template?" } do %>
+      <i class="bi bi-trash me-1"></i>Delete
+    <% end %>
   </div>
 
   <!-- Template Structure -->
   <div class="workout-blocks">
+    <div data-controller="sortable" data-sortable-url-value="<%= reorder_blocks_workout_template_path(@template) %>">
     <% if @template_blocks.any? %>
       <% @template_blocks.each_with_index do |block, block_index| %>
-        <div class="card mb-3">
-          <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card mb-3" data-block-id="<%= block.id %>">
+          <div class="drag-handle card-header d-flex justify-content-between align-items-center" style="cursor: grab; touch-action: none;">
             <div>
+              <i class="bi bi-grip-vertical text-muted me-1"></i>
               <strong>Block <%= block_index + 1 %></strong>
               <% if block.superset? %>
                 <span class="badge bg-warning text-dark ms-2">
@@ -42,23 +42,29 @@
               <% end %>
             </div>
             <div class="d-flex align-items-center gap-2">
-              <small class="text-muted">
-                <i class="bi bi-clock me-1"></i><%= block.rest_seconds %>s rest
-              </small>
-              <%= button_to workout_template_template_block_path(@template, block),
-                  method: :delete,
-                  class: "btn btn-sm btn-outline-danger",
-                  data: { turbo_confirm: "Delete this entire block?" } do %>
-                <i class="bi bi-trash"></i>
-              <% end %>
+              <div class="dropdown">
+                <button class="btn btn-sm btn-link text-muted p-0" type="button" data-bs-toggle="dropdown">
+                  <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+                  <li>
+                    <%= button_to workout_template_template_block_path(@template, block),
+                        method: :delete,
+                        class: "dropdown-item text-danger",
+                        data: { turbo_confirm: "Delete this entire block?" } do %>
+                      <i class="bi bi-trash me-1"></i>Delete Block
+                    <% end %>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
           
           <div class="card-body">
             <% block.template_exercises.each_with_index do |template_exercise, ex_index| %>
-              <div class="d-flex align-items-center <%= 'mb-3' unless ex_index == block.template_exercises.count - 1 %>">
+              <div class="d-flex align-items-start <%= 'mb-3' unless ex_index == block.template_exercises.count - 1 %>">
                 <% if block.superset? %>
-                  <span class="badge bg-secondary me-2">
+                  <span class="badge bg-secondary me-2 mt-1">
                     <%= ('A'.ord + block_index).chr %><%= ex_index + 1 %>
                   </span>
                 <% end %>
@@ -72,15 +78,11 @@
                   <% end %>
                   
                   <div class="text-muted small mt-1">
-                    <% if template_exercise.target_sets %>
-                      <%= template_exercise.target_sets %> sets
-                    <% end %>
-                    <% if template_exercise.target_reps %>
-                      × <%= template_exercise.target_reps %> reps
-                    <% end %>
-                    <% if template_exercise.target_weight_kg %>
-                      @ <%= WeightConverter.format(template_exercise.target_weight_kg, user: Current.user) %>
-                    <% end %>
+                    <% parts = [] %>
+                    <% parts << "#{template_exercise.target_sets} sets" if template_exercise.target_sets %>
+                    <% parts << "× #{template_exercise.target_reps} reps" if template_exercise.target_reps %>
+                    <% parts << "@ #{WeightConverter.format(template_exercise.target_weight_kg, user: Current.user)}" if template_exercise.target_weight_kg %>
+                    <%= parts.join(' ') %>
                   </div>
                   
                   <% if template_exercise.persistent_notes.present? %>
@@ -90,17 +92,26 @@
                   <% end %>
                 </div>
                 
-                <div class="ms-2 d-flex gap-1">
-                  <%= link_to edit_workout_template_template_exercise_path(@template, template_exercise),
-                      class: "btn btn-sm btn-outline-secondary" do %>
-                    <i class="bi bi-pencil"></i>
-                  <% end %>
-                  <%= button_to workout_template_template_exercise_path(@template, template_exercise),
-                      method: :delete,
-                      class: "btn btn-sm btn-outline-danger",
-                      data: { turbo_confirm: "Remove this exercise?" } do %>
-                    <i class="bi bi-trash"></i>
-                  <% end %>
+                <div class="dropdown ms-2">
+                  <button class="btn btn-sm btn-link text-muted p-0" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark">
+                    <li>
+                      <%= link_to edit_workout_template_template_exercise_path(@template, template_exercise),
+                          class: "dropdown-item" do %>
+                        <i class="bi bi-pencil me-1"></i>Edit
+                      <% end %>
+                    </li>
+                    <li>
+                      <%= button_to workout_template_template_exercise_path(@template, template_exercise),
+                          method: :delete,
+                          class: "dropdown-item text-danger",
+                          data: { turbo_confirm: "Remove this exercise?" } do %>
+                        <i class="bi bi-trash me-1"></i>Remove
+                      <% end %>
+                    </li>
+                  </ul>
                 </div>
               </div>
             <% end %>
@@ -117,18 +128,18 @@
       </div>
     <% end %>
     
+    </div>
+
     <!-- Add Exercise Button -->
-    <div class="text-center mb-4">
+    <div class="d-grid mb-4">
       <%= link_to new_workout_template_template_exercise_path(@template),
-          class: "btn btn-lg btn-primary" do %>
+          class: "btn btn-outline-primary btn-lg" do %>
         <i class="bi bi-plus-lg me-2"></i>Add Exercise
       <% end %>
     </div>
   </div>
 
-  <div class="mt-4">
-    <%= link_to workout_templates_path, class: "btn btn-outline-secondary" do %>
-      <i class="bi bi-arrow-left me-1"></i>Back to Templates
-    <% end %>
-  </div>
+  <%= link_to workout_templates_path, class: "text-muted small" do %>
+    <i class="bi bi-arrow-left me-1"></i>Back to Templates
+  <% end %>
 </div>

@@ -36,7 +36,7 @@ export default class extends Controller {
     // Listen for window resize to handle mobile/desktop transitions
     this.resizeHandler = () => this.updateNavbarVisibility()
     window.addEventListener("resize", this.resizeHandler)
-    
+
     // Initial visibility check
     this.mainTimerVisible = true
     this.updateNavbarVisibility()
@@ -56,7 +56,7 @@ export default class extends Controller {
     if (!this.navbarTimer) return
 
     const isMobile = window.innerWidth < this.mobileBreakpoint
-    
+
     if (isMobile) {
       // On mobile, always show navbar timer
       this.navbarTimer.style.display = ""

@@ -1,5 +1,5 @@
 class WorkoutTemplatesController < ApplicationController
-  before_action :set_template, only: [ :show, :edit, :update, :destroy, :start_workout ]
+  before_action :set_template, only: [ :show, :edit, :update, :destroy, :start_workout, :reorder_blocks ]
 
   # GET /workout_templates
   def index
@@ -66,6 +66,27 @@ class WorkoutTemplatesController < ApplicationController
     end
   end
 
+  # PATCH /workout_templates/:id/reorder_blocks
+  # Updates block positions for drag-and-drop reordering
+  def reorder_blocks
+    block_ids = params[:block_ids]
+
+    return head :bad_request unless block_ids.is_a?(Array)
+
+    ActiveRecord::Base.transaction do
+      block_ids.each_with_index do |block_id, index|
+        block = @template.template_blocks.find(block_id)
+        block.update!(position: index + 1)
+      end
+    end
+
+    head :ok
+  rescue ActiveRecord::RecordNotFound
+    head :not_found
+  rescue ActiveRecord::RecordInvalid
+    head :unprocessable_entity
+  end
+
   # POST /workouts/:workout_id/save_as_template
   # Creates a template from an existing workout
   def create_from_workout
@@ -73,7 +94,7 @@ class WorkoutTemplatesController < ApplicationController
 
     template = WorkoutTemplate.new(
       user: Current.user,
-      name: params[:name] || "#{source_workout.gym.name} - #{source_workout.started_at.strftime('%b %d')}",
+      name: params[:name] || "#{source_workout.gym&.name || 'Workout'} - #{source_workout.started_at.strftime('%b %d')}",
       description: params[:description]
     )
 
@@ -102,19 +123,9 @@ class WorkoutTemplatesController < ApplicationController
     end
 
     if template.save
-      respond_to do |format|
-        format.turbo_stream {
-          flash.now[:notice] = "Template \"#{template.name}\" created successfully."
-        }
-        format.html { redirect_to template, notice: 'Template created from workout.' }
-      end
+      redirect_to template, notice: "Template \"#{template.name}\" created successfully."
     else
-      respond_to do |format|
-        format.turbo_stream {
-          flash.now[:alert] = "Failed to create template: #{template.errors.full_messages.join(', ')}"
-        }
-        format.html { redirect_to source_workout, alert: 'Failed to create template.' }
-      end
+      redirect_to source_workout, alert: "Failed to create template: #{template.errors.full_messages.join(', ')}"
     end
   end
 

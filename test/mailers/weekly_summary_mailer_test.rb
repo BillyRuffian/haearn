@@ -2,10 +2,9 @@ require 'test_helper'
 
 class WeeklySummaryMailerTest < ActionMailer::TestCase
   test 'weekly_report' do
-    mail = WeeklySummaryMailer.weekly_report
-    assert_equal 'Weekly report', mail.subject
-    assert_equal [ 'to@example.org' ], mail.to
-    assert_equal [ 'from@example.com' ], mail.from
-    assert_match 'Hi', mail.body.encoded
+    user = users(:one)
+    mail = WeeklySummaryMailer.weekly_report(user: user)
+    assert_includes mail.subject, "#{user.name}'s Weekly Workout Summary"
+    assert_equal [ user.email_address ], mail.to
   end
 end

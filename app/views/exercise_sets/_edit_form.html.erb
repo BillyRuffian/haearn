@@ -2,76 +2,85 @@
   <%= form_with model: set, 
       url: workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
       method: :patch,
-      class: "edit-set-form",
+      class: "edit-set-form p-2 bg-dark rounded",
       data: { turbo_frame: dom_id(set) } do |form| %>
-    
-    <div class="row g-2 align-items-center set-row">
-      <div class="col-1 text-center small text-muted">
+
+    <%# Row 1: Primary fields %>
+    <div class="row g-2 align-items-end">
+      <div class="col-1 text-center small text-muted pt-3">
         <%= index %>
       </div>
 
       <% if workout_exercise.exercise.has_weight %>
-        <div class="col-3">
-          <div class="input-group input-group-sm">
-            <%= form.number_field :weight_value,
-                value: set.weight_kg ? Current.user.format_weight(set.weight_kg) : nil,
-                class: "form-control form-control-sm text-center",
-                step: "any",
-                inputmode: "decimal" %>
-          </div>
+        <div class="col">
+          <label class="form-label small text-muted mb-1">Weight (<%= Current.user.preferred_unit %>)</label>
+          <%= form.number_field :weight_value,
+              value: set.weight_kg ? Current.user.format_weight(set.weight_kg) : nil,
+              class: "form-control form-control-sm text-center",
+              step: "any",
+              inputmode: "decimal" %>
         </div>
-      <% else %>
-        <div class="col-3"></div>
       <% end %>
 
-      <div class="col-3">
+      <div class="col">
         <% case workout_exercise.exercise.exercise_type %>
         <% when 'reps' %>
+          <label class="form-label small text-muted mb-1">Reps</label>
           <%= form.number_field :reps,
               class: "form-control form-control-sm text-center",
               inputmode: "numeric" %>
         <% when 'time' %>
+          <label class="form-label small text-muted mb-1">Seconds</label>
           <%= form.number_field :duration_seconds,
               class: "form-control form-control-sm text-center",
               inputmode: "numeric" %>
         <% when 'distance' %>
+          <label class="form-label small text-muted mb-1">Meters</label>
           <%= form.number_field :distance_meters,
               class: "form-control form-control-sm text-center",
               inputmode: "decimal",
               step: "any" %>
         <% end %>
       </div>
+    </div>
 
-      <div class="col-2">
+    <%# Row 2: Secondary fields %>
+    <div class="row g-2 align-items-center mt-1">
+      <div class="col-1"></div>
+
+      <div class="col">
+        <label class="form-label small text-muted mb-1">RPE</label>
         <%= form.number_field :rpe,
             class: "form-control form-control-sm text-center",
-            placeholder: "RPE",
+            placeholder: "—",
             min: 1,
             max: 10,
             step: 0.5,
             inputmode: "decimal" %>
       </div>
 
-      <div class="col-2">
+      <div class="col">
+        <label class="form-label small text-muted mb-1">RIR</label>
         <%= form.number_field :rir,
             class: "form-control form-control-sm text-center",
-            placeholder: "RIR",
+            placeholder: "—",
             min: 0,
             max: 10,
             inputmode: "numeric" %>
       </div>
 
-      <div class="col-2">
-        <div class="form-check">
+      <div class="col-auto">
+        <div class="form-check mt-3">
           <%= form.check_box :is_warmup, class: "form-check-input" %>
-          <label class="form-check-label small">Warmup</label>
+          <label class="form-check-label small">W/U</label>
         </div>
       </div>
+    </div>
 
-      <div class="col-3 text-end">
-        <%= form.submit "Save", class: "btn btn-primary btn-sm" %>
-        <%= link_to "Cancel", workout_path(workout), class: "btn btn-outline-secondary btn-sm ms-1", data: { turbo_frame: "_top" } %>
-      </div>
+    <%# Row 3: Actions %>
+    <div class="d-flex gap-2 justify-content-end mt-2">
+      <%= form.submit "Save", class: "btn btn-primary btn-sm" %>
+      <%= link_to "Cancel", workout_path(workout), class: "btn btn-outline-secondary btn-sm", data: { turbo_frame: "_top" } %>
     </div>
   <% end %>
 <% end %>

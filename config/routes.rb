@@ -147,6 +147,7 @@ Rails.application.routes.draw do
   resources :workout_templates do
     member do
       post :start_workout
+      patch :reorder_blocks
     end
     resources :exercises, controller: 'template_exercises', as: 'template_exercises'
     resources :blocks, controller: 'template_blocks', as: 'template_blocks', only: [ :destroy ]

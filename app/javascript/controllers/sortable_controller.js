@@ -33,6 +33,13 @@ export default class extends Controller {
     // Only save if position actually changed
     if (event.oldIndex === event.newIndex) return
 
+    // Flash the dropped item to confirm the reorder
+    const droppedEl = event.item
+    droppedEl.classList.add("sortable-dropped")
+    droppedEl.addEventListener("animationend", () => {
+      droppedEl.classList.remove("sortable-dropped")
+    }, { once: true })
+
     const blockIds = Array.from(this.element.children)
       .filter(el => el.dataset.blockId)
       .map(el => el.dataset.blockId)

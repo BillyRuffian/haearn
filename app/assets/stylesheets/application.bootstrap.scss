@@ -645,6 +645,27 @@ select option:checked {
   background: $iron-dark !important;
 }
 
+.sortable-dropped {
+  animation: drop-landed 0.5s ease-out;
+}
+
+@keyframes drop-landed {
+  0% {
+    box-shadow: 0 0 0 0 rgba($rust, 0.6);
+    border-color: $rust;
+  }
+
+  40% {
+    box-shadow: 0 0 0 8px rgba($rust, 0.2);
+    border-color: $rust;
+  }
+
+  100% {
+    box-shadow: none;
+    border-color: transparent;
+  }
+}
+
 .workout-exercise {
   &:not(:last-child) {
     border-bottom: 1px solid $iron-light;
@@ -1236,6 +1257,17 @@ select option:checked {
   50% {
     opacity: 1;
     transform: translateX(-50%) scale(1.1);
+  }
+}
+
+// Warmup Generator disclosure toggle
+.warmup-generator-section {
+  summary {
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
   }
 }
 
@@ -2167,98 +2199,51 @@ html {
   }
 }
 
-// Body Map Heatmap
-.body-map-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+// Muscle Recovery Map
+.recovery-row {
+  font-size: 0.82rem;
+  line-height: 1;
 }
 
-.body-map-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-}
-
-.body-map-muscle {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.6rem 0.75rem;
-  background: $iron-medium;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease;
-
-  &:hover {
-    background: $iron-light;
-    transform: translateX(2px);
-  }
-}
-
-.muscle-indicator {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
+.recovery-label {
+  width: 5.5rem;
   flex-shrink: 0;
-  box-shadow: 0 0 6px currentColor;
-}
-
-.muscle-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  min-width: 0;
-}
-
-.muscle-name {
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: $body-color;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.muscle-status {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.body-map-legend {
-  .legend-dot {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-    margin-right: 0.35rem;
-  }
-}
-
-.body-map-tooltip {
-  position: absolute;
-  background: $iron-dark;
-  border: 1px solid $iron-light;
-  padding: 0.5rem 0.75rem;
+.recovery-bar-track {
+  height: 8px;
+  background: $iron-medium;
   border-radius: 4px;
-  font-size: 0.75rem;
-  color: $body-color;
-  white-space: nowrap;
-  transform: translate(-50%, -100%);
-  z-index: 10;
-  pointer-events: none;
+  overflow: hidden;
+}
 
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-    border-top: 5px solid $iron-light;
-  }
+.recovery-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+  min-width: 4px;
+}
+
+.recovery-days {
+  width: 2.2rem;
+  flex-shrink: 0;
+  text-align: right;
+  font-weight: 700;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.recovery-scale-bar {
+  width: 6rem;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, #a33232, #b8860b, #3d7ea6, #2d7a3e);
 }
 
 // Photo preview modal
@@ -2268,7 +2253,7 @@ html {
   }
 
   .modal-header {
-    background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0) 100%);
     padding: 1rem 1.5rem;
   }
 

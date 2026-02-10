@@ -21,6 +21,7 @@
       class: "add-set-form mt-2",
       data: { controller: "set-form", action: "submit->set-form#submitted" } do |form| %>
     
+    <%# Row 1: Primary fields - Weight + Reps/Time/Distance %>
     <div class="row g-2 align-items-end">
       <% if workout_exercise.exercise.has_weight %>
         <div class="col">
@@ -65,8 +66,11 @@
               onfocus: "this.select()" %>
         <% end %>
       </div>
+    </div>
 
-      <div class="col-auto" style="width: 80px;">
+    <%# Row 2: Secondary fields - RPE, RIR, Warmup, Submit %>
+    <div class="row g-2 align-items-center mt-1">
+      <div class="col">
         <label class="form-label small text-muted mb-1" title="Rate of Perceived Exertion (1-10)">RPE</label>
         <%= form.number_field :rpe,
             value: set.rpe,
@@ -79,7 +83,7 @@
             onfocus: "this.select()" %>
       </div>
 
-      <div class="col-auto" style="width: 80px;">
+      <div class="col">
         <label class="form-label small text-muted mb-1" title="Reps in Reserve (0-10)">RIR</label>
         <%= form.number_field :rir,
             value: set.rir,
@@ -92,14 +96,16 @@
       </div>
 
       <div class="col-auto">
-        <div class="form-check pt-3">
+        <div class="form-check mt-3">
           <%= form.check_box :is_warmup, class: "form-check-input" %>
-          <%= form.label :is_warmup, "Warmup", class: "form-check-label small" %>
+          <%= form.label :is_warmup, "W/U", class: "form-check-label small", title: "Warmup set" %>
         </div>
       </div>
 
       <div class="col-auto">
-        <%= form.submit "✓", class: "btn btn-primary btn-sm", data: { set_form_target: "submit" } %>
+        <div class="mt-3">
+          <%= form.submit "✓", class: "btn btn-primary btn-sm", data: { set_form_target: "submit" } %>
+        </div>
       </div>
     </div>
   <% end %>

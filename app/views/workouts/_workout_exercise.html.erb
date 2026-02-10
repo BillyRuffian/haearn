@@ -85,36 +85,35 @@
 
     <!-- Warmup Generator -->
     <% if workout.in_progress? && workout_exercise.exercise.has_weight? && workout_exercise.exercise_sets.working.empty? %>
-      <div id="warmup_generator_<%= workout_exercise.id %>" class="warmup-generator-section mb-2 p-2 bg-dark rounded">
-        <%= form_with url: generate_warmups_workout_workout_exercise_path(workout, workout_exercise),
-            method: :post,
-            class: "warmup-generator-form",
-            data: { turbo_frame: "_top" } do |form| %>
-          <div class="row g-2 align-items-end">
-            <div class="col-auto">
-              <small class="text-muted d-block mb-1">
-                <i class="bi bi-fire me-1"></i>Generate Warmups
-              </small>
+      <details id="warmup_generator_<%= workout_exercise.id %>" class="warmup-generator-section mb-2">
+        <summary class="btn btn-sm btn-outline-warning w-100 text-start">
+          <i class="bi bi-fire me-1"></i>Generate Warmups
+        </summary>
+        <div class="p-3 mt-2 bg-dark rounded border border-secondary border-opacity-25">
+          <%= form_with url: generate_warmups_workout_workout_exercise_path(workout, workout_exercise),
+              method: :post,
+              class: "warmup-generator-form",
+              data: { turbo_frame: "_top" } do |form| %>
+            <div class="d-flex align-items-end gap-2">
+              <div class="flex-grow-1">
+                <label class="form-label small text-muted mb-1">Working Weight (<%= Current.user.preferred_unit %>)</label>
+                <%= form.number_field :working_weight,
+                    class: "form-control form-control-sm",
+                    placeholder: Current.user.preferred_unit,
+                    step: "any",
+                    inputmode: "decimal",
+                    required: true %>
+              </div>
+              <div>
+                <%= form.submit "Add Warmups", class: "btn btn-sm btn-outline-warning" %>
+              </div>
             </div>
-            <div class="col-auto">
-              <label class="form-label small text-muted mb-1">Working Weight</label>
-              <%= form.number_field :working_weight,
-                  class: "form-control form-control-sm",
-                  placeholder: "#{Current.user.preferred_unit}",
-                  step: "any",
-                  inputmode: "decimal",
-                  required: true,
-                  style: "width: 100px;" %>
+            <div class="mt-2">
+              <small class="text-muted">Generates: bar → 50% → 70% → 85%</small>
             </div>
-            <div class="col-auto">
-              <%= form.submit "Add Warmups", class: "btn btn-sm btn-outline-warning" %>
-            </div>
-            <div class="col-auto">
-              <small class="text-muted">Auto-generates: bar → 50% → 70% → 85%</small>
-            </div>
-          </div>
-        <% end %>
-      </div>
+          <% end %>
+        </div>
+      </details>
     <% end %>
 
     <!-- Add Set Form -->

@@ -41,50 +41,54 @@
               data: { turbo_confirm: "Finish this workout?" } %>
         </div>
       <% else %>
-        <div class="h4 mb-2"><%= @workout.duration_minutes %> min</div>
-        <div class="d-flex gap-2 justify-content-end flex-wrap">
-          <% if @workout.can_continue? && !Current.user.active_workout %>
-            <%= button_to continue_workout_path(@workout),
-                method: :patch,
-                class: "btn btn-warning",
-                data: { turbo_confirm: "Continue this workout? It will become your active session." } do %>
-              <i class="bi bi-play-circle me-1"></i>Continue
-            <% end %>
-          <% end %>
-          <%= button_to save_workout_as_template_path(@workout), 
-              method: :post,
-              params: { name: "#{@workout.gym&.name} - #{@workout.started_at.strftime('%b %d')}" },
-              class: "btn btn-outline-primary",
-              data: { turbo_confirm: "Save this workout as a template?" } do %>
-            <i class="bi bi-journal-bookmark me-1"></i>Save as Template
-          <% end %>
-          <div data-controller="clipboard" data-clipboard-text-value="<%= generate_workout_text(@workout) %>">
-            <button type="button" class="btn btn-outline-secondary" 
-                    data-clipboard-target="button"
-                    data-action="click->clipboard#copy">
-              <i class="bi bi-clipboard me-1"></i>Copy
-            </button>
-          </div>
-          <%= link_to edit_workout_path(@workout), class: "btn btn-outline-secondary" do %>
-            <i class="bi bi-pencil me-1"></i>Edit
-          <% end %>
-          <%= button_to workout_path(@workout), 
-              method: :delete, 
-              class: "btn btn-outline-danger",
-              data: { turbo_confirm: "Delete this workout? This cannot be undone." } do %>
-            <i class="bi bi-trash me-1"></i>Delete
-          <% end %>
-          <% unless Current.user.active_workout %>
-            <%= button_to copy_workout_path(@workout), method: :post, 
-                class: "btn btn-primary",
-                data: { turbo_confirm: "Start a new workout based on this one?" } do %>
-              <i class="bi bi-arrow-repeat me-1"></i>Repeat
-            <% end %>
-          <% end %>
-        </div>
+        <div class="h4 mb-0"><%= @workout.duration_minutes %> min</div>
       <% end %>
     </div>
   </div>
+
+  <%# Action buttons for completed workouts - displayed as a clean toolbar below the header %>
+  <% unless @workout.in_progress? %>
+    <div class="d-flex flex-wrap gap-2 mb-4">
+      <% unless Current.user.active_workout %>
+        <%= button_to copy_workout_path(@workout), method: :post, 
+            class: "btn btn-primary btn-sm",
+            data: { turbo_confirm: "Start a new workout based on this one?" } do %>
+          <i class="bi bi-arrow-repeat me-1"></i>Repeat
+        <% end %>
+      <% end %>
+      <% if @workout.can_continue? && !Current.user.active_workout %>
+        <%= button_to continue_workout_path(@workout),
+            method: :patch,
+            class: "btn btn-warning btn-sm",
+            data: { turbo_confirm: "Continue this workout? It will become your active session." } do %>
+          <i class="bi bi-play-circle me-1"></i>Continue
+        <% end %>
+      <% end %>
+      <%= button_to save_workout_as_template_path(@workout), 
+          method: :post,
+          params: { name: "#{@workout.gym&.name} - #{@workout.started_at.strftime('%b %d')}" },
+          class: "btn btn-outline-secondary btn-sm",
+          data: { turbo_confirm: "Save this workout as a template?" } do %>
+        <i class="bi bi-journal-bookmark me-1"></i>Template
+      <% end %>
+      <div data-controller="clipboard" data-clipboard-text-value="<%= generate_workout_text(@workout) %>">
+        <button type="button" class="btn btn-outline-secondary btn-sm" 
+                data-clipboard-target="button"
+                data-action="click->clipboard#copy">
+          <i class="bi bi-clipboard me-1"></i>Copy
+        </button>
+      </div>
+      <%= link_to edit_workout_path(@workout), class: "btn btn-outline-secondary btn-sm" do %>
+        <i class="bi bi-pencil me-1"></i>Edit
+      <% end %>
+      <%= button_to workout_path(@workout), 
+          method: :delete, 
+          class: "btn btn-outline-danger btn-sm ms-auto",
+          data: { turbo_confirm: "Delete this workout? This cannot be undone." } do %>
+        <i class="bi bi-trash me-1"></i>Delete
+      <% end %>
+    </div>
+  <% end %>
 
   <!-- Workout Stats -->
   <%= render "workouts/stats", workout: @workout %>
