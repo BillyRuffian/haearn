@@ -7,7 +7,7 @@ class WorkoutsController < ApplicationController
   # GET /workouts
   # Lists all workouts with optional filters (gym, date range)
   def index
-    @workouts = Current.user.workouts.includes(:gym, workout_exercises: [ :exercise, { exercise_sets: [] } ]).order(started_at: :desc)
+    @workouts = Current.user.workouts.includes(:gym, workout_exercises: [ :exercise, { machine: :photos_attachments }, { exercise_sets: [] } ]).order(started_at: :desc)
 
     # Apply filters
     if params[:gym_id].present?
@@ -32,7 +32,7 @@ class WorkoutsController < ApplicationController
   def show
     # Eager load all nested associations for performance
     @workout_blocks = @workout.workout_blocks.includes(
-      workout_exercises: [ :exercise, :machine, :exercise_sets ]
+      workout_exercises: [ :exercise, { machine: :photos_attachments }, :exercise_sets ]
     ).order(:position)
     @editing_notes = params[:editing_notes].present?
   end
