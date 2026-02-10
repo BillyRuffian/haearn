@@ -59,6 +59,11 @@ class Workout < ApplicationRecord
     finished_at.present?
   end
 
+  # Check if workout can be continued (finished less than 1 hour ago)
+  def can_continue?
+    completed? && finished_at > 1.hour.ago
+  end
+
   # Calculate workout duration (in seconds)
   # For in-progress workouts, calculates up to current time
   def duration
@@ -76,6 +81,17 @@ class Workout < ApplicationRecord
   # Returns value in kg
   def total_volume_kg
     exercise_sets.sum { |s| (s.weight_kg || 0) * (s.reps || 0) }
+  end
+
+  # Get list of muscle groups worked in this workout
+  # Returns array of muscle group strings (e.g., ["chest", "back", "shoulders"])
+  def muscle_groups_worked
+    workout_exercises
+      .joins(:exercise)
+      .where.not(exercises: { primary_muscle_group: nil })
+      .pluck('exercises.primary_muscle_group')
+      .uniq
+      .sort
   end
 
   # Mark workout as complete by setting finished_at timestamp

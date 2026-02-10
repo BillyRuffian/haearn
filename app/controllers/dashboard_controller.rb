@@ -49,13 +49,8 @@ class DashboardController < ApplicationController
       }
     end.reverse
 
-    # Heatmap data (last 365 days of workout activity)
-    @heatmap_data = Current.user.workouts
-      .where('finished_at >= ?', 365.days.ago.beginning_of_day)
-      .where.not(finished_at: nil)
-      .group('DATE(finished_at)')
-      .count
-      .transform_keys { |date| date.to_s }
+    # Consistency data for compact visualization
+    @consistency_data = calculate_consistency_data
 
     # Rep range distribution (last 30 days)
     @rep_range_data = calculate_rep_range_distribution
@@ -91,6 +86,12 @@ class DashboardController < ApplicationController
 
     # Training density (volume per minute over last 20 workouts)
     @training_density_data = calculate_training_density
+
+    # Muscle group volume distribution (last 7 days for recovery indicator)
+    @muscle_group_data = calculate_muscle_group_volume
+
+    # Muscle group spider chart data (last 30 days for balance)
+    @muscle_balance_data = calculate_muscle_balance
   end
 
   private
@@ -494,5 +495,160 @@ class DashboardController < ApplicationController
         gym: workout.gym&.name || 'Unknown'
       }
     end.compact.reverse
+  end
+
+  # Calculate volume per muscle group in last 7 days
+  # Returns hash with muscle group as key and {volume, sets, last_trained} as value
+  # Used for recovery indicator (how long since each muscle was trained)
+  def calculate_muscle_group_volume
+    seven_days_ago = 7.days.ago.beginning_of_day
+
+    # Get all workout exercises from last 7 days with their exercise's muscle group
+    workout_exercises = WorkoutExercise
+      .joins(:exercise, workout_block: :workout)
+      .includes(:exercise_sets)
+      .where(workouts: { user_id: Current.user.id })
+      .where('workouts.finished_at >= ?', seven_days_ago)
+      .where.not(workouts: { finished_at: nil })
+      .where.not(exercises: { primary_muscle_group: nil })
+
+    # Group by muscle and calculate stats
+    muscle_stats = {}
+
+    workout_exercises.each do |we|
+      muscle = we.exercise.primary_muscle_group
+      next unless muscle
+
+      muscle_stats[muscle] ||= { volume: 0, sets: 0, last_trained: nil }
+
+      # Calculate volume for this exercise
+      volume = we.exercise_sets.where(is_warmup: false).sum do |set|
+        (set.weight_kg || 0) * (set.reps || 0)
+      end
+
+      muscle_stats[muscle][:volume] += volume
+      muscle_stats[muscle][:sets] += we.exercise_sets.where(is_warmup: false).count
+
+      workout_date = we.workout_block.workout.finished_at
+      if muscle_stats[muscle][:last_trained].nil? || workout_date > muscle_stats[muscle][:last_trained]
+        muscle_stats[muscle][:last_trained] = workout_date
+      end
+    end
+
+    # Convert volumes to user's preferred unit and calculate days since last trained
+    muscle_stats.each_with_object({}) do |(muscle, stats), result|
+      volume = stats[:volume]
+      if Current.user.preferred_unit == 'lbs'
+        volume = (volume * 2.20462).round
+      else
+        volume = volume.round
+      end
+
+      days_since = if stats[:last_trained]
+        ((Time.current - stats[:last_trained]) / 1.day).round
+      else
+        999  # Never trained
+      end
+
+      result[muscle] = {
+        volume: volume,
+        sets: stats[:sets],
+        days_since: days_since,
+        color: Exercise::MUSCLE_GROUP_COLORS[muscle] || '#71797E'
+      }
+    end
+  end
+
+  # Calculate consistency data: last 12 weeks + day-of-week pattern + current month
+  def calculate_consistency_data
+    # Last 12 weeks workout count
+    twelve_weeks = (0..11).map do |weeks_ago|
+      week_start = weeks_ago.weeks.ago.beginning_of_week
+      week_end = weeks_ago.weeks.ago.end_of_week
+      count = Current.user.workouts.where(finished_at: week_start..week_end).count
+      {
+        week_start: week_start.strftime('%b %d'),
+        count: count
+      }
+    end.reverse
+
+    # Day of week pattern (last 90 days)
+    day_pattern = Current.user.workouts
+      .where('finished_at >= ?', 90.days.ago)
+      .where.not(finished_at: nil)
+      .group("strftime('%w', finished_at)") # 0=Sunday, 1=Monday, etc.
+      .count
+
+    # Convert to Monday-first ordering
+    days_ordered = [ 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun' ]
+    day_counts = days_ordered.map.with_index do |day, idx|
+      # Convert to database day number (0=Sunday, so Monday=1)
+      db_day = (idx + 1) % 7
+      { day: day, count: day_pattern[db_day.to_s] || 0 }
+    end
+
+    # Current month calendar data
+    month_start = Time.current.beginning_of_month
+    month_end = Time.current.end_of_month
+    month_workouts = Current.user.workouts
+      .where(finished_at: month_start..month_end)
+      .where.not(finished_at: nil)
+      .group('DATE(finished_at)')
+      .count
+      .transform_keys { |date| date.to_s }
+
+    {
+      twelve_weeks: twelve_weeks,
+      day_pattern: day_counts,
+      current_month: month_workouts,
+      month_name: Time.current.strftime('%B %Y')
+    }
+  end
+
+  # Calculate muscle group balance for spider/radar chart (last 30 days)
+  # Returns normalized volume per muscle group (0-100 scale)
+  def calculate_muscle_balance
+    thirty_days_ago = 30.days.ago.beginning_of_day
+
+    # Get all workout exercises from last 30 days
+    workout_exercises = WorkoutExercise
+      .joins(:exercise, workout_block: :workout)
+      .includes(:exercise_sets)
+      .where(workouts: { user_id: Current.user.id })
+      .where('workouts.finished_at >= ?', thirty_days_ago)
+      .where.not(workouts: { finished_at: nil })
+      .where.not(exercises: { primary_muscle_group: nil })
+
+    # Calculate volume per muscle group
+    muscle_volumes = {}
+
+    workout_exercises.each do |we|
+      muscle = we.exercise.primary_muscle_group
+      next unless muscle
+
+      muscle_volumes[muscle] ||= 0
+
+      volume = we.exercise_sets.where(is_warmup: false).sum do |set|
+        (set.weight_kg || 0) * (set.reps || 0)
+      end
+
+      muscle_volumes[muscle] += volume
+    end
+
+    # Find max volume for normalization
+    max_volume = muscle_volumes.values.max || 1
+
+    # Normalize to 0-100 scale and include all muscle groups
+    Exercise::MUSCLE_GROUPS.map do |muscle|
+      volume = muscle_volumes[muscle] || 0
+      normalized = ((volume / max_volume.to_f) * 100).round
+
+      {
+        muscle: Exercise::MUSCLE_GROUP_LABELS[muscle],
+        value: normalized,
+        raw_volume: volume.round,
+        color: Exercise::MUSCLE_GROUP_COLORS[muscle]
+      }
+    end
   end
 end

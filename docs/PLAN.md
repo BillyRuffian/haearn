@@ -178,7 +178,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Workout frequency (8-week bar chart on dashboard)
 
 ### 4.5 Advanced Visualizations (Future)
-- [x] **Calendar Heatmap** - GitHub-style contribution graph for workout consistency
+- [x] **Workout Consistency Visualization** - Last 12 weeks bar chart + day-of-week pattern (replaced GitHub-style heatmap)
 - [x] **PR Timeline** - Scatter plot showing when PRs were hit across all lifts
 - [x] **Estimated 1RM Trend** - Track e1RM over time (more meaningful than raw weight)
 - [ ] **Volume Distribution Pie Chart** - Breakdown by muscle group (weekly/monthly)
@@ -188,7 +188,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] **Tonnage Tracker** - Total weight lifted per session/week/month (area chart)
 - [ ] **Strength Curve** - Performance at different rep ranges per exercise (are you better at 3s or 10s?)
 - [x] **Session Duration Trends** - Are workouts getting longer/shorter?
-- [ ] **Body Map Heatmap** - Visual showing which muscles trained recently (recovery indicator)
+- [x] **Body Map Heatmap** - Visual showing which muscles trained recently (recovery indicator)
 - [x] **Exercise Frequency Ranking** - Bar chart of most-performed exercises
 - [x] **Consistency Streaks** - Current/longest streak visualizations
 - [x] **Week-over-Week Comparison** - Side-by-side volume bars for this week vs last

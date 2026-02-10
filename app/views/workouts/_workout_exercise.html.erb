@@ -18,14 +18,12 @@
         </small>
       <% end %>
     </div>
-    <% if workout.in_progress? %>
-      <%= button_to workout_workout_exercise_path(workout, workout_exercise),
-          method: :delete,
-          class: "btn btn-sm btn-outline-danger",
-          data: { turbo_confirm: "Remove this exercise?" },
-          form: { data: { turbo_frame: "_top" } } do %>
-        <i class="bi bi-x-lg"></i>
-      <% end %>
+    <%= button_to workout_workout_exercise_path(workout, workout_exercise),
+        method: :delete,
+        class: "btn btn-sm btn-outline-danger",
+        data: { turbo_confirm: "Remove this exercise? All sets will be deleted." },
+        form: { data: { turbo_frame: "_top" } } do %>
+      <i class="bi bi-x-lg"></i>
     <% end %>
   </div>
 
@@ -68,13 +66,11 @@
     </div>
 
     <!-- Add Set Form -->
-    <% if workout.in_progress? %>
-      <%= turbo_frame_tag "new_set_#{workout_exercise.id}" do %>
-        <%= render "exercise_sets/form", 
-            workout: workout, 
-            workout_exercise: workout_exercise,
-            set: workout_exercise.exercise_sets.build %>
-      <% end %>
+    <%= turbo_frame_tag "new_set_#{workout_exercise.id}" do %>
+      <%= render "exercise_sets/form", 
+          workout: workout, 
+          workout_exercise: workout_exercise,
+          set: workout_exercise.exercise_sets.build %>
     <% end %>
 
     <!-- Notes Section (editable) -->

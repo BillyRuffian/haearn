@@ -55,8 +55,18 @@ export default class extends Controller {
         borderWidth: 2
       }
       
+      // Radar charts always have fill
+      if (this.typeValue === 'radar') {
+        dataset.fill = true
+        dataset.backgroundColor = this.hexToRgba(this.colorValue, 0.25)
+        dataset.pointBackgroundColor = this.colorValue
+        dataset.pointBorderColor = '#1a1a1a'
+        dataset.pointBorderWidth = 2
+        dataset.pointRadius = 4
+        dataset.pointHoverRadius = 6
+      }
       // Add fill for area charts
-      if (this.fillValue) {
+      else if (this.fillValue) {
         dataset.fill = true
         dataset.backgroundColor = this.hexToRgba(this.colorValue, 0.2)
       }
@@ -72,7 +82,7 @@ export default class extends Controller {
     const ctx = this.canvasTarget.getContext("2d")
 
     // Default options for dark theme
-    const defaultOptions = {
+    let defaultOptions = {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
@@ -89,7 +99,49 @@ export default class extends Controller {
           cornerRadius: 4
         }
       },
-      scales: {
+      elements: {
+        line: {
+          tension: 0.3,
+          borderWidth: 2
+        },
+        point: {
+          radius: 4,
+          hoverRadius: 6,
+          backgroundColor: "#c86432",
+          borderColor: "#c86432"
+        }
+      }
+    }
+
+    // Different scale config for radar vs other charts
+    if (this.typeValue === 'radar') {
+      defaultOptions.scales = {
+        r: {
+          angleLines: {
+            color: 'rgba(255, 255, 255, 0.1)'
+          },
+          grid: {
+            color: 'rgba(255, 255, 255, 0.1)'
+          },
+          pointLabels: {
+            color: '#8a8a8a',
+            font: {
+              size: 11,
+              weight: '500'
+            }
+          },
+          ticks: {
+            color: '#6a6a6a',
+            font: {
+              size: 10
+            },
+            backdropColor: 'transparent'
+          },
+          beginAtZero: true
+        }
+      }
+    } else {
+      defaultOptions.scales = {
         x: {
           grid: {
             color: "rgba(255, 255, 255, 0.05)"
@@ -112,18 +164,6 @@ export default class extends Controller {
             }
           },
           beginAtZero: false
-        }
-      },
-      elements: {
-        line: {
-          tension: 0.3,
-          borderWidth: 2
-        },
-        point: {
-          radius: 4,
-          hoverRadius: 6,
-          backgroundColor: "#c86432",
-          borderColor: "#c86432"
         }
       }
     }

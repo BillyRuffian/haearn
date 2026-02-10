@@ -2,12 +2,12 @@
 # Supports workout blocks for organizing exercises and enabling supersets
 # Each workout has a start time, optional finish time, gym, and multiple workout blocks
 class WorkoutsController < ApplicationController
-  before_action :set_workout, only: %i[show edit update destroy finish add_exercise reorder_blocks share_text]
+  before_action :set_workout, only: %i[show edit update destroy finish continue_workout add_exercise reorder_blocks share_text]
 
   # GET /workouts
   # Lists all workouts with optional filters (gym, date range)
   def index
-    @workouts = Current.user.workouts.includes(:gym, workout_exercises: { exercise_sets: [] }).order(started_at: :desc)
+    @workouts = Current.user.workouts.includes(:gym, workout_exercises: [ :exercise, { exercise_sets: [] } ]).order(started_at: :desc)
 
     # Apply filters
     if params[:gym_id].present?
@@ -81,7 +81,22 @@ class WorkoutsController < ApplicationController
     @workout.finish!
     redirect_to @workout, notice: 'Workout complete! 🎉'
   end
+  # Continue a recently finished workout (within 1 hour)
+  # Sets finished_at back to nil, making it the active workout again
+  def continue_workout
+    unless @workout.can_continue?
+      redirect_to @workout, alert: 'This workout was finished more than 1 hour ago and cannot be continued.'
+      return
+    end
 
+    if Current.user.active_workout
+      redirect_to @workout, alert: 'You already have an active workout. Finish it first.'
+      return
+    end
+
+    @workout.update!(finished_at: nil)
+    redirect_to @workout, notice: 'Workout continued! Keep going 💪'
+  end
   # GET/POST /workouts/:id/add_exercise
   # Multi-step flow: 1) Select exercise, 2) Select machine (optional), 3) Add to workout
   # Supports adding to existing block (for supersets) via to_block param

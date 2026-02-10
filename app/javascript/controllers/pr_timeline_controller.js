@@ -92,8 +92,8 @@ export default class extends Controller {
           {
             label: 'Volume PRs',
             data: toScatterData(volumePRs, maxWeight),
-            backgroundColor: 'rgba(163, 58, 12, 0.7)',
-            borderColor: '#a33a0c',
+            backgroundColor: 'rgba(184, 134, 11, 0.7)',
+            borderColor: '#b8860b',
             borderWidth: 1
           }
         ]

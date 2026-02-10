@@ -112,6 +112,19 @@
                       &middot; <%= workout.duration_minutes %> min
                     <% end %>
                   </p>
+                  <% muscle_groups = workout.muscle_groups_worked %>
+                  <% if muscle_groups.any? %>
+                    <div class="mt-2">
+                      <% muscle_groups.first(5).each do |muscle_group| %>
+                        <span class="badge me-1" style="background-color: <%= Exercise::MUSCLE_GROUP_COLORS[muscle_group] %>; font-size: 0.7rem;">
+                          <%= Exercise::MUSCLE_GROUP_LABELS[muscle_group] %>
+                        </span>
+                      <% end %>
+                      <% if muscle_groups.length > 5 %>
+                        <span class="badge bg-secondary" style="font-size: 0.7rem;">+<%= muscle_groups.length - 5 %></span>
+                      <% end %>
+                    </div>
+                  <% end %>
                 </div>
                 <div class="text-end me-3">
                   <span class="weight-display h5 mb-0">

@@ -43,6 +43,14 @@
       <% else %>
         <div class="h4 mb-2"><%= @workout.duration_minutes %> min</div>
         <div class="d-flex gap-2 justify-content-end flex-wrap">
+          <% if @workout.can_continue? && !Current.user.active_workout %>
+            <%= button_to continue_workout_path(@workout),
+                method: :patch,
+                class: "btn btn-warning",
+                data: { turbo_confirm: "Continue this workout? It will become your active session." } do %>
+              <i class="bi bi-play-circle me-1"></i>Continue
+            <% end %>
+          <% end %>
           <div data-controller="clipboard" data-clipboard-text-value="<%= generate_workout_text(@workout) %>">
             <button type="button" class="btn btn-outline-secondary" 
                     data-clipboard-target="button"
@@ -50,6 +58,15 @@
               <i class="bi bi-clipboard me-1"></i>Copy
             </button>
           </div>
+          <%= link_to edit_workout_path(@workout), class: "btn btn-outline-secondary" do %>
+            <i class="bi bi-pencil me-1"></i>Edit
+          <% end %>
+          <%= button_to workout_path(@workout), 
+              method: :delete, 
+              class: "btn btn-outline-danger",
+              data: { turbo_confirm: "Delete this workout? This cannot be undone." } do %>
+            <i class="bi bi-trash me-1"></i>Delete
+          <% end %>
           <% unless Current.user.active_workout %>
             <%= button_to copy_workout_path(@workout), method: :post, 
                 class: "btn btn-primary",
@@ -91,12 +108,10 @@
                   <p class="text-muted mb-0 fst-italic">No notes</p>
                 <% end %>
               </div>
-              <% if @workout.in_progress? %>
-                <%= link_to workout_path(@workout, editing_notes: true), 
-                    class: "btn btn-sm btn-outline-secondary",
-                    data: { turbo_frame: "workout_notes" } do %>
-                  <i class="bi bi-pencil"></i>
-                <% end %>
+              <%= link_to workout_path(@workout, editing_notes: true), 
+                  class: "btn btn-sm btn-outline-secondary",
+                  data: { turbo_frame: "workout_notes" } do %>
+                <i class="bi bi-pencil"></i>
               <% end %>
             </div>
           <% end %>
@@ -119,15 +134,13 @@
   </div>
 
   <!-- Add Exercise Button -->
-  <% if @workout.in_progress? %>
-    <div class="d-grid mt-4">
-      <%= link_to add_exercise_workout_path(@workout), 
-          class: "btn btn-outline-primary btn-lg",
-          data: { turbo_frame: "modal" } do %>
-        <i class="bi bi-plus-lg me-2"></i>Add Exercise
-      <% end %>
-    </div>
-  <% end %>
+  <div class="d-grid mt-4">
+    <%= link_to add_exercise_workout_path(@workout), 
+        class: "btn btn-outline-primary btn-lg",
+        data: { turbo_frame: "modal" } do %>
+      <i class="bi bi-plus-lg me-2"></i>Add Exercise
+    <% end %>
+  </div>
 </div>
 
 <!-- Modal Frame for Exercise Picker -->

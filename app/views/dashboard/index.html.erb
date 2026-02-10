@@ -98,22 +98,78 @@
       </div>
     </div>
 
-    <!-- Calendar Heatmap -->
+    <!-- Workout Consistency -->
     <div class="row mt-4">
       <div class="col-12">
-        <div class="card position-relative heatmap-card">
+        <div class="card position-relative">
           <div class="card-body py-4">
-            <h5 class="text-uppercase text-muted mb-3" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
               <i class="bi bi-calendar3 me-2"></i>Workout Consistency
             </h5>
-            <div class="heatmap-container" 
-                 data-controller="calendar-heatmap" 
-                 data-calendar-heatmap-data-value="<%= @heatmap_data.to_json %>">
-              <div data-calendar-heatmap-target="container"></div>
-              <div class="heatmap-tooltip d-none" data-calendar-heatmap-target="tooltip"></div>
+            
+            <div class="row g-4">
+              <!-- Last 12 Weeks -->
+              <div class="col-lg-7">
+                <h6 class="text-muted small mb-3">Last 12 Weeks</h6>
+                <div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; align-items: end; height: 120px;">
+                  <% max_count = [@consistency_data[:twelve_weeks].map { |w| w[:count] }.max, 1].max %>
+                  <% @consistency_data[:twelve_weeks].each do |week| %>
+                    <div style="position: relative; height: 100%; display: flex; flex-direction: column; justify-content: flex-end;">
+                      <% if week[:count] > 0 %>
+                        <div class="text-center mb-1" style="font-size: 0.7rem; color: #8a8a8a; line-height: 1;">
+                          <%= week[:count] %>
+                        </div>
+                      <% end %>
+                      <div style="
+                        height: <%= week[:count] == 0 ? '4px' : "#{(week[:count].to_f / max_count * 100).round}%" %>;
+                        background: <%= week[:count] == 0 ? 'rgba(255,255,255,0.05)' : week[:count] >= 4 ? '#3d7ea6' : week[:count] >= 3 ? '#ff6b35' : week[:count] >= 2 ? '#b8860b' : '#71797E' %>;
+                        border-radius: 3px;
+                        min-height: 4px;"
+                        title="<%= week[:week_start] %>: <%= pluralize(week[:count], 'workout') %>">
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+                <div class="d-flex justify-content-between mt-2" style="font-size: 0.65rem; color: #6a6a6a;">
+                  <span><%= @consistency_data[:twelve_weeks].first[:week_start] %></span>
+                  <span><%= @consistency_data[:twelve_weeks].last[:week_start] %></span>
+                </div>
+                <div class="mt-3 d-flex gap-2 flex-wrap" style="font-size: 0.7rem;">
+                  <span class="text-muted">Legend:</span>
+                  <span><span style="display: inline-block; width: 12px; height: 12px; background: #71797E; border-radius: 2px; vertical-align: middle;"></span> 1</span>
+                  <span><span style="display: inline-block; width: 12px; height: 12px; background: #b8860b; border-radius: 2px; vertical-align: middle;"></span> 2</span>
+                  <span><span style="display: inline-block; width: 12px; height: 12px; background: #ff6b35; border-radius: 2px; vertical-align: middle;"></span> 3</span>
+                  <span><span style="display: inline-block; width: 12px; height: 12px; background: #3d7ea6; border-radius: 2px; vertical-align: middle;"></span> 4+</span>
+                </div>
+              </div>
+
+              <!-- Day of Week Pattern -->
+              <div class="col-lg-5">
+                <h6 class="text-muted small mb-3">Training Days <span class="text-muted">(Last 90 days)</span></h6>
+                <div class="d-flex flex-column gap-2">
+                  <% max_day_count = [@consistency_data[:day_pattern].map { |d| d[:count] }.max, 1].max %>
+                  <% @consistency_data[:day_pattern].each do |day| %>
+                    <div class="d-flex align-items-center">
+                      <div style="width: 35px; font-size: 0.75rem;" class="text-muted"><%= day[:day] %></div>
+                      <div class="flex-fill" style="height: 16px; background: rgba(255,255,255,0.03); border-radius: 2px; position: relative; overflow: hidden;">
+                        <% if day[:count] > 0 %>
+                          <div style="
+                            width: <%= (day[:count].to_f / max_day_count * 100).round %>%;
+                            height: 100%;
+                            background: #ff6b35;
+                            border-radius: 2px;
+                            transition: all 0.3s;"
+                            title="<%= pluralize(day[:count], 'workout') %> on <%= day[:day] %>s">
+                          </div>
+                        <% end %>
+                      </div>
+                      <div style="width: 30px; text-align: right; font-size: 0.75rem;" class="ms-2 text-muted"><%= day[:count] %></div>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="heatmap-scroll-fade"></div>
         </div>
       </div>
     </div>
@@ -462,6 +518,105 @@
         </div>
       </div>
     </div>
+
+    <!-- Muscle Group Visualizations -->
+    <% if @muscle_group_data.any? || @muscle_balance_data.any? %>
+    <div class="row mt-4 g-4">
+      <!-- Body Map Recovery Indicator -->
+      <% if @muscle_group_data.any? %>
+      <div class="col-md-6">
+        <div class="card position-relative h-100">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-person-arms-up me-2"></i>Muscle Recovery Map
+              <small class="text-muted ms-2">(Last 7 days)</small>
+            </h5>
+            <div class="row g-2">
+              <% Exercise::MUSCLE_GROUPS.reject { |mg| mg == 'full_body' }.each do |muscle_group| %>
+                <% muscle_data = @muscle_group_data[muscle_group] %>
+                <% if muscle_data %>
+                  <% days_since = muscle_data[:days_since] %>
+                  <% badge_class = if days_since == 0
+                      'bg-danger'
+                    elsif days_since == 1
+                      'bg-warning'
+                    elsif days_since <= 2
+                      'bg-info'
+                    elsif days_since <= 4
+                      'bg-success'
+                    else
+                      'bg-secondary opacity-50'
+                    end %>
+                  <div class="col-6">
+                    <div class="d-flex align-items-center justify-content-between p-2 rounded" 
+                         style="background: rgba(255, 255, 255, 0.03);">
+                      <span class="text-muted small"><%= Exercise::MUSCLE_GROUP_LABELS[muscle_group] %></span>
+                      <span class="badge <%= badge_class %>" style="min-width: 45px;">
+                        <% if days_since == 0 %>
+                          Today
+                        <% elsif days_since == 1 %>
+                          1d ago
+                        <% elsif days_since < 7 %>
+                          <%= days_since %>d ago
+                        <% else %>
+                          —
+                        <% end %>
+                      </span>
+                    </div>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+            <div class="mt-3 small text-muted">
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-danger" style="width: 20px; height: 12px;"></span>
+                <span>Today (needs rest)</span>
+              </div>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-warning" style="width: 20px; height: 12px;"></span>
+                <span>1 day (recovering)</span>
+              </div>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-info" style="width: 20px; height: 12px;"></span>
+                <span>2-3 days (almost ready)</span>
+              </div>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-success" style="width: 20px; height: 12px;"></span>
+                <span>4+ days (ready to train)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <% end %>
+
+      <!-- Muscle Balance Spider Chart -->
+      <% if @muscle_balance_data.any? %>
+      <div class="col-md-6">
+        <div class="card position-relative h-100">
+          <div class="card-body py-4">
+            <h5 class="text-uppercase text-muted mb-4" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+              <i class="bi bi-diagram-3 me-2"></i>Training Balance
+              <small class="text-muted ms-2">(Last 30 days)</small>
+            </h5>
+            <div data-controller="chart"
+                 data-chart-type-value="radar"
+                 data-chart-labels-value="<%= @muscle_balance_data.map { |d| d[:muscle] }.to_json %>"
+                 data-chart-points-value="<%= @muscle_balance_data.map { |d| d[:value] }.to_json %>"
+                 data-chart-label-value="Relative Volume"
+                 data-chart-color-value="#ff6b35"
+                 style="height: 280px;">
+              <canvas data-chart-target="canvas"></canvas>
+            </div>
+            <div class="text-center mt-2">
+              <small class="text-muted">Balanced training across all muscle groups helps prevent imbalances and injuries</small>
+            </div>
+          </div>
+        </div>
+      </div>
+      <% end %>
+    </div>
+    <% end %>
 
     <!-- Exercise Frequency Ranking -->
     <% if @exercise_frequency_data.any? %>

@@ -44,26 +44,24 @@
       <% end %>
     </div>
     <div class="col-2 text-end">
-      <% if workout.in_progress? %>
-        <div class="dropdown">
-          <button class="btn btn-sm btn-link text-muted" type="button" data-bs-toggle="dropdown">
-            <i class="bi bi-three-dots-vertical"></i>
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li>
-              <%= link_to "Edit", edit_workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
-                  class: "dropdown-item",
-                  data: { turbo_frame: dom_id(set) } %>
-            </li>
-            <li>
-              <%= button_to "Delete", workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
-                  method: :delete,
-                  class: "dropdown-item text-danger",
-                  data: { turbo_confirm: "Delete this set?" } %>
-            </li>
-          </ul>
-        </div>
-      <% end %>
+      <div class="dropdown">
+        <button class="btn btn-sm btn-link text-muted" type="button" data-bs-toggle="dropdown">
+          <i class="bi bi-three-dots-vertical"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li>
+            <%= link_to "Edit", edit_workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
+                class: "dropdown-item",
+                data: { turbo_frame: dom_id(set) } %>
+          </li>
+          <li>
+            <%= button_to "Delete", workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
+                method: :delete,
+                class: "dropdown-item text-danger",
+                data: { turbo_confirm: "Delete this set?" } %>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 <% end %>

@@ -50,6 +50,7 @@
 #                                            PUT    /exercises/:id(.:format)                                                                          exercises#update
 #                                            DELETE /exercises/:id(.:format)                                                                          exercises#destroy
 #                             finish_workout PATCH  /workouts/:id/finish(.:format)                                                                    workouts#finish
+#                           continue_workout PATCH  /workouts/:id/continue(.:format)                                                                  workouts#continue_workout
 #                       add_exercise_workout GET    /workouts/:id/add_exercise(.:format)                                                              workouts#add_exercise
 #                                            POST   /workouts/:id/add_exercise(.:format)                                                              workouts#add_exercise
 #                               copy_workout POST   /workouts/:id/copy(.:format)                                                                      workouts#copy
@@ -143,6 +144,7 @@ Rails.application.routes.draw do
   resources :workouts do
     member do
       patch :finish
+      patch :continue, to: 'workouts#continue_workout'
       get :add_exercise
       post :add_exercise
       post :copy
