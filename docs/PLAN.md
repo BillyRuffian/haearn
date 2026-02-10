@@ -584,6 +584,24 @@ $text-muted: #6c757d;
 - [ ] Week-over-week volume comparison
 - [ ] "This time last year" view
 
+### 9.4 Weekly Email Summary
+- [x] Add `weekly_summary_email` boolean to users (opt-in, default false)
+- [x] Create `WeeklySummaryCalculator` service:
+  - Calculates weekly stats (workouts, volume, sets, reps, duration)
+  - Compares to 12-week historical average with percentages
+  - Generates highlights (volume spikes, consistency, PR achievements)
+  - Returns top 5 exercises by volume
+  - Detects new PRs from the week
+  - Tracks consistency and training streaks (max 52 weeks)
+- [x] Create `WeeklySummaryMailer` with dark theme templates:
+  - HTML email matching website aesthetic (iron/rust colors)
+  - Plain text fallback
+  - Comprehensive weekly insights and comparisons
+- [x] Create `SendWeeklySummariesJob` for batch email sends
+- [x] Configure recurring job (every Sunday at 6am via `recurring.yml`)
+- [x] Add settings UI toggle for email preference
+- [x] Add mailer preview for testing (`/rails/mailers`)
+
 ---
 
 ## Phase 10: Quality of Life
