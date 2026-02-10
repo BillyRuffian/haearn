@@ -527,8 +527,8 @@ $text-muted: #6c757d;
 - [x] RPE (Rate of Perceived Exertion) logging per set
 - [x] RIR (Reps in Reserve) tracking
 - [x] Auto-suggest weight increases based on performance _(ProgressionSuggester analyzes RPE/RIR trends, suggests when RPE < 8 or RIR > 2, dynamic increments 2.5-10kg, shown inline during workout and in exercise history)_
-- [ ] Fatigue indicator (compare current vs typical performance)
-- [ ] "Ready to progress" notifications when hitting rep targets consistently
+- [x] Fatigue indicator (compare current vs typical performance) _(FatigueAnalyzer compares volume/reps/RPE to 10-session baseline, shows 4 status levels on dashboard and during active workout)_
+- [x] "Ready to progress" notifications when hitting rep targets consistently _(ProgressionReadinessChecker alerts when hitting reps for 3+ sessions, shown on dashboard with detailed analysis)_
 
 ### 8.3 1RM Calculator & Projections
 - [x] Calculate estimated 1RM from any set (Epley, Brzycki formulas) _(OneRmCalculator service, shown on exercise history)_
