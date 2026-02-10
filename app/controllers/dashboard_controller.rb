@@ -191,7 +191,7 @@ class DashboardController < ApplicationController
       # Track running PRs starting from historical baseline
       best_weight = historical_best_weight
       best_volume = historical_best_volume
-      
+
       # Track if we've seen at least one set (first set is never a PR unless beating history)
       has_previous_set = historical_best_weight > 0 || historical_best_volume > 0
 
@@ -223,7 +223,7 @@ class DashboardController < ApplicationController
           }
         end
         best_volume = volume if volume > best_volume
-        
+
         # After the first set, we have previous data
         has_previous_set = true
       end

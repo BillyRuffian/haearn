@@ -184,6 +184,15 @@ rails test
 rails test:system
 ```
 
+## Liniting
+
+Make sure the code linter passes
+
+```bash
+# Run Rubocop
+bundle exec rubocop -A
+```
+
 ## Common Patterns
 
 ### Turbo Frame for inline editing
