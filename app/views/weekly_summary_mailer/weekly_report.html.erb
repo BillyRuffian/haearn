@@ -257,14 +257,14 @@
           <div class="stat-card">
             <div class="stat-label">Total Volume</div>
             <div class="stat-value">
-              <%= number_with_delimiter(WeightConverter.kg_to_user_unit(@summary[:this_week][:total_volume_kg], @user).round) %>
+              <%= number_with_delimiter(WeightConverter.from_kg(@summary[:this_week][:total_volume_kg], @user.preferred_unit).round) %>
               <span class="stat-unit"><%= @user.preferred_unit %></span>
             </div>
             <% if @summary[:vs_average] %>
               <% diff = @summary[:vs_average][:volume_diff_kg] %>
               <% pct = @summary[:vs_average][:volume_pct] %>
               <div class="comparison <%= diff >= 0 ? 'positive' : 'negative' %>">
-                <%= diff >= 0 ? '↑' : '↓' %> <%= number_with_delimiter(WeightConverter.kg_to_user_unit(diff.abs, @user).round) %> <%= @user.preferred_unit %>
+                <%= diff >= 0 ? '↑' : '↓' %> <%= number_with_delimiter(WeightConverter.from_kg(diff.abs, @user.preferred_unit).round) %> <%= @user.preferred_unit %>
                 (<%= pct >= 0 ? '+' : '' %><%= pct %>%) vs avg
               </div>
             <% end %>
@@ -316,7 +316,7 @@
                 <%= pr[:exercise_name] %>
               </div>
               <div class="exercise-stats">
-                <%= number_with_delimiter(WeightConverter.kg_to_user_unit(pr[:value_kg], @user).round) %> <%= @user.preferred_unit %> 
+                <%= number_with_delimiter(WeightConverter.from_kg(pr[:value_kg], @user.preferred_unit).round) %> <%= @user.preferred_unit %> 
                 × <%= pr[:reps] %> reps
               </div>
             </div>
@@ -330,7 +330,7 @@
             <div class="exercise-item">
               <div class="exercise-name"><%= exercise[:exercise_name] %></div>
               <div class="exercise-stats">
-                <%= number_with_delimiter(WeightConverter.kg_to_user_unit(exercise[:volume_kg], @user).round) %> <%= @user.preferred_unit %> 
+                <%= number_with_delimiter(WeightConverter.from_kg(exercise[:volume_kg], @user.preferred_unit).round) %> <%= @user.preferred_unit %> 
                 total (<%= exercise[:set_count] %> sets)
               </div>
             </div>

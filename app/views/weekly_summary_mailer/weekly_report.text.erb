@@ -19,11 +19,11 @@ WORKOUTS: <%= @summary[:this_week][:workout_count] %>
   <%= diff >= 0 ? '↑' : '↓' %> <%= diff.abs.round(1) %> (<%= pct >= 0 ? '+' : '' %><%= pct %>%) vs average
 <% end %>
 
-TOTAL VOLUME: <%= number_with_delimiter(WeightConverter.kg_to_user_unit(@summary[:this_week][:total_volume_kg], @user).round) %> <%= @user.preferred_unit %>
+TOTAL VOLUME: <%= number_with_delimiter(WeightConverter.from_kg(@summary[:this_week][:total_volume_kg], @user.preferred_unit).round) %> <%= @user.preferred_unit %>
 <% if @summary[:vs_average] %>
 <% diff = @summary[:vs_average][:volume_diff_kg] %>
 <% pct = @summary[:vs_average][:volume_pct] %>
-  <%= diff >= 0 ? '↑' : '↓' %> <%= number_with_delimiter(WeightConverter.kg_to_user_unit(diff.abs, @user).round) %> <%= @user.preferred_unit %> (<%= pct >= 0 ? '+' : '' %><%= pct %>%) vs average
+  <%= diff >= 0 ? '↑' : '↓' %> <%= number_with_delimiter(WeightConverter.from_kg(diff.abs, @user.preferred_unit).round) %> <%= @user.preferred_unit %> (<%= pct >= 0 ? '+' : '' %><%= pct %>%) vs average
 <% end %>
 
 TOTAL SETS: <%= @summary[:this_week][:total_sets] %>
@@ -54,7 +54,7 @@ TRAINING TIME: <%= (@summary[:this_week][:total_duration_minutes] / 60.0).round(
 
 <% @summary[:new_prs].each do |pr| %>
 • <%= pr[:exercise_name] %>
-  <%= number_with_delimiter(WeightConverter.kg_to_user_unit(pr[:value_kg], @user).round) %> <%= @user.preferred_unit %> × <%= pr[:reps] %> reps
+  <%= number_with_delimiter(WeightConverter.from_kg(pr[:value_kg], @user.preferred_unit).round) %> <%= @user.preferred_unit %> × <%= pr[:reps] %> reps
 <% end %>
 
 <% end %>
@@ -65,7 +65,7 @@ TRAINING TIME: <%= (@summary[:this_week][:total_duration_minutes] / 60.0).round(
 
 <% @summary[:top_exercises].each_with_index do |exercise, index| %>
 <%= index + 1 %>. <%= exercise[:exercise_name] %>
-   <%= number_with_delimiter(WeightConverter.kg_to_user_unit(exercise[:volume_kg], @user).round) %> <%= @user.preferred_unit %> total (<%= exercise[:set_count] %> sets)
+   <%= number_with_delimiter(WeightConverter.from_kg(exercise[:volume_kg], @user.preferred_unit).round) %> <%= @user.preferred_unit %> total (<%= exercise[:set_count] %> sets)
 <% end %>
 
 <% end %>

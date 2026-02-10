@@ -8,9 +8,9 @@ class SendWeeklySummariesJob < ApplicationJob
     week_start = Time.current.beginning_of_week - 1.week
 
     users = User.where(weekly_summary_email: true)
-    
+
     Rails.logger.info "Sending weekly summaries to #{users.count} users for week starting #{week_start}"
-    
+
     users.find_each do |user|
       begin
         WeeklySummaryMailer.weekly_report(user: user, week_start: week_start).deliver_later
@@ -19,7 +19,7 @@ class SendWeeklySummariesJob < ApplicationJob
         # Continue to next user - don't let one failure stop all emails
       end
     end
-    
-    Rails.logger.info "Weekly summary job completed"
+
+    Rails.logger.info 'Weekly summary job completed'
   end
 end
