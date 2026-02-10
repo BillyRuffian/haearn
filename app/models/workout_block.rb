@@ -17,17 +17,6 @@
 #
 #  workout_id  (workout_id => workouts.id)
 #
-# Groups exercises within a workout to enable supersets and circuits
-#
-# Key Concept:
-# - Single exercise in block = normal straight sets
-# - Multiple exercises in block = superset/circuit
-#
-# Example workout structure:
-# Block 1: [Bench Press]                    ← Straight sets
-# Block 2: [Lat Pulldown, Cable Row]        ← Superset
-# Block 3: [Overhead Press, Lateral Raise]  ← Superset
-#
 # Benefits:
 # - Simplifies UI (all exercises follow same pattern)
 # - Enables drag-and-drop reordering

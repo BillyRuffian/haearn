@@ -29,9 +29,9 @@
         <span>Exercises</span>
       <% end %>
 
-      <%= link_to gyms_path, class: "bottom-nav-item #{'active' if controller_name.in?(%w[gyms machines])}" do %>
-        <i class="bi bi-building"></i>
-        <span>Gyms</span>
+      <%= link_to workout_templates_path, class: "bottom-nav-item #{'active' if controller_name == 'workout_templates'}" do %>
+        <i class="bi bi-journal-bookmark"></i>
+        <span>Templates</span>
       <% end %>
     </div>
   </nav>

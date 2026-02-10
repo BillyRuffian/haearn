@@ -20,14 +20,6 @@
 #
 #  gym_id  (gym_id => gyms.id)
 #
-# Represents specific equipment at a gym (e.g., "Hammer Strength Chest Press")
-#
-# Critical Features:
-# - weight_ratio: For pulley systems where mechanical advantage affects actual weight
-#   Example: 2:1 cable pulley has ratio 0.5 (you lift half the displayed weight)
-# - display_unit: What unit the machine shows (kg or lbs)
-# - photos: Visual reference for proper setup (seat position, grip, etc.)
-#
 # Why track individual machines?
 # - Same exercise on different machines = different resistance curves
 # - Cable machines have different pulley ratios (2:1, 1:1, etc.)

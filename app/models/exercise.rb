@@ -20,17 +20,6 @@
 #
 #  user_id  (user_id => users.id)
 #
-# Exercise library containing both global (seeded) exercises and user-created custom exercises
-#
-# Exercise Types:
-# - reps: Counted repetitions (bench press, squats, curls)
-# - time: Duration-based (planks, dead hangs, wall sits)
-# - distance: Distance-based (farmer's walks, sled pushes)
-#
-# Global vs Custom:
-# - user_id = nil: Global exercise (seeded, available to all users)
-# - user_id present: Custom exercise (specific to that user)
-#
 # Weight Tracking:
 # - has_weight = true: Exercise uses external load (e.g., bench press)
 # - has_weight = false: Bodyweight only (e.g., push-ups, pull-ups)

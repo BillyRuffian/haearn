@@ -21,14 +21,6 @@
 #
 #  default_gym_id  (default_gym_id => gyms.id)
 #
-# Central user model with authentication and workout preferences
-#
-# Key Features:
-# - Rails 8 authentication with has_secure_password
-# - Preferred weight unit (kg/lbs) - all weights stored as kg internally
-# - Default rest timer between sets (30-300 seconds)
-# - Optional default gym for quick workout creation
-#
 # Weight Handling:
 # - All weights stored in kg in database (normalized)
 # - display_weight() converts to user's preferred unit for display
@@ -39,6 +31,7 @@ class User < ApplicationRecord
   has_many :gyms, dependent: :destroy
   has_many :exercises, dependent: :destroy  # custom exercises only
   has_many :workouts, dependent: :destroy
+  has_many :workout_templates, dependent: :destroy
   belongs_to :default_gym, class_name: 'Gym', optional: true
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
