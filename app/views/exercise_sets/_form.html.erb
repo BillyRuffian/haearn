@@ -1,6 +1,17 @@
 <% show_plate_calc = workout_exercise.exercise.has_weight && workout_exercise.machine&.plate_loaded? %>
 <% initial_weight = set.weight_kg ? Current.user.format_weight(set.weight_kg) : last_weight_for(workout_exercise) %>
 
+<% if workout_exercise.exercise.has_weight? %>
+  <% suggester = ProgressionSuggester.new(workout_exercise: workout_exercise, user: Current.user) %>
+  <% if (suggestion_msg = suggester.suggestion_message) %>
+    <div class="alert alert-success alert-dismissible fade show small mt-2 mb-2" role="alert">
+      <i class="bi bi-arrow-up-circle-fill me-1"></i>
+      <%= suggestion_msg %>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  <% end %>
+<% end %>
+
 <div <% if show_plate_calc %>data-controller="plate-calculator" 
      data-plate-calculator-weight-value="<%= initial_weight || 0 %>"
      data-plate-calculator-bar-weight-value="<%= Current.user.preferred_unit == 'kg' ? 20 : 45 %>"
