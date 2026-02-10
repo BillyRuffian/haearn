@@ -36,11 +36,8 @@
     </div>
 
     <% if @workout.in_progress? %>
-      <%# Mobile: timer + actions in a row below the title %>
+      <%# Mobile: action buttons below the title (timer is in navbar on mobile) %>
       <div class="d-flex align-items-center gap-2 mt-3">
-        <div class="workout-timer h5 mb-0 d-sm-none" data-sticky-timer-target="main">
-          <span data-timer-display><%= @workout.duration_minutes %></span> min
-        </div>
         <div class="d-flex gap-2 ms-auto">
           <%= button_to workout_path(@workout), 
               method: :delete, 
