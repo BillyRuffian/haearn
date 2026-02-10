@@ -111,9 +111,9 @@ class ProgressionSuggester
   # @return [ActiveRecord::Relation<WorkoutExercise>]
   def recent_sessions
     @recent_sessions ||= begin
-      scope = user.workout_exercises
-                  .joins(:workout_block)
+      scope = WorkoutExercise
                   .joins(workout_block: :workout)
+                  .where(workouts: { user_id: user.id })
                   .where(exercise: exercise)
                   .where('workouts.finished_at >= ?', LOOKBACK_DAYS.days.ago)
                   .where('workouts.finished_at < ?', workout_exercise.workout.started_at || Time.current)

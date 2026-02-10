@@ -22,6 +22,21 @@
 
     <div class="card mb-3">
       <div class="card-body">
+        <!-- Block Selection -->
+        <div class="mb-3">
+          <%= f.label :block_id, "Add to Block", class: "form-label" %>
+          <%= f.select :block_id,
+              options_for_select(
+                @template_blocks.map.with_index { |block, idx| ["Block #{idx + 1} (#{block.template_exercises.count} #{'exercise'.pluralize(block.template_exercises.count)})", block.id] } +
+                [["➕ New Block", ""]]
+              ),
+              {},
+              { class: "form-select", data: { controller: "custom-select" } } %>
+          <div class="form-text">Choose an existing block or create a new one</div>
+        </div>
+
+        <hr>
+
         <!-- Exercise Selection -->
         <div class="mb-3">
           <%= f.label :exercise_id, "Exercise", class: "form-label" %>
@@ -35,7 +50,7 @@
                 end
               ),
               { include_blank: "Select an exercise" },
-              { class: "form-select", required: true } %>
+              { class: "form-select", required: true, data: { controller: "custom-select" } } %>
           <div class="form-text">
             <%= link_to "Can't find it? Create a new exercise", new_exercise_path, target: "_blank", class: "text-decoration-none" %>
           </div>
@@ -54,7 +69,7 @@
                 end
               ),
               { include_blank: "None / Free weight" },
-              { class: "form-select" } %>
+              { class: "form-select", data: { controller: "custom-select" } } %>
           <div class="form-text">Specify which machine at which gym to use</div>
         </div>
 
@@ -99,9 +114,6 @@
               placeholder: "Equipment setup, form cues, etc." %>
           <div class="form-text">These notes will appear every time you use this template</div>
         </div>
-
-        <!-- Block Position (for supersets in future) -->
-        <%= f.hidden_field :block_position, value: @template_block.position %>
       </div>
     </div>
 

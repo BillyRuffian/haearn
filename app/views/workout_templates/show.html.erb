@@ -41,9 +41,17 @@
                 </span>
               <% end %>
             </div>
-            <small class="text-muted">
-              <i class="bi bi-clock me-1"></i><%= block.rest_seconds %>s rest
-            </small>
+            <div class="d-flex align-items-center gap-2">
+              <small class="text-muted">
+                <i class="bi bi-clock me-1"></i><%= block.rest_seconds %>s rest
+              </small>
+              <%= button_to workout_template_template_block_path(@template, block),
+                  method: :delete,
+                  class: "btn btn-sm btn-outline-danger",
+                  data: { turbo_confirm: "Delete this entire block?" } do %>
+                <i class="bi bi-trash"></i>
+              <% end %>
+            </div>
           </div>
           
           <div class="card-body">
@@ -82,10 +90,16 @@
                   <% end %>
                 </div>
                 
-                <div class="ms-2">
+                <div class="ms-2 d-flex gap-1">
                   <%= link_to edit_workout_template_template_exercise_path(@template, template_exercise),
                       class: "btn btn-sm btn-outline-secondary" do %>
                     <i class="bi bi-pencil"></i>
+                  <% end %>
+                  <%= button_to workout_template_template_exercise_path(@template, template_exercise),
+                      method: :delete,
+                      class: "btn btn-sm btn-outline-danger",
+                      data: { turbo_confirm: "Remove this exercise?" } do %>
+                    <i class="bi bi-trash"></i>
                   <% end %>
                 </div>
               </div>

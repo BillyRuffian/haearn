@@ -149,6 +149,7 @@ Rails.application.routes.draw do
       post :start_workout
     end
     resources :exercises, controller: 'template_exercises', as: 'template_exercises'
+    resources :blocks, controller: 'template_blocks', as: 'template_blocks', only: [ :destroy ]
   end
   post 'workouts/:workout_id/save_as_template', to: 'workout_templates#create_from_workout', as: :save_workout_as_template
 
