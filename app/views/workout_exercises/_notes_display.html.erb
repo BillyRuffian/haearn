@@ -1,3 +1,6 @@
+<% has_notes = workout_exercise.persistent_notes.present? || workout_exercise.session_notes.present? %>
+<% show_section = has_notes || workout.in_progress? %>
+<% if show_section %>
 <div id="workout_exercise_notes_<%= workout_exercise.id %>" class="notes-section mt-2 pt-2 border-top">
   <div class="d-flex justify-content-between align-items-start">
     <div class="flex-grow-1">
@@ -12,10 +15,16 @@
         </small>
       <% end %>
       <% if workout_exercise.persistent_notes.blank? && workout_exercise.session_notes.blank? %>
-        <small class="text-muted fst-italic">No notes</small>
+        <% if workout.in_progress? %>
+          <%= link_to edit_workout_workout_exercise_path(workout, workout_exercise),
+              class: "text-muted small text-decoration-none",
+              data: { turbo_stream: true } do %>
+            <i class="bi bi-plus me-1"></i>Add notes
+          <% end %>
+        <% end %>
       <% end %>
     </div>
-    <% if workout.in_progress? %>
+    <% if workout.in_progress? && (workout_exercise.persistent_notes.present? || workout_exercise.session_notes.present?) %>
       <%= link_to edit_workout_workout_exercise_path(workout, workout_exercise),
           class: "btn btn-sm btn-link text-muted p-0 ms-2",
           data: { turbo_stream: true },
@@ -24,4 +33,4 @@
       <% end %>
     <% end %>
   </div>
-</div>
+</div><% end %>

@@ -1,12 +1,12 @@
 <% is_volume_pr = workout_exercise.volume_pr? %>
 <div class="workout-exercise <%= 'volume-pr' if is_volume_pr %>" id="<%= dom_id(workout_exercise) %>">
   <div class="card-header d-flex justify-content-between align-items-center">
-    <div>
+    <div class="min-w-0" style="min-width: 0;">
       <% if superset_label %>
-        <span class="badge bg-secondary me-2"><%= superset_label %></span>
+        <span class="badge bg-secondary me-1"><%= superset_label %></span>
       <% end %>
       <% if is_volume_pr %>
-        <span class="badge bg-warning me-2"><i class="bi bi-trophy-fill"></i> Volume PR</span>
+        <span class="badge bg-warning me-1"><i class="bi bi-trophy-fill"></i> Vol PR</span>
       <% end %>
       <%= link_to history_exercise_path(workout_exercise.exercise), class: "text-decoration-none", data: { turbo_frame: "_top" } do %>
         <strong><%= workout_exercise.exercise.name %></strong>
@@ -17,31 +17,38 @@
           <span data-controller="photo-preview"
                 data-action="click->photo-preview#show:stop"
                 data-photo-preview-urls-value='<%= workout_exercise.machine.photos.map { |photo| url_for(photo.variant(resize_to_limit: [800, 800])) }.to_json %>'
-                class="d-inline-block ms-2 position-relative"
-                style="cursor: pointer; vertical-align: middle;">
+                class="d-inline-block ms-1"
+                style="cursor: pointer; vertical-align: middle;"
+                title="<%= workout_exercise.machine.name %>">
             <%= image_tag workout_exercise.machine.photos.first.variant(resize_to_limit: [32, 32]),
                 class: "rounded",
-                style: "width: 32px; height: 32px; object-fit: cover;",
+                style: "width: 24px; height: 24px; object-fit: cover;",
                 alt: workout_exercise.machine.name %>
-            <% if workout_exercise.machine.photos.count > 1 %>
-              <span class="badge bg-dark position-absolute" style="font-size: 0.5rem; top: -2px; right: -2px; padding: 1px 3px;">
-                <%= workout_exercise.machine.photos.count %>
-              </span>
-            <% end %>
           </span>
+        <% else %>
+          <small class="text-muted ms-1" title="<%= workout_exercise.machine.name %>">
+            <i class="bi bi-gear"></i>
+            <span class="d-none d-sm-inline"><%= workout_exercise.machine.name %></span>
+          </small>
         <% end %>
-        <small class="text-muted ms-2">
-          <i class="bi bi-gear me-1"></i><%= workout_exercise.machine.name %>
-        </small>
       <% end %>
     </div>
-    <%= button_to workout_workout_exercise_path(workout, workout_exercise),
-        method: :delete,
-        class: "btn btn-sm btn-outline-danger",
-        data: { turbo_confirm: "Remove this exercise? All sets will be deleted." },
-        form: { data: { turbo_frame: "_top" } } do %>
-      <i class="bi bi-x-lg"></i>
-    <% end %>
+    <div class="dropdown flex-shrink-0">
+      <button class="btn btn-sm btn-link text-muted p-1" type="button" data-bs-toggle="dropdown">
+        <i class="bi bi-three-dots-vertical"></i>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end">
+        <li>
+          <%= button_to workout_workout_exercise_path(workout, workout_exercise),
+              method: :delete,
+              class: "dropdown-item text-danger",
+              data: { turbo_confirm: "Remove this exercise? All sets will be deleted." },
+              form: { data: { turbo_frame: "_top" } } do %>
+            <i class="bi bi-trash me-2"></i>Remove Exercise
+          <% end %>
+        </li>
+      </ul>
+    </div>
   </div>
 
   <div class="card-body py-2">
@@ -59,20 +66,17 @@
 
     <!-- Sets Table -->
     <div class="sets-list" id="sets_<%= workout_exercise.id %>">
-      <div class="row small text-muted mb-1 d-none d-sm-flex">
+      <div class="row small text-muted mb-1">
         <div class="col-1 text-center">#</div>
         <div class="col-3 text-center">Weight</div>
-        <div class="col-2 text-center">
+        <div class="col-3 text-center">
           <%= case workout_exercise.exercise.exercise_type
               when 'reps' then 'Reps'
               when 'time' then 'Time'
               when 'distance' then 'Distance'
               end %>
         </div>
-        <div class="col-2 text-center">RPE/RIR</div>
-        <div class="col-2 text-center">
-          <% if workout.in_progress? %>+1 Rep<% end %>
-        </div>
+        <div class="col-3 text-center">RPE/RIR</div>
         <div class="col-2"></div>
       </div>
 

@@ -4,10 +4,9 @@
 <% if workout_exercise.exercise.has_weight? %>
   <% suggester = ProgressionSuggester.new(workout_exercise: workout_exercise, user: Current.user) %>
   <% if (suggestion_msg = suggester.suggestion_message) %>
-    <div class="alert alert-success alert-dismissible fade show small mt-2 mb-2" role="alert">
-      <i class="bi bi-arrow-up-circle-fill me-1"></i>
-      <%= suggestion_msg %>
-      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div class="d-flex align-items-center gap-2 mt-2 mb-2 small text-success">
+      <i class="bi bi-arrow-up-circle-fill"></i>
+      <span><%= suggestion_msg %></span>
     </div>
   <% end %>
 <% end %>

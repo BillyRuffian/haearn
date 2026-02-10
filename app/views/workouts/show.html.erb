@@ -7,43 +7,56 @@
 
 <div class="container py-4" <% if @workout.in_progress? %>data-controller="sticky-timer" data-sticky-timer-started-at-value="<%= @workout.started_at.iso8601 %>"<% end %>>
   <!-- Workout Header -->
-  <div class="d-flex justify-content-between align-items-start mb-4">
-    <div>
-      <h1 class="display-heading mb-1">
+  <div class="mb-4">
+    <div class="d-flex justify-content-between align-items-start">
+      <div>
+        <h1 class="display-heading mb-1">
+          <% if @workout.in_progress? %>
+            <i class="bi bi-lightning-charge text-warning me-2"></i>Active Workout
+          <% else %>
+            <i class="bi bi-calendar-check me-2"></i>Workout
+          <% end %>
+        </h1>
+        <p class="text-muted mb-0">
+          <i class="bi bi-calendar3 me-1"></i><%= @workout.started_at.strftime("%A, %B %-d at %-I:%M %p") %>
+          <% if @workout.gym %>
+            <span class="ms-2"><i class="bi bi-building me-1"></i><%= @workout.gym.name %></span>
+          <% end %>
+        </p>
+      </div>
+      <div class="text-end d-none d-sm-block">
         <% if @workout.in_progress? %>
-          <i class="bi bi-lightning-charge text-warning me-2"></i>Active Workout
+          <div class="workout-timer h4 mb-0" data-sticky-timer-target="main">
+            <span data-timer-display><%= @workout.duration_minutes %></span> min
+          </div>
         <% else %>
-          <i class="bi bi-calendar-check me-2"></i>Workout
+          <div class="h4 mb-0"><%= @workout.duration_minutes %> min</div>
         <% end %>
-      </h1>
-      <p class="text-muted mb-0">
-        <i class="bi bi-calendar3 me-1"></i><%= @workout.started_at.strftime("%A, %B %-d at %-I:%M %p") %>
-        <% if @workout.gym %>
-          <span class="ms-2"><i class="bi bi-building me-1"></i><%= @workout.gym.name %></span>
-        <% end %>
-      </p>
+      </div>
     </div>
-    <div class="text-end">
-      <% if @workout.in_progress? %>
-        <div class="workout-timer h4 mb-2" data-sticky-timer-target="main">
+
+    <% if @workout.in_progress? %>
+      <%# Mobile: timer + actions in a row below the title %>
+      <div class="d-flex align-items-center gap-2 mt-3">
+        <div class="workout-timer h5 mb-0 d-sm-none" data-sticky-timer-target="main">
           <span data-timer-display><%= @workout.duration_minutes %></span> min
         </div>
-        <div class="d-flex gap-2 justify-content-end">
+        <div class="d-flex gap-2 ms-auto">
           <%= button_to workout_path(@workout), 
               method: :delete, 
-              class: "btn btn-outline-danger",
+              class: "btn btn-outline-danger btn-sm",
               data: { turbo_confirm: "Discard this workout? All sets will be deleted. This cannot be undone." } do %>
             <i class="bi bi-trash me-1"></i>Discard
           <% end %>
-          <%= button_to "Finish Workout", finish_workout_path(@workout), 
+          <%= button_to finish_workout_path(@workout), 
               method: :patch, 
-              class: "btn btn-success",
-              data: { turbo_confirm: "Finish this workout?" } %>
+              class: "btn btn-success btn-sm",
+              data: { turbo_confirm: "Finish this workout?" } do %>
+            <i class="bi bi-check-lg me-1"></i>Finish
+          <% end %>
         </div>
-      <% else %>
-        <div class="h4 mb-0"><%= @workout.duration_minutes %> min</div>
-      <% end %>
-    </div>
+      </div>
+    <% end %>
   </div>
 
   <%# Action buttons for completed workouts - displayed as a clean toolbar below the header %>
@@ -112,17 +125,23 @@
           <% else %>
             <div class="d-flex justify-content-between align-items-start">
               <div>
-                <small class="text-muted d-block mb-1">Session Notes</small>
                 <% if @workout.notes.present? %>
+                  <small class="text-muted d-block mb-1">Session Notes</small>
                   <p class="mb-0"><%= @workout.notes %></p>
-                <% else %>
-                  <p class="text-muted mb-0 fst-italic">No notes</p>
+                <% elsif @workout.in_progress? %>
+                  <%= link_to workout_path(@workout, editing_notes: true), 
+                      class: "text-muted small text-decoration-none",
+                      data: { turbo_frame: "workout_notes" } do %>
+                    <i class="bi bi-plus me-1"></i>Add session notes
+                  <% end %>
                 <% end %>
               </div>
-              <%= link_to workout_path(@workout, editing_notes: true), 
-                  class: "btn btn-sm btn-outline-secondary",
-                  data: { turbo_frame: "workout_notes" } do %>
-                <i class="bi bi-pencil"></i>
+              <% if @workout.notes.present? %>
+                <%= link_to workout_path(@workout, editing_notes: true), 
+                    class: "btn btn-sm btn-outline-secondary",
+                    data: { turbo_frame: "workout_notes" } do %>
+                  <i class="bi bi-pencil"></i>
+                <% end %>
               <% end %>
             </div>
           <% end %>
@@ -184,14 +203,23 @@
     <% end %>
   </div>
 
-  <!-- Add Exercise Button -->
-  <div class="d-grid mt-4">
+  <!-- Add Exercise Button (non-active: inline, active: FAB) -->
+  <% if @workout.in_progress? %>
     <%= link_to add_exercise_workout_path(@workout), 
-        class: "btn btn-outline-primary btn-lg",
-        data: { turbo_frame: "modal" } do %>
-      <i class="bi bi-plus-lg me-2"></i>Add Exercise
+        class: "btn btn-primary workout-fab shadow",
+        data: { turbo_frame: "modal" },
+        title: "Add Exercise" do %>
+      <i class="bi bi-plus-lg"></i>
     <% end %>
-  </div>
+  <% else %>
+    <div class="d-grid mt-4">
+      <%= link_to add_exercise_workout_path(@workout), 
+          class: "btn btn-outline-primary btn-lg",
+          data: { turbo_frame: "modal" } do %>
+        <i class="bi bi-plus-lg me-2"></i>Add Exercise
+      <% end %>
+    </div>
+  <% end %>
 </div>
 
 <!-- Modal Frame for Exercise Picker -->

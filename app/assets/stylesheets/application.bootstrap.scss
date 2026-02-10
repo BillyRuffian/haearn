@@ -755,6 +755,32 @@ select option:checked {
   }
 }
 
+// Floating Action Button for Add Exercise
+.workout-fab {
+  position: fixed;
+  bottom: calc(140px + env(safe-area-inset-bottom)); // Above rest timer + bottom nav
+  right: 1.25rem;
+  z-index: 1039;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover, &:active {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+  }
+
+  @media (min-width: 992px) {
+    bottom: 100px; // No bottom nav on desktop
+  }
+}
+
 // Rest Timer Footer Bar UI
 .rest-timer-footer {
   position: fixed;
