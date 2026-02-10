@@ -48,6 +48,68 @@
       </div>
     </div>
 
+    <!-- Training Intelligence Alerts -->
+    <% if @readiness_alerts.any? || @fatigue_data.any? %>
+    <div class="row mt-4">
+      <div class="col-12">
+        <!-- Progression Readiness Alerts -->
+        <% @readiness_alerts.each do |alert| %>
+          <div class="alert alert-success alert-dismissible fade show mb-3">
+            <div class="d-flex align-items-start">
+              <i class="bi bi-trophy-fill me-3 mt-1" style="font-size: 1.5rem;"></i>
+              <div class="flex-fill">
+                <h6 class="mb-1 fw-bold">Ready to Progress!</h6>
+                <p class="mb-2"><%= alert[:message] %></p>
+                <div class="d-flex gap-3 small text-white-50">
+                  <span><i class="bi bi-check-circle me-1"></i> <%= pluralize(alert[:readiness][:sessions_analyzed], 'session') %> analyzed</span>
+                  <span><i class="bi bi-arrow-repeat me-1"></i> Avg <%= alert[:readiness][:avg_reps].round(1) %> reps</span>
+                  <span><i class="bi bi-bullseye me-1"></i> <%= alert[:readiness][:consistency_rate] * 100 %>% consistency</span>
+                </div>
+                <div class="mt-2">
+                  <% exercise_path_params = { id: alert[:exercise].id } %>
+                  <%= link_to "View History", exercise_path(alert[:exercise], **exercise_path_params), class: "btn btn-sm btn-success" %>
+                </div>
+              </div>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+            </div>
+          </div>
+        <% end %>
+
+        <!-- Fatigue Indicators (Active Workout Only) -->
+        <% @fatigue_data.each do |data| %>
+          <% analysis = data[:analysis] %>
+          <% we = data[:workout_exercise] %>
+          <div class="alert alert-<%= data[:color] %> alert-dismissible fade show mb-3">
+            <div class="d-flex align-items-start">
+              <i class="bi bi-activity me-3 mt-1" style="font-size: 1.5rem;"></i>
+              <div class="flex-fill">
+                <h6 class="mb-1 fw-bold">
+                  <%= we.exercise.name %><% if we.machine %> (<%= we.machine.name %>)<% end %>
+                </h6>
+                <p class="mb-2"><%= data[:message] %></p>
+                <div class="d-flex gap-3 small text-white-50">
+                  <span><i class="bi bi-clipboard-data me-1"></i> <%= pluralize(analysis[:sessions_analyzed], 'session') %> baseline</span>
+                  <span>
+                    <i class="bi bi-arrow-down-up me-1"></i>
+                    Current: <%= WeightConverter.kg_to_user_unit(analysis[:current_performance][:volume_kg], Current.user) %> vol
+                  </span>
+                  <span>
+                    <i class="bi bi-clock-history me-1"></i>
+                    Baseline: <%= WeightConverter.kg_to_user_unit(analysis[:baseline_performance][:volume_kg], Current.user) %> vol
+                  </span>
+                  <% if analysis[:current_performance][:avg_rpe] %>
+                    <span><i class="bi bi-speedometer2 me-1"></i> RPE <%= analysis[:current_performance][:avg_rpe].round(1) %></span>
+                  <% end %>
+                </div>
+              </div>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    <% end %>
+
     <!-- Stats -->
     <div class="row g-4">
       <div class="col-md-4">

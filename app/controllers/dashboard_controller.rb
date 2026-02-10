@@ -39,6 +39,55 @@ class DashboardController < ApplicationController
       .order(finished_at: :desc)
       .limit(5)
 
+    # Fatigue Analysis (active workout only)
+    @fatigue_data = []
+    if Current.user.active_workout
+      Current.user.active_workout.workout_exercises.includes(:exercise, :machine).each do |we|
+        next if we.sets.working.empty? # Skip if no working sets yet
+
+        analyzer = FatigueAnalyzer.new(workout_exercise: we, user: Current.user)
+        analysis = analyzer.analyze
+        next unless analysis # Skip if insufficient data
+
+        @fatigue_data << {
+          workout_exercise: we,
+          analysis: analysis,
+          message: analyzer.status_message,
+          color: analyzer.status_color
+        }
+      end
+    end
+
+    # Progression Readiness Checks (all recently trained exercises)
+    @readiness_alerts = []
+    recent_exercise_machine_combos = Current.user.workouts
+      .where.not(finished_at: nil)
+      .where('finished_at >= ?', 30.days.ago)
+      .joins(workout_exercises: :exercise)
+      .pluck('DISTINCT exercises.id, workout_exercises.machine_id')
+      .first(10) # Limit to 10 most recent exercise combinations
+
+    recent_exercise_machine_combos.each do |exercise_id, machine_id|
+      exercise = Exercise.find(exercise_id)
+      machine = machine_id ? Machine.find(machine_id) : nil
+
+      checker = ProgressionReadinessChecker.new(
+        exercise: exercise,
+        user: Current.user,
+        machine: machine
+      )
+
+      readiness = checker.check_readiness
+      next unless readiness
+
+      @readiness_alerts << {
+        exercise: exercise,
+        machine: machine,
+        readiness: readiness,
+        message: checker.readiness_message
+      }
+    end
+
     # Workout frequency data for chart (last 8 weeks)
     @workout_frequency = (0..7).map do |weeks_ago|
       week_start = weeks_ago.weeks.ago.beginning_of_week

@@ -127,6 +127,46 @@
     </div>
   <% end %>
 
+  <!-- Fatigue Indicators (Active Workout Only) -->
+  <% if @workout.in_progress? && @fatigue_data.any? %>
+    <div class="card mb-4">
+      <div class="card-body">
+        <h6 class="text-uppercase text-muted mb-3" style="letter-spacing: 0.1em; font-size: 0.85rem;">
+          <i class="bi bi-activity me-2"></i>Performance Analysis
+        </h6>
+        <% @fatigue_data.each_with_index do |data, index| %>
+          <% analysis = data[:analysis] %>
+          <% we = data[:workout_exercise] %>
+          <div class="alert alert-<%= data[:color] %> mb-<%= index == @fatigue_data.count - 1 ? '0' : '2' %>">
+            <div class="d-flex align-items-start">
+              <div class="flex-fill">
+                <h6 class="mb-1 fw-bold">
+                  <%= we.exercise.name %><% if we.machine %> (<%= we.machine.name %>)<% end %>
+                </h6>
+                <p class="mb-2 small"><%= data[:message] %></p>
+                <div class="d-flex gap-2 flex-wrap" style="font-size: 0.75rem; opacity: 0.8;">
+                  <span>
+                    <i class="bi bi-clipboard-data me-1"></i>
+                    <%= pluralize(analysis[:sessions_analyzed], 'session') %> baseline
+                  </span>
+                  <span>
+                    Current: <%= WeightConverter.kg_to_user_unit(analysis[:current_performance][:volume_kg], Current.user).round %> vol
+                  </span>
+                  <span>
+                    Baseline: <%= WeightConverter.kg_to_user_unit(analysis[:baseline_performance][:volume_kg], Current.user).round %> vol
+                  </span>
+                  <% if analysis[:current_performance][:avg_rpe] %>
+                    <span>RPE <%= analysis[:current_performance][:avg_rpe].round(1) %></span>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
   <!-- Exercise Blocks -->
   <div id="workout_blocks">
     <%= turbo_frame_tag "workout_exercises", 
