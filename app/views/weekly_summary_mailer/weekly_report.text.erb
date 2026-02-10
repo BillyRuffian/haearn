@@ -1,0 +1,108 @@
+═══════════════════════════════════════════════════════
+💪 HAEARN - WEEKLY WORKOUT SUMMARY
+═══════════════════════════════════════════════════════
+
+Hey <%= @user.name %>,
+
+Here's your training summary for <%= @summary[:week_label] %>.
+<% if @summary[:vs_average] %>Let's see how you stacked up against your average!<% end %>
+
+<% if @summary[:this_week][:workout_count] > 0 %>
+───────────────────────────────────────────────────────
+📊 THIS WEEK'S STATS
+───────────────────────────────────────────────────────
+
+WORKOUTS: <%= @summary[:this_week][:workout_count] %>
+<% if @summary[:vs_average] %>
+<% diff = @summary[:vs_average][:workout_count_diff] %>
+<% pct = @summary[:vs_average][:workout_count_pct] %>
+  <%= diff >= 0 ? '↑' : '↓' %> <%= diff.abs.round(1) %> (<%= pct >= 0 ? '+' : '' %><%= pct %>%) vs average
+<% end %>
+
+TOTAL VOLUME: <%= number_with_delimiter(WeightConverter.kg_to_user_unit(@summary[:this_week][:total_volume_kg], @user).round) %> <%= @user.preferred_unit %>
+<% if @summary[:vs_average] %>
+<% diff = @summary[:vs_average][:volume_diff_kg] %>
+<% pct = @summary[:vs_average][:volume_pct] %>
+  <%= diff >= 0 ? '↑' : '↓' %> <%= number_with_delimiter(WeightConverter.kg_to_user_unit(diff.abs, @user).round) %> <%= @user.preferred_unit %> (<%= pct >= 0 ? '+' : '' %><%= pct %>%) vs average
+<% end %>
+
+TOTAL SETS: <%= @summary[:this_week][:total_sets] %>
+  <%= number_with_delimiter(@summary[:this_week][:total_reps]) %> total reps
+<% if @summary[:vs_average] %>
+<% diff = @summary[:vs_average][:sets_diff] %>
+<% pct = @summary[:vs_average][:sets_pct] %>
+  <%= diff >= 0 ? '↑' : '↓' %> <%= diff.abs %> sets (<%= pct >= 0 ? '+' : '' %><%= pct %>%) vs average
+<% end %>
+
+TRAINING TIME: <%= (@summary[:this_week][:total_duration_minutes] / 60.0).round(1) %> hours
+  <%= @summary[:this_week][:unique_exercises] %> different exercises
+
+<% if @summary[:highlights].any? %>
+───────────────────────────────────────────────────────
+🌟 HIGHLIGHTS
+───────────────────────────────────────────────────────
+
+<% @summary[:highlights].each do |highlight| %>
+• <%= highlight[:message] %>
+<% end %>
+
+<% end %>
+<% if @summary[:new_prs].any? %>
+───────────────────────────────────────────────────────
+🏆 NEW PERSONAL RECORDS
+───────────────────────────────────────────────────────
+
+<% @summary[:new_prs].each do |pr| %>
+• <%= pr[:exercise_name] %>
+  <%= number_with_delimiter(WeightConverter.kg_to_user_unit(pr[:value_kg], @user).round) %> <%= @user.preferred_unit %> × <%= pr[:reps] %> reps
+<% end %>
+
+<% end %>
+<% if @summary[:top_exercises].any? %>
+───────────────────────────────────────────────────────
+📊 TOP EXERCISES BY VOLUME
+───────────────────────────────────────────────────────
+
+<% @summary[:top_exercises].each_with_index do |exercise, index| %>
+<%= index + 1 %>. <%= exercise[:exercise_name] %>
+   <%= number_with_delimiter(WeightConverter.kg_to_user_unit(exercise[:volume_kg], @user).round) %> <%= @user.preferred_unit %> total (<%= exercise[:set_count] %> sets)
+<% end %>
+
+<% end %>
+<% if @summary[:consistency] %>
+───────────────────────────────────────────────────────
+📅 CONSISTENCY
+───────────────────────────────────────────────────────
+
+<% streak = @summary[:consistency][:current_streak] %>
+<% if streak > 0 %>
+Current Streak: <%= streak %> weeks! <%= streak >= 4 ? '🔥' : '' %>
+<% else %>
+Time to start a new streak! 💪
+<% end %>
+
+Trained <%= @summary[:consistency][:weeks_trained_last_4] %> of the last 4 weeks
+
+<% end %>
+═══════════════════════════════════════════════════════
+
+View your full dashboard: <%= root_url %>
+
+<% else %>
+───────────────────────────────────────────────────────
+😴 NO WORKOUTS THIS WEEK
+───────────────────────────────────────────────────────
+
+No workouts logged this week.
+Time to get back to the iron!
+
+Start a workout: <%= new_workout_url %>
+
+═══════════════════════════════════════════════════════
+<% end %>
+
+Haearn - Hardcore Weightlifting Tracking
+
+Manage your email preferences: <%= settings_url %>
+
+You're receiving this because you opted in to weekly summaries.

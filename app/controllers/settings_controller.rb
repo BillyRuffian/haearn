@@ -91,7 +91,7 @@ class SettingsController < ApplicationController
   end
 
   def user_params
-    params.require(:user).permit(:name, :email_address, :preferred_unit, :default_rest_seconds)
+    params.require(:user).permit(:name, :email_address, :preferred_unit, :default_rest_seconds, :weekly_summary_email)
   end
 
   def password_params

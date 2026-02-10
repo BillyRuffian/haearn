@@ -8,6 +8,7 @@
 #  name                 :string
 #  password_digest      :string           not null
 #  preferred_unit       :string
+#  weekly_summary_email :boolean          default(FALSE), not null
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
 #  default_gym_id       :integer

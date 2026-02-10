@@ -104,6 +104,20 @@
               <div class="form-text">Default rest time between sets (new workout blocks will use this)</div>
             </div>
 
+            <div class="mb-4">
+              <div class="form-check form-switch">
+                <%= form.check_box :weekly_summary_email, 
+                    class: "form-check-input", 
+                    id: "user_weekly_summary_email" %>
+                <%= form.label :weekly_summary_email, class: "form-check-label" do %>
+                  <strong>Weekly Email Summary</strong>
+                  <div class="form-text mt-1">
+                    Receive a weekly workout summary every Sunday comparing your performance to your average
+                  </div>
+                <% end %>
+              </div>
+            </div>
+
             <div class="text-end">
               <%= form.submit "Save Preferences", class: "btn btn-primary" %>
             </div>
