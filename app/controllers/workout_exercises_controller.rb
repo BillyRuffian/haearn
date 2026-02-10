@@ -106,6 +106,74 @@ class WorkoutExercisesController < ApplicationController
     redirect_to @workout, notice: 'Exercise moved.'
   end
 
+  # POST /workouts/:workout_id/workout_exercises/:id/generate_warmups
+  # Auto-generates warmup sets based on target working weight
+  def generate_warmups
+    working_weight_kg = params[:working_weight_kg].to_f
+
+    # Convert from user's unit/machine display unit to kg if needed
+    if @workout_exercise.machine.present?
+      working_weight_kg = WeightConverter.machine_to_kg(
+        params[:working_weight].to_f,
+        @workout_exercise.machine
+      )
+    elsif params[:working_weight].present?
+      working_weight_kg = WeightConverter.to_kg(
+        params[:working_weight].to_f,
+        Current.user.preferred_unit
+      )
+    end
+
+    # Generate and create warmup sets
+    created_sets = WarmupGenerator.create_for(
+      workout_exercise: @workout_exercise,
+      working_weight_kg: working_weight_kg
+    )
+
+    respond_to do |format|
+      if created_sets.any?
+        @workout.reload
+        format.turbo_stream do
+          render turbo_stream: [
+            # Append each warmup set
+            *created_sets.map.with_index do |set, idx|
+              turbo_stream.append(
+                "sets_list_#{@workout_exercise.id}",
+                partial: 'exercise_sets/exercise_set',
+                locals: {
+                  set: set,
+                  workout_exercise: @workout_exercise,
+                  workout: @workout,
+                  index: idx + 1
+                }
+              )
+            end,
+            # Update workout stats
+            turbo_stream.replace(
+              'workout_stats',
+              partial: 'workouts/stats',
+              locals: { workout: @workout }
+            ),
+            # Hide the warmup generator form
+            turbo_stream.update(
+              "warmup_generator_#{@workout_exercise.id}",
+              html: ''
+            )
+          ]
+        end
+        format.html { redirect_to @workout, notice: "#{created_sets.count} warmup sets added." }
+      else
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.update(
+            "warmup_generator_#{@workout_exercise.id}",
+            html: "<div class='alert alert-warning small'>Could not generate warmups. Working weight may be too light.</div>"
+          )
+        end
+        format.html { redirect_to @workout, alert: 'Could not generate warmups.' }
+      end
+    end
+  end
+
   private
 
   def set_workout
