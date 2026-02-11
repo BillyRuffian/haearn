@@ -113,6 +113,7 @@ export default class extends Controller {
     this.saveTimerState()
     this.showTimer()
     this.startInterval()
+    this.warmUpAudio()
   }
 
   stop() {
@@ -224,15 +225,30 @@ export default class extends Controller {
     }
   }
 
-  playAlert() {
-    // Create alert beeps using Web Audio API
+  // Initialize audio context during user gesture (start/setLogged) so it's
+  // ready to play when the timer completes (which is not a user gesture)
+  warmUpAudio() {
     try {
-      // Create or reuse audio context
+      if (!this.audioContext) {
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
+      }
+      if (this.audioContext.state === "suspended") {
+        this.audioContext.resume()
+      }
+    } catch (e) {
+      console.log("Audio context init failed:", e)
+    }
+  }
+
+  playAlert() {
+    // Play alert beeps using Web Audio API
+    try {
+      // Ensure audio context exists (warmUpAudio should have created it)
       if (!this.audioContext) {
         this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
       }
 
-      // Resume audio context if it was suspended (browser autoplay policy)
+      // Last-resort resume attempt
       if (this.audioContext.state === "suspended") {
         this.audioContext.resume()
       }
@@ -303,6 +319,7 @@ export default class extends Controller {
   setLogged() {
     // Stop any existing timer and start fresh
     this.stop()
+    this.warmUpAudio()
     this.start()
   }
 }

@@ -67,8 +67,15 @@
       </div>
     </div>
 
-    <%# Row 2: Secondary fields - RPE, RIR, Warmup, Submit %>
+    <%# Row 2: Secondary fields - Warmup, RPE, RIR, Submit %>
     <div class="row g-2 align-items-center mt-1">
+      <div class="col-auto">
+        <label class="form-label small text-muted mb-1">Warmup</label>
+        <div class="form-check d-flex justify-content-center">
+          <%= form.check_box :is_warmup, class: "form-check-input", title: "Warmup set" %>
+        </div>
+      </div>
+
       <div class="col">
         <label class="form-label small text-muted mb-1" title="Rate of Perceived Exertion (1-10)">RPE</label>
         <%= form.number_field :rpe,
@@ -92,13 +99,6 @@
             max: 10,
             inputmode: "numeric",
             onfocus: "this.select()" %>
-      </div>
-
-      <div class="col-auto">
-        <div class="form-check mt-3">
-          <%= form.check_box :is_warmup, class: "form-check-input" %>
-          <%= form.label :is_warmup, "W/U", class: "form-check-label small", title: "Warmup set" %>
-        </div>
       </div>
 
       <div class="col-auto">

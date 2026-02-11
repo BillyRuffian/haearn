@@ -18,7 +18,7 @@ class ExerciseSetsController < ApplicationController
         index = @workout_exercise.exercise_sets.count
         # Return multiple Turbo Streams: append new set, reset form, update stats
         format.turbo_stream do
-          render turbo_stream: [
+          streams = [
             turbo_stream.append("sets_list_#{@workout_exercise.id}",
               partial: 'exercise_sets/exercise_set',
               locals: { set: @exercise_set, workout_exercise: @workout_exercise, workout: @workout, index: index }),
@@ -29,6 +29,13 @@ class ExerciseSetsController < ApplicationController
               partial: 'workouts/stats',
               locals: { workout: @workout })
           ]
+
+          # Hide warmup generator after first set is logged
+          if @workout_exercise.exercise_sets.count == 1
+            streams << turbo_stream.remove("warmup_generator_#{@workout_exercise.id}")
+          end
+
+          render turbo_stream: streams
         end
         format.html { redirect_to workout_path(@workout) }
       else

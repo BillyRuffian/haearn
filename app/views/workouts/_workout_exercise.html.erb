@@ -88,7 +88,7 @@
     </div>
 
     <!-- Warmup Generator -->
-    <% if workout.in_progress? && workout_exercise.exercise.has_weight? && workout_exercise.exercise_sets.working.empty? %>
+    <% if workout.in_progress? && workout_exercise.exercise.has_weight? && workout_exercise.exercise_sets.empty? %>
       <details id="warmup_generator_<%= workout_exercise.id %>" class="warmup-generator-section mb-2">
         <summary class="btn btn-sm btn-outline-warning w-100 text-start">
           <i class="bi bi-fire me-1"></i>Generate Warmups
