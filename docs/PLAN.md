@@ -625,6 +625,40 @@ $text-muted: #6c757d;
 
 ---
 
+## Phase 11: Workflow & Convenience
+
+### 11.1 Quick-Swap Exercise Mid-Workout
+- [ ] "Swap" action on WorkoutExercise opens exercise/machine picker
+- [ ] Replaces exercise_id/machine_id in-place, preserving block position and logged sets
+- [ ] Common scenario: equipment is occupied, swap to an alternative fast
+
+### 11.2 Auto-Fill Weight From Last Session
+- [ ] Pre-fill weight (and reps) inputs from the corresponding set of the previous session
+- [ ] "Copy last" button on set form for one-tap population
+- [ ] Progression suggester can override with its recommended weight
+
+### 11.3 Workout Pinning / Favorites on Dashboard
+- [ ] Pin/favorite workouts or templates for quick access
+- [ ] Dashboard shows pinned workouts with one-tap "Start this again"
+- [ ] Faster than scrolling history to find and copy a routine
+
+### 11.4 Calendar View for Workout History
+- [ ] Monthly calendar grid with colored dots on training days
+- [ ] Clickable days to filter/view that day's workout(s)
+- [ ] Complements existing streak and frequency charts for spotting consistency gaps
+
+### 11.5 Per-Block Rest Timer Configuration
+- [ ] Expose rest time adjuster on each block header during active workout
+- [ ] Compound lifts need 3-5 min, accessories need 60-90s
+- [ ] Block already has `rest_seconds` in schema — surface it in the UI
+
+### 11.6 Prioritized Existing Items
+- [ ] **Data export (CSV/JSON)** — Routes exist but unimplemented. Table-stakes for user trust and data portability.
+- [ ] **AMRAP sets** — Boolean flag on ExerciseSet + badge. Many popular programs (5/3/1, nSuns, GZCLP) rely on AMRAP final sets.
+- [ ] **Percentage-based programming** — With e1RM tracking already built, let users input "5x5 @ 80%" and auto-calculate working weight.
+
+---
+
 ## Notes for Future Development
 
 - Barcode scanning for gym machines?
