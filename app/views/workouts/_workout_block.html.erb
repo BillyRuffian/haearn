@@ -1,6 +1,6 @@
 <div class="card mb-3 workout-block" id="<%= dom_id(block) %>" data-block-id="<%= block.id %>">
   <% if workout.in_progress? %>
-    <div class="drag-handle d-flex justify-content-between align-items-center px-3 py-2 border-bottom bg-dark bg-opacity-25" style="cursor: grab; touch-action: none;">
+    <div class="drag-handle d-flex justify-content-between align-items-center px-3 py-2 border-bottom bg-dark bg-opacity-25">
       <div class="d-flex align-items-center">
         <i class="bi bi-grip-vertical text-muted me-2"></i>
         <% if block.superset? %>

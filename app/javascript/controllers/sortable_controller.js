@@ -19,6 +19,8 @@ export default class extends Controller {
       dragClass: "sortable-drag",
       group: this.groupValue,
       forceFallback: true, // Better mobile support
+      delay: 300, // Long press before drag starts
+      delayOnTouchOnly: true, // Only delay on touch, not mouse
       onEnd: this.onEnd.bind(this)
     })
   }
