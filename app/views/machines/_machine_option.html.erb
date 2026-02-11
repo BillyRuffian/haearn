@@ -3,23 +3,6 @@
       method: :post,
       class: "list-group-item list-group-item-action d-flex align-items-center gap-3",
       data: { turbo_frame: "_top" } do %>
-    <% if machine.photos.attached? %>
-      <div class="flex-shrink-0 position-relative"
-           data-controller="photo-preview"
-           data-action="click->photo-preview#show:stop"
-           data-photo-preview-urls-value='<%= machine.photos.map { |photo| url_for(photo.variant(resize_to_limit: [800, 800])) }.to_json %>'
-           style="cursor: pointer;">
-        <%= image_tag machine.photos.first.variant(resize_to_limit: [60, 60]),
-            class: "rounded",
-            style: "width: 60px; height: 60px; object-fit: cover;",
-            alt: machine.name %>
-        <% if machine.photos.count > 1 %>
-          <span class="badge badge-sm bg-dark position-absolute" style="top: 2px; left: 2px;">
-            <%= machine.photos.count %>
-          </span>
-        <% end %>
-      </div>
-    <% end %>
     <div class="flex-grow-1">
       <%= equipment_icon(machine.equipment_type) %>
       <strong class="ms-2"><%= machine.name %></strong>
@@ -27,6 +10,23 @@
         <small class="text-muted d-block ms-4"><%= truncate(machine.notes, length: 40) %></small>
       <% end %>
     </div>
+    <% if machine.photos.attached? %>
+      <div class="flex-shrink-0 position-relative"
+           data-controller="photo-preview"
+           data-action="click->photo-preview#show:stop"
+           data-photo-preview-urls-value='<%= machine.photos.map { |photo| url_for(photo.variant(resize_to_limit: [800, 800])) }.to_json %>'
+           style="cursor: pointer;">
+        <%= image_tag machine.photos.first.variant(resize_to_limit: [40, 40]),
+            class: "rounded",
+            style: "width: 40px; height: 40px; object-fit: cover;",
+            alt: machine.name %>
+        <% if machine.photos.count > 1 %>
+          <span class="badge badge-sm bg-dark position-absolute" style="top: 0; left: 0;">
+            <%= machine.photos.count %>
+          </span>
+        <% end %>
+      </div>
+    <% end %>
     <span class="badge bg-dark"><%= machine.equipment_type.humanize %></span>
   <% end %>
 </div>

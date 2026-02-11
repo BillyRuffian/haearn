@@ -66,8 +66,7 @@
                   <span><i class="bi bi-bullseye me-1"></i> <%= alert[:readiness][:consistency_rate] * 100 %>% consistency</span>
                 </div>
                 <div class="mt-2">
-                  <% exercise_path_params = { id: alert[:exercise].id } %>
-                  <%= link_to "View History", exercise_path(alert[:exercise], **exercise_path_params), class: "btn btn-sm btn-success" %>
+                  <%= link_to "View History", history_exercise_path(alert[:exercise], machine_id: alert[:machine]&.id), class: "btn btn-sm btn-success" %>
                 </div>
               </div>
               <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
@@ -842,19 +841,9 @@
                           <%= workout.duration_minutes || 0 %> min &middot;
                           <%= pluralize(workout.workout_exercises.count, "exercise") %>
                         </small>
-                        <% muscle_groups = workout.muscle_groups_worked %>
-                        <% if muscle_groups.any? %>
-                          <div class="mt-2">
-                            <% muscle_groups.first(5).each do |muscle_group| %>
-                              <span class="badge badge-sm me-1" style="background-color: <%= Exercise::MUSCLE_GROUP_COLORS[muscle_group] %>;">
-                                <%= Exercise::MUSCLE_GROUP_LABELS[muscle_group] %>
-                              </span>
-                            <% end %>
-                            <% if muscle_groups.length > 5 %>
-                              <span class="badge badge-sm bg-secondary">+<%= muscle_groups.length - 5 %></span>
-                            <% end %>
-                          </div>
-                        <% end %>
+                        <div class="mt-2">
+                          <%= render "workouts/muscle_group_badges", workout: workout %>
+                        </div>
                       </div>
                       <div class="text-end ms-3">
                         <span class="text-muted">

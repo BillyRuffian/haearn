@@ -2,47 +2,42 @@
   <div class="card mb-2">
     <div class="card-body py-2">
       <div class="d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center gap-3">
-          <%# Photo thumbnail if available %>
-          <% if machine.photos.attached? %>
-            <%= link_to edit_gym_machine_path(gym, machine), class: "flex-shrink-0" do %>
-              <%= image_tag machine.photos.first.variant(resize_to_fill: [48, 48]), 
-                  class: "rounded", 
-                  style: "width: 48px; height: 48px; object-fit: cover;",
-                  alt: machine.name %>
-            <% end %>
-          <% end %>
-          <div>
-            <span class="badge equipment-badge-<%= machine.equipment_type %>">
+        <div class="flex-grow-1 min-w-0">
+          <div class="d-flex align-items-center flex-wrap gap-1">
+            <strong class="text-truncate"><%= machine.name %></strong>
+            <span class="badge equipment-badge-<%= machine.equipment_type %> badge-sm">
               <%= equipment_icon(machine.equipment_type) %>
               <%= machine.equipment_type.titleize %>
             </span>
           </div>
-          <div>
-            <strong><%= machine.name %></strong>
+          <div class="d-flex flex-wrap gap-2 text-muted small mt-1">
             <% if machine.cables? && machine.weight_ratio.present? %>
-              <span class="text-muted ms-2 small">
-                <i class="bi bi-arrow-down-up"></i> <%= machine.weight_ratio %>:1 ratio
-              </span>
+              <span><i class="bi bi-arrow-down-up"></i> <%= machine.weight_ratio %>:1</span>
             <% end %>
             <% if machine.display_unit.present? %>
-              <span class="text-muted ms-2 small">
-                <i class="bi bi-speedometer2"></i> Shows <%= machine.display_unit.upcase %>
-              </span>
+              <span><i class="bi bi-speedometer2"></i> <%= machine.display_unit.upcase %></span>
             <% end %>
             <% if machine.notes.present? %>
-              <span class="text-muted ms-2 small">
-                <i class="bi bi-chat-text"></i> <%= truncate(machine.notes, length: 40) %>
-              </span>
+              <span class="text-truncate" style="max-width: 150px;"><i class="bi bi-chat-text"></i> <%= machine.notes %></span>
             <% end %>
             <% if machine.photos.attached? && machine.photos.count > 1 %>
-              <span class="text-muted ms-2 small">
-                <i class="bi bi-images"></i> <%= machine.photos.count %> photos
-              </span>
+              <span><i class="bi bi-images"></i> <%= machine.photos.count %></span>
             <% end %>
           </div>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-shrink-0 ms-2 align-items-center">
+          <% if machine.photos.attached? %>
+            <span data-controller="photo-preview"
+                  data-action="click->photo-preview#show:stop"
+                  data-photo-preview-urls-value='<%= machine.photos.map { |photo| url_for(photo.variant(resize_to_limit: [800, 800])) }.to_json %>'
+                  style="cursor: pointer;"
+                  title="View photos">
+              <%= image_tag machine.photos.first.variant(resize_to_fill: [36, 36]),
+                  class: "rounded",
+                  style: "width: 36px; height: 36px; object-fit: cover;",
+                  alt: machine.name %>
+            </span>
+          <% end %>
           <%= link_to edit_gym_machine_path(gym, machine), class: "btn btn-sm btn-outline-secondary", data: { turbo_frame: "_top" } do %>
             <i class="bi bi-pencil"></i>
           <% end %>

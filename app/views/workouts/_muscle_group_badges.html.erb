@@ -1,0 +1,13 @@
+<% muscle_groups = workout.muscle_groups_worked %>
+<% if muscle_groups.any? %>
+  <div class="d-flex flex-wrap gap-1 w-100">
+    <% muscle_groups.first(5).each do |muscle_group| %>
+      <span class="badge badge-sm" style="background-color: <%= Exercise::MUSCLE_GROUP_COLORS[muscle_group] %>;">
+        <%= Exercise::MUSCLE_GROUP_LABELS[muscle_group] %>
+      </span>
+    <% end %>
+    <% if muscle_groups.length > 5 %>
+      <span class="badge badge-sm bg-secondary">+<%= muscle_groups.length - 5 %></span>
+    <% end %>
+  </div>
+<% end %>

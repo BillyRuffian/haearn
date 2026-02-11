@@ -18,8 +18,19 @@ export default class extends Controller {
     const modal = this.createModal()
     document.body.appendChild(modal)
 
-    // Show modal
-    setTimeout(() => modal.classList.add('show'), 10)
+    // Store reference globally so modal controller can find it
+    window._activePhotoPreview = this
+
+    // Force reflow then show
+    modal.offsetHeight
+    modal.style.opacity = '1'
+
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal || e.target.closest('.modal-dialog') === null) {
+        this.close()
+      }
+    })
 
     // Setup keyboard navigation
     this.keyboardHandler = (e) => {
@@ -34,47 +45,48 @@ export default class extends Controller {
     this.currentPhotoIndex = 0
 
     const modal = document.createElement('div')
-    modal.className = 'modal fade photo-preview-modal'
-    modal.style.cssText = 'display: block; background: rgba(0,0,0,0.95);'
-    modal.setAttribute('data-controller', 'photo-preview-modal')
+    modal.className = 'photo-preview-modal'
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s ease;'
     modal.setAttribute('tabindex', '-1')
 
     modal.innerHTML = `
-      <div class="modal-dialog modal-dialog-centered modal-fullscreen">
-        <div class="modal-content bg-transparent border-0">
-          <div class="modal-header border-0 position-absolute w-100" style="z-index: 1050;">
-            <h5 class="modal-title text-white">
-              <span class="photo-counter">${this.currentPhotoIndex + 1} / ${this.urlsValue.length}</span>
-            </h5>
-            <button type="button" class="btn-close btn-close-white" data-action="click->photo-preview-modal#close"></button>
-          </div>
-          <div class="modal-body d-flex align-items-center justify-content-center p-0">
-            <div class="position-relative w-100 h-100 d-flex align-items-center justify-content-center">
-              ${this.urlsValue.length > 1 ? `
-                <button class="btn btn-dark position-absolute start-0 ms-3 rounded-circle" 
-                        style="width: 48px; height: 48px; z-index: 1050;"
-                        data-action="click->photo-preview-modal#previous">
-                  <i class="bi bi-chevron-left"></i>
-                </button>
-              ` : ''}
-              
-              <img src="${this.urlsValue[0]}" 
-                   class="img-fluid photo-display" 
-                   style="max-height: 90vh; max-width: 90vw; object-fit: contain;"
-                   alt="Machine photo">
-              
-              ${this.urlsValue.length > 1 ? `
-                <button class="btn btn-dark position-absolute end-0 me-3 rounded-circle" 
-                        style="width: 48px; height: 48px; z-index: 1050;"
-                        data-action="click->photo-preview-modal#next">
-                  <i class="bi bi-chevron-right"></i>
-                </button>
-              ` : ''}
-            </div>
-          </div>
+      <div style="position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 1rem; z-index: 10;">
+          <span class="text-white small photo-counter">${this.currentPhotoIndex + 1} / ${this.urlsValue.length}</span>
+          <button type="button" class="btn btn-sm btn-dark photo-close-btn" style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; padding: 60px 16px 16px;">
+          ${this.urlsValue.length > 1 ? `
+            <button class="btn btn-dark photo-prev-btn" style="position: absolute; left: 12px; width: 44px; height: 44px; border-radius: 50%; z-index: 10; display: flex; align-items: center; justify-content: center;">
+              <i class="bi bi-chevron-left"></i>
+            </button>
+          ` : ''}
+          
+          <img src="${this.urlsValue[0]}" 
+               class="photo-display" 
+               style="max-height: 85vh; max-width: 90vw; object-fit: contain; transition: opacity 0.15s ease;"
+               alt="Machine photo">
+          
+          ${this.urlsValue.length > 1 ? `
+            <button class="btn btn-dark photo-next-btn" style="position: absolute; right: 12px; width: 44px; height: 44px; border-radius: 50%; z-index: 10; display: flex; align-items: center; justify-content: center;">
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          ` : ''}
         </div>
       </div>
     `
+
+    // Wire up button events directly
+    const closeBtn = modal.querySelector('.photo-close-btn')
+    if (closeBtn) closeBtn.addEventListener('click', (e) => { e.stopPropagation(); this.close() })
+    
+    const prevBtn = modal.querySelector('.photo-prev-btn')
+    if (prevBtn) prevBtn.addEventListener('click', (e) => { e.stopPropagation(); this.previousPhoto() })
+    
+    const nextBtn = modal.querySelector('.photo-next-btn')
+    if (nextBtn) nextBtn.addEventListener('click', (e) => { e.stopPropagation(); this.nextPhoto() })
 
     // Store reference to modal
     this.modal = modal
@@ -148,11 +160,15 @@ export default class extends Controller {
   close() {
     if (!this.modal) return
 
-    this.modal.classList.remove('show')
+    this.modal.style.opacity = '0'
     setTimeout(() => {
-      this.modal.remove()
-      this.modal = null
-    }, 300)
+      if (this.modal) {
+        this.modal.remove()
+        this.modal = null
+      }
+    }, 200)
+
+    window._activePhotoPreview = null
 
     // Remove keyboard listener
     if (this.keyboardHandler) {
@@ -165,48 +181,3 @@ export default class extends Controller {
     this.close()
   }
 }
-
-// Separate controller for modal instance
-class PhotoPreviewModalController extends Controller {
-  close() {
-    // Find parent photo-preview controller and call its close method
-    const photoPreviewElement = document.querySelector('[data-controller~="photo-preview"]')
-    if (photoPreviewElement) {
-      const controller = this.application.getControllerForElementAndIdentifier(
-        photoPreviewElement, 
-        'photo-preview'
-      )
-      if (controller) controller.close()
-    } else {
-      // Fallback: just remove the modal
-      this.element.classList.remove('show')
-      setTimeout(() => this.element.remove(), 300)
-    }
-  }
-
-  next() {
-    const photoPreviewElement = document.querySelector('[data-controller~="photo-preview"]')
-    if (photoPreviewElement) {
-      const controller = this.application.getControllerForElementAndIdentifier(
-        photoPreviewElement,
-        'photo-preview'
-      )
-      if (controller) controller.nextPhoto()
-    }
-  }
-
-  previous() {
-    const photoPreviewElement = document.querySelector('[data-controller~="photo-preview"]')
-    if (photoPreviewElement) {
-      const controller = this.application.getControllerForElementAndIdentifier(
-        photoPreviewElement,
-        'photo-preview'
-      )
-      if (controller) controller.previousPhoto()
-    }
-  }
-}
-
-// Register the modal controller
-import { application } from "./application"
-application.register("photo-preview-modal", PhotoPreviewModalController)
