@@ -131,6 +131,19 @@
               <div class="form-text">Default rest time between sets</div>
             </div>
 
+            <div class="mb-4">
+              <%= form.label :progression_rep_target, "Progression Rep Target", class: "form-label" %>
+              <%= form.number_field :progression_rep_target, 
+                    class: "form-control #{'is-invalid' if @user.errors[:progression_rep_target].any?}",
+                    min: User::MIN_PROGRESSION_REP_TARGET,
+                    max: User::MAX_PROGRESSION_REP_TARGET,
+                    step: 1 %>
+              <% if @user.errors[:progression_rep_target].any? %>
+                <div class="invalid-feedback"><%= @user.errors[:progression_rep_target].first %></div>
+              <% end %>
+              <div class="form-text">Target reps to hit consistently before progressing weight (typically 8-12 for hypertrophy)</div>
+            </div>
+
             <div class="mb-4" data-controller="notification-permission">
               <div class="d-flex justify-content-between align-items-start">
                 <div>

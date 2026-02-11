@@ -147,6 +147,12 @@ class ExercisesController < ApplicationController
       .joins(workout_block: :workout)
       .order(Arel.sql('workouts.started_at DESC'))
 
+    # Filter by specific machine if requested
+    if params[:machine_id].present?
+      @workout_exercises = @workout_exercises.where(machine_id: params[:machine_id])
+      @selected_machine = Machine.find_by(id: params[:machine_id])
+    end
+
     # Calculate overall PRs for the exercise (max weight, max volume, best E1RM)
     @prs = PrCalculator.calculate_all(@workout_exercises, exercise: @exercise)
 

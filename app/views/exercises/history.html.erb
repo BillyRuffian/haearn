@@ -22,6 +22,18 @@
     </div>
   </div>
 
+  <% if @selected_machine %>
+    <div class="alert alert-info mb-4 d-flex justify-content-between align-items-center">
+      <div>
+        <i class="bi bi-funnel me-2"></i>
+        <strong>Filtered by machine:</strong> <%= @selected_machine.name %>
+      </div>
+      <%= link_to history_exercise_path(@exercise), class: "btn btn-sm btn-outline-primary" do %>
+        <i class="bi bi-x-circle me-1"></i>Show All
+      <% end %>
+    </div>
+  <% end %>
+
   <% if @workout_exercises.any? %>
     <% unique_workout_count = @workout_exercises.map { |we| we.workout_block.workout_id }.uniq.count %>
     

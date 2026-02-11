@@ -8,29 +8,25 @@
       <% if is_volume_pr %>
         <span class="badge bg-warning me-1"><i class="bi bi-trophy-fill"></i> Vol PR</span>
       <% end %>
-      <%= link_to history_exercise_path(workout_exercise.exercise), class: "text-decoration-none", data: { turbo_frame: "_top" } do %>
+      <%= link_to history_exercise_path(workout_exercise.exercise, machine_id: workout_exercise.machine_id), class: "text-decoration-none", data: { turbo_frame: "_top" } do %>
         <strong><%= workout_exercise.exercise.name %></strong>
+        <% if workout_exercise.machine %>
+          <small class="text-muted ms-1"><%= workout_exercise.machine.name %></small>
+        <% end %>
         <i class="bi bi-graph-up-arrow ms-1 text-muted small"></i>
       <% end %>
-      <% if workout_exercise.machine %>
-        <% if workout_exercise.machine.photos.attached? %>
-          <span data-controller="photo-preview"
-                data-action="click->photo-preview#show:stop"
-                data-photo-preview-urls-value='<%= workout_exercise.machine.photos.map { |photo| url_for(photo.variant(resize_to_limit: [800, 800])) }.to_json %>'
-                class="d-inline-block ms-1"
-                style="cursor: pointer; vertical-align: middle;"
-                title="<%= workout_exercise.machine.name %>">
-            <%= image_tag workout_exercise.machine.photos.first.variant(resize_to_limit: [32, 32]),
-                class: "rounded",
-                style: "width: 24px; height: 24px; object-fit: cover;",
-                alt: workout_exercise.machine.name %>
-          </span>
-        <% else %>
-          <small class="text-muted ms-1" title="<%= workout_exercise.machine.name %>">
-            <i class="bi bi-gear"></i>
-            <span class="d-none d-sm-inline"><%= workout_exercise.machine.name %></span>
-          </small>
-        <% end %>
+      <% if workout_exercise.machine&.photos&.attached? %>
+        <span data-controller="photo-preview"
+              data-action="click->photo-preview#show:stop"
+              data-photo-preview-urls-value='<%= workout_exercise.machine.photos.map { |photo| url_for(photo.variant(resize_to_limit: [800, 800])) }.to_json %>'
+              class="d-inline-block ms-1"
+              style="cursor: pointer; vertical-align: middle;"
+              title="<%= workout_exercise.machine.name %>">
+          <%= image_tag workout_exercise.machine.photos.first.variant(resize_to_limit: [32, 32]),
+              class: "rounded",
+              style: "width: 20px; height: 20px; object-fit: cover;",
+              alt: workout_exercise.machine.name %>
+        </span>
       <% end %>
     </div>
     <div class="dropdown flex-shrink-0">

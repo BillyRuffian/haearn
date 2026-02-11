@@ -2,16 +2,17 @@
 #
 # Table name: users
 #
-#  id                   :integer          not null, primary key
-#  default_rest_seconds :integer          default(90)
-#  email_address        :string           not null
-#  name                 :string
-#  password_digest      :string           not null
-#  preferred_unit       :string
-#  weekly_summary_email :boolean          default(FALSE), not null
-#  created_at           :datetime         not null
-#  updated_at           :datetime         not null
-#  default_gym_id       :integer
+#  id                     :integer          not null, primary key
+#  default_rest_seconds   :integer          default(90)
+#  email_address          :string           not null
+#  name                   :string
+#  password_digest        :string           not null
+#  preferred_unit         :string
+#  progression_rep_target :integer          default(10), not null
+#  weekly_summary_email   :boolean          default(FALSE), not null
+#  created_at             :datetime         not null
+#  updated_at             :datetime         not null
+#  default_gym_id         :integer
 #
 # Indexes
 #
@@ -51,6 +52,11 @@ class User < ApplicationRecord
     less_than_or_equal_to: 300,
     allow_nil: true
   }
+  validates :progression_rep_target, numericality: {
+    only_integer: true,
+    greater_than_or_equal_to: 5,
+    less_than_or_equal_to: 20
+  }
 
   # Supported weight units
   UNITS = %w[kg lbs].freeze
@@ -59,6 +65,11 @@ class User < ApplicationRecord
   MIN_REST_SECONDS = 30   # 30 seconds minimum
   MAX_REST_SECONDS = 300  # 5 minutes maximum
   DEFAULT_REST_SECONDS = 90  # 90 seconds default (good for most exercises)
+
+  # Progression readiness rep target (determines when user is ready to progress)
+  MIN_PROGRESSION_REP_TARGET = 5
+  MAX_PROGRESSION_REP_TARGET = 20
+  DEFAULT_PROGRESSION_REP_TARGET = 10
 
   # Always return a unit, default to kg if not set
   def preferred_unit

@@ -91,17 +91,13 @@ class ProgressionReadinessChecker
     end
   end
 
-  # Detect target rep range from recent sessions (modal range)
+  # Detect target rep range based on user's progression rep target setting
+  # Uses the user's configured target as the minimum (e.g., if target is 10, range is 10-12)
   def detect_rep_range
-    all_reps = recent_sessions.flat_map { |we| we.exercise_sets.working.pluck(:reps).compact }
-    return nil if all_reps.empty?
+    target_reps = user.progression_rep_target
 
-    # Find the most common rep count (mode)
-    mode_reps = all_reps.group_by(&:itself).values.max_by(&:count)&.first
-    return nil unless mode_reps
-
-    # Define range as mode ± 2 reps (e.g., if mode is 10, range is 8-12)
-    [ mode_reps - 2, mode_reps + 2 ]
+    # Define range as target to target + 2 (e.g., if target is 10, range is 10-12)
+    [ target_reps, target_reps + 2 ]
   end
 
   # Calculate what % of sets hit the target rep range
