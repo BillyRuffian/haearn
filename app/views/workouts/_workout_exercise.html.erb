@@ -38,6 +38,15 @@
         <i class="bi bi-three-dots-vertical"></i>
       </button>
       <ul class="dropdown-menu dropdown-menu-end">
+        <% if workout.in_progress? %>
+          <li>
+            <%= link_to swap_exercise_workout_workout_exercise_path(workout, workout_exercise),
+                class: "dropdown-item text-warning",
+                data: { turbo_frame: "modal" } do %>
+              <i class="bi bi-arrow-left-right me-2"></i>Swap Exercise
+            <% end %>
+          </li>
+        <% end %>
         <li>
           <%= button_to workout_workout_exercise_path(workout, workout_exercise),
               method: :delete,

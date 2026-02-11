@@ -106,6 +106,36 @@ class WorkoutExercisesController < ApplicationController
     redirect_to @workout, notice: 'Exercise moved.'
   end
 
+  # GET/POST /workouts/:workout_id/workout_exercises/:id/swap_exercise
+  # Multi-step flow: 1) Select exercise, 2) Select machine, 3) Swap in-place
+  # Preserves block position, sets, and session_notes; refreshes persistent_notes
+  def swap_exercise
+    if request.post?
+      perform_swap
+    else
+      if params[:select_exercise].present?
+        @selected_exercise = Exercise.for_user(Current.user).find(params[:select_exercise])
+        @machines = @workout.gym.machines.with_attached_photos.ordered
+
+        @recent_machines = @workout.gym.machines
+          .joins(workout_exercises: { workout_block: :workout })
+          .where(workout_exercises: { exercise_id: @selected_exercise.id })
+          .where(workouts: { user_id: Current.user.id, finished_at: ..Time.current })
+          .select('machines.*, MAX(workouts.started_at) AS last_used_at')
+          .group('machines.id')
+          .order('last_used_at DESC')
+          .limit(3)
+          .with_attached_photos
+      else
+        @exercises = Exercise.for_user(Current.user)
+        @exercises = @exercises.where('LOWER(name) LIKE LOWER(?)', "%#{params[:search]}%") if params[:search].present?
+        @exercises = @exercises.order(:name).limit(50)
+      end
+
+      render :swap_exercise
+    end
+  end
+
   # POST /workouts/:workout_id/workout_exercises/:id/generate_warmups
   # Auto-generates warmup sets based on target working weight
   def generate_warmups
@@ -182,6 +212,25 @@ class WorkoutExercisesController < ApplicationController
 
   def set_workout_exercise
     @workout_exercise = @workout.workout_exercises.find(params[:id])
+  end
+
+  # Swaps exercise and/or machine on existing workout_exercise
+  # Preserves block position, sets, and session_notes
+  # Refreshes persistent_notes from new exercise+machine history
+  def perform_swap
+    exercise = Exercise.for_user(Current.user).find(params[:exercise_id])
+    machine = @workout.gym.machines.find(params[:machine_id])
+
+    @workout_exercise.update!(
+      exercise: exercise,
+      machine: machine
+    )
+
+    # Refresh persistent_notes from previous workout with new exercise+machine combo
+    prev = @workout_exercise.previous_workout_exercise
+    @workout_exercise.update!(persistent_notes: prev&.persistent_notes)
+
+    redirect_to @workout, notice: 'Exercise swapped.'
   end
 
   # Strong params for both types of notes

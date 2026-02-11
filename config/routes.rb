@@ -170,6 +170,8 @@ Rails.application.routes.draw do
       member do
         patch :move_to_block
         post :generate_warmups
+        get :swap_exercise
+        post :swap_exercise
       end
     end
   end
