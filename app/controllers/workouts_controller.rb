@@ -132,6 +132,16 @@ class WorkoutsController < ApplicationController
         @selected_exercise = Exercise.for_user(Current.user).find(params[:select_exercise])
         @machines = @workout.gym.machines.with_attached_photos.ordered
 
+        @recent_machines = @workout.gym.machines
+          .joins(workout_exercises: { workout_block: :workout })
+          .where(workout_exercises: { exercise_id: @selected_exercise.id })
+          .where(workouts: { user_id: Current.user.id, finished_at: ..Time.current })
+          .select('machines.*, MAX(workouts.started_at) AS last_used_at')
+          .group('machines.id')
+          .order('last_used_at DESC')
+          .limit(3)
+          .with_attached_photos
+
         # If machine_id is also present (coming back from creating a machine), auto-add the exercise
         if params[:machine_id].present?
           @selected_machine = @workout.gym.machines.find_by(id: params[:machine_id])
