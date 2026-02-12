@@ -659,6 +659,66 @@ $text-muted: #6c757d;
 
 ---
 
+## Phase 12: Admin Panel & Authorization (Pundit)
+
+### 12.1 Pundit Setup & Admin Role
+- [ ] Add `pundit` gem to Gemfile
+- [ ] Run `bundle install`
+- [ ] Add `admin` boolean column to `users` table (default: `false`)
+- [ ] Run `rails generate pundit:install` to create `ApplicationPolicy`
+- [ ] Include `Pundit::Authorization` in `ApplicationController`
+- [ ] Add `after_action :verify_authorized` (with appropriate skips)
+- [ ] Create admin seed user in `db/seeds.rb`
+
+### 12.2 Authorization Policies
+- [ ] `UserPolicy` — admin can list/edit/destroy any user; users can edit own profile
+- [ ] `ExercisePolicy` — admin can CRUD global exercises (user_id: nil); users can only CRUD their own
+- [ ] `GymPolicy` — users manage own gyms; admin can view all
+- [ ] `MachinePolicy` — users manage own machines; admin can view all
+- [ ] `WorkoutPolicy` — users manage own workouts; admin can view all
+- [ ] `WorkoutTemplatePolicy` — admin can create "official" templates; users manage own
+- [ ] `BodyMetricPolicy` — users manage own; admin can view all (aggregate stats)
+
+### 12.3 Admin Namespace & Layout
+- [ ] Create `Admin::` namespace with `admin/` route prefix
+- [ ] Admin-specific layout with distinct styling (iron-red accent header/sidebar)
+- [ ] Admin dashboard (`Admin::DashboardController`) with:
+  - Total users / active users (last 7/30 days)
+  - Total workouts logged (this week/month/all time)
+  - New registrations chart
+  - Most popular exercises
+  - System health (DB size, storage usage)
+- [ ] Navigation: Dashboard, Users, Exercises, Analytics
+
+### 12.4 User Management
+- [ ] `Admin::UsersController` — list, show, edit, deactivate users
+- [ ] Search/filter users by name, email, signup date, activity
+- [ ] View user stats (workouts, volume, last active)
+- [ ] Grant/revoke admin role
+- [ ] Deactivate/reactivate accounts (soft delete, not hard delete)
+- [ ] Impersonate user for debugging (with audit log)
+
+### 12.5 Global Exercise Management
+- [ ] `Admin::ExercisesController` — full CRUD for global exercises (user_id: nil)
+- [ ] Bulk import/edit exercises
+- [ ] Manage exercise categories and muscle group mappings
+- [ ] Review user-created exercises for promotion to global library
+- [ ] Merge duplicate exercises
+
+### 12.6 Content & Data Administration
+- [ ] View aggregate analytics (most used exercises, popular gyms, avg workout duration)
+- [ ] Manage workout templates flagged as "official"
+- [ ] Data export tools (all users, all workouts — CSV/JSON)
+- [ ] Audit log for admin actions (who did what, when)
+
+### 12.7 Admin Access Control
+- [ ] `before_action` guard in `Admin::BaseController` requiring admin role
+- [ ] Redirect non-admins with flash message
+- [ ] Rate-limit admin actions (optional)
+- [ ] Admin activity log (track logins, user edits, exercise changes)
+
+---
+
 ## Notes for Future Development
 
 - Barcode scanning for gym machines?
