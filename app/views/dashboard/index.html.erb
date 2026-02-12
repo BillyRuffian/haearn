@@ -832,27 +832,7 @@
               </div>
               <div class="list-group list-group-flush">
                 <% @recent_workouts.each do |workout| %>
-                  <%= link_to workout_path(workout), class: "list-group-item list-group-item-action bg-transparent border-secondary px-0 py-3" do %>
-                    <div class="d-flex justify-content-between align-items-start">
-                      <div class="flex-grow-1">
-                        <h6 class="mb-1"><%= workout.gym&.name || "Workout" %></h6>
-                        <small class="text-muted">
-                          <%= workout.finished_at.strftime("%b %d, %Y") %> &middot;
-                          <%= workout.duration_minutes || 0 %> min &middot;
-                          <%= pluralize(workout.workout_exercises.count, "exercise") %>
-                        </small>
-                        <div class="mt-2">
-                          <%= render "workouts/muscle_group_badges", workout: workout %>
-                        </div>
-                      </div>
-                      <div class="text-end ms-3">
-                        <span class="text-muted">
-                          <%= number_with_delimiter(Current.user.display_weight(workout.total_volume_kg).round) %><%= Current.user.preferred_unit %>
-                        </span>
-                        <i class="bi bi-chevron-right ms-2 text-muted"></i>
-                      </div>
-                    </div>
-                  <% end %>
+                  <%= render "workouts/workout_card", workout: workout %>
                 <% end %>
               </div>
             </div>

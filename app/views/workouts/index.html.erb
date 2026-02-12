@@ -91,44 +91,7 @@
 
     <div class="list-group">
       <% @workouts.each do |workout| %>
-        <div class="list-group-item workout-history-item">
-          <div class="d-flex justify-content-between align-items-center">
-            <%= link_to workout_path(workout), class: "flex-grow-1 text-decoration-none", data: { turbo_frame: "_top" } do %>
-              <div class="d-flex justify-content-between align-items-center mb-2 w-100">
-                <div>
-                  <h6 class="mb-1">
-                    <%= workout.started_at.strftime("%A, %B %-d, %Y") %>
-                    <% if workout.in_progress? %>
-                      <span class="badge bg-warning ms-2">In Progress</span>
-                    <% end %>
-                  </h6>
-                  <p class="text-muted mb-0 small">
-                    <% if workout.gym %>
-                      <i class="bi bi-building me-1"></i><%= workout.gym.name %> &middot;
-                    <% end %>
-                    <%= pluralize(workout.workout_exercises.count, "exercise") %> &middot;
-                    <%= pluralize(workout.exercise_sets.count, "set") %>
-                    <% if workout.completed? %>
-                      &middot; <%= workout.duration_minutes %> min
-                    <% end %>
-                  </p>
-                </div>
-                <div class="text-end me-3">
-                  <span class="weight-display h5 mb-0">
-                    <%= number_with_delimiter(Current.user.format_weight(workout.total_volume_kg)) %>
-                  </span>
-                  <span class="text-muted small"><%= Current.user.preferred_unit %></span>
-                </div>
-              </div>
-              <%= render "workouts/muscle_group_badges", workout: workout %>
-            <% end %>
-            <% if workout.completed? && !@active_workout %>
-              <%= button_to copy_workout_path(workout), method: :post, class: "btn btn-outline-primary btn-sm copy-workout-btn", title: "Repeat this workout", data: { turbo_confirm: "Start a new workout based on this one?" } do %>
-                <i class="bi bi-arrow-repeat"></i>
-              <% end %>
-            <% end %>
-          </div>
-        </div>
+        <%= render "workouts/workout_card", workout: workout, show_date: true, show_copy: !@active_workout %>
       <% end %>
     </div>
   <% else %>
