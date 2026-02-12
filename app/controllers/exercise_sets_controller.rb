@@ -1,8 +1,10 @@
 # Handles CRUD operations for individual exercise sets within workout exercises
 # Uses Turbo Streams for smooth, inline editing without full page reloads
 class ExerciseSetsController < ApplicationController
+  include ActionView::RecordIdentifier
+
   before_action :set_workout_and_exercise
-  before_action :set_exercise_set, only: %i[edit update destroy]
+  before_action :set_exercise_set, only: %i[edit update destroy duplicate]
 
   # POST /workouts/:workout_id/workout_exercises/:workout_exercise_id/exercise_sets
   # Creates a new set and updates the workout stats via Turbo Stream
@@ -35,6 +37,7 @@ class ExerciseSetsController < ApplicationController
             streams << turbo_stream.remove("warmup_generator_#{@workout_exercise.id}")
           end
 
+          append_volume_pr_stream(streams)
           render turbo_stream: streams
         end
         format.html { redirect_to workout_path(@workout) }
@@ -67,7 +70,7 @@ class ExerciseSetsController < ApplicationController
         # Calculate set number again after update
         index = @workout_exercise.exercise_sets.order(:created_at).pluck(:id).index(@exercise_set.id) + 1
         format.turbo_stream do
-          render turbo_stream: [
+          streams = [
             turbo_stream.replace(@exercise_set,
               partial: 'exercise_sets/exercise_set',
               locals: { set: @exercise_set, workout_exercise: @workout_exercise, workout: @workout, index: index }),
@@ -75,6 +78,9 @@ class ExerciseSetsController < ApplicationController
               partial: 'workouts/stats',
               locals: { workout: @workout })
           ]
+
+          append_volume_pr_stream(streams)
+          render turbo_stream: streams
         end
         format.html { redirect_to workout_path(@workout) }
       else
@@ -96,14 +102,49 @@ class ExerciseSetsController < ApplicationController
 
     respond_to do |format|
       format.turbo_stream do
-        render turbo_stream: [
+        streams = [
           turbo_stream.remove(@exercise_set),
           turbo_stream.replace('workout_stats',
             partial: 'workouts/stats',
             locals: { workout: @workout })
         ]
+
+        append_volume_pr_stream(streams)
+        render turbo_stream: streams
       end
       format.html { redirect_to workout_path(@workout) }
+    end
+  end
+
+  # POST /workouts/:workout_id/workout_exercises/:workout_exercise_id/exercise_sets/:id/duplicate
+  # Copies the set with a new position and timestamp
+  def duplicate
+    new_set = @exercise_set.dup
+    new_set.position = @workout_exercise.exercise_sets.count + 1
+    new_set.completed_at = Time.current
+
+    if new_set.save
+      @workout.reload
+      index = @workout_exercise.exercise_sets.count
+
+      respond_to do |format|
+        format.turbo_stream do
+          streams = [
+            turbo_stream.append("sets_list_#{@workout_exercise.id}",
+              partial: 'exercise_sets/exercise_set',
+              locals: { set: new_set, workout_exercise: @workout_exercise, workout: @workout, index: index }),
+            turbo_stream.replace('workout_stats',
+              partial: 'workouts/stats',
+              locals: { workout: @workout })
+          ]
+
+          append_volume_pr_stream(streams)
+          render turbo_stream: streams
+        end
+        format.html { redirect_to workout_path(@workout) }
+      end
+    else
+      redirect_to workout_path(@workout), alert: 'Could not duplicate set.'
     end
   end
 
@@ -117,6 +158,23 @@ class ExerciseSetsController < ApplicationController
 
   def set_exercise_set
     @exercise_set = @workout_exercise.exercise_sets.find(params[:id])
+  end
+
+  # Re-render the workout exercise card to reflect current volume PR status
+  def append_volume_pr_stream(streams)
+    @workout_exercise.reload
+    streams << turbo_stream.replace(dom_id(@workout_exercise),
+      partial: 'workouts/workout_exercise',
+      locals: { workout_exercise: @workout_exercise, workout: @workout, superset_label: superset_label_for(@workout_exercise) })
+  end
+
+  # Compute superset label (e.g. "A1", "A2") for re-rendering the workout_exercise partial
+  def superset_label_for(workout_exercise)
+    block = workout_exercise.workout_block
+    return nil unless block.workout_exercises.count > 1
+
+    index = block.workout_exercises.order(:position).pluck(:id).index(workout_exercise.id)
+    "#{(block.position + 64).chr}#{index + 1}"
   end
 
   # Strong params with weight conversion logic

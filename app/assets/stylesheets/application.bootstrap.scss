@@ -1370,31 +1370,53 @@ select option:checked {
 // =====================================================
 .swipeable-container {
   position: relative;
-  overflow: hidden;
+
+  // Ensure the container with an open dropdown renders above sibling elements
+  &:has(.dropdown-menu.show) {
+    z-index: 100;
+  }
 }
 
 .swipeable-content {
   position: relative;
   background: $iron-dark;
   z-index: 1;
-  will-change: transform;
 }
 
 .swipe-actions {
   position: absolute;
   top: 0;
-  right: 0;
   bottom: 0;
   display: flex;
   align-items: stretch;
   z-index: 0;
+  overflow: hidden;
+  width: 0;
+
+  // button_to generates a <form> wrapper — make it fill the panel
+  form {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &.swipe-actions-left {
+    left: 0;
+    justify-content: flex-start;
+  }
+
+  &.swipe-actions-right {
+    right: 0;
+    justify-content: flex-end;
+  }
 }
 
 .swipe-action {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 80px;
+  flex: 1;
+  min-width: 80px;
   color: white;
   font-size: 0.75rem;
   font-weight: 600;
@@ -1406,8 +1428,12 @@ select option:checked {
     background: $danger;
   }
 
+  &.swipe-action-duplicate {
+    background: $info;
+  }
+
   &.swipe-action-edit {
-    background: $primary;
+    background: $info;
   }
 
   i {

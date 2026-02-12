@@ -173,6 +173,16 @@ export default class extends Controller {
     if (this.hasContentTarget) {
       this.contentTarget.style.transform = "translateX(0)"
       this.contentTarget.style.transition = "transform 0.2s ease-out"
+
+      // Remove inline transform after transition so it doesn't create
+      // a containing block that traps dropdown menus
+      const content = this.contentTarget
+      const handler = () => {
+        content.style.transform = ""
+        content.style.transition = ""
+        content.removeEventListener("transitionend", handler)
+      }
+      content.addEventListener("transitionend", handler)
     }
     if (this.hasLeftActionsTarget) {
       this.leftActionsTarget.style.opacity = "0"
