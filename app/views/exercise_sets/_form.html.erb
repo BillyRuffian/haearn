@@ -1,5 +1,6 @@
 <% show_plate_calc = workout_exercise.exercise.has_weight && workout_exercise.machine&.plate_loaded? %>
 <% initial_weight = set.weight_kg ? Current.user.format_weight(set.weight_kg) : last_weight_for(workout_exercise) %>
+<% prev_set = corresponding_previous_set(workout_exercise) %>
 
 <% if workout_exercise.exercise.has_weight? %>
   <% suggester = ProgressionSuggester.new(workout_exercise: workout_exercise, user: Current.user) %>
@@ -11,10 +12,36 @@
   <% end %>
 <% end %>
 
-<div <% if show_plate_calc %>data-controller="plate-calculator" 
+<% controllers = [] %>
+<% controllers << "copy-last" if prev_set %>
+<% controllers << "plate-calculator" if show_plate_calc %>
+
+<div <% if controllers.any? %>data-controller="<%= controllers.join(' ') %>"<% end %>
+     <% if show_plate_calc %>
      data-plate-calculator-weight-value="<%= initial_weight || 0 %>"
      data-plate-calculator-bar-weight-value="<%= Current.user.preferred_unit == 'kg' ? 20 : 45 %>"
-     data-plate-calculator-unit-value="<%= Current.user.preferred_unit %>"<% end %>>
+     data-plate-calculator-unit-value="<%= Current.user.preferred_unit %>"
+     <% end %>
+     <% if prev_set %>
+     data-copy-last-weight-value="<%= prev_set.weight_kg ? Current.user.format_weight(prev_set.weight_kg) : '' %>"
+     data-copy-last-reps-value="<%= prev_set.reps || '' %>"
+     data-copy-last-duration-value="<%= prev_set.duration_seconds || '' %>"
+     data-copy-last-distance-value="<%= prev_set.distance_meters || '' %>"
+     data-copy-last-warmup-value="<%= prev_set.is_warmup? %>"
+     <% end %>>
+
+  <%# Copy Last button - fill form from previous session %>
+  <% if prev_set %>
+    <div class="d-flex align-items-center mt-2 mb-1">
+      <button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2"
+              data-action="copy-last#fill"
+              title="Fill from last session">
+        <i class="bi bi-arrow-repeat"></i>
+        <span class="small">Last:<% if prev_set.weight_kg %> <%= Current.user.format_weight(prev_set.weight_kg) %><%= Current.user.preferred_unit %><% end %><% if prev_set.reps %> × <%= prev_set.reps %><% end %><% if prev_set.duration_seconds %> <%= prev_set.duration_seconds %>s<% end %><% if prev_set.distance_meters %> <%= prev_set.distance_meters %>m<% end %><% if prev_set.is_warmup? %> <span class="badge bg-warning text-dark ms-1" style="font-size: 0.6rem;">W</span><% end %></span>
+      </button>
+    </div>
+  <% end %>
+
   <%= form_with model: set, 
       url: workout_workout_exercise_exercise_sets_path(workout, workout_exercise),
       class: "add-set-form mt-2",
@@ -33,6 +60,7 @@
               onfocus: "this.select()",
               data: { 
                 set_form_target: "weight",
+                copy_last_target: prev_set ? "weight" : nil,
                 action: show_plate_calc ? "input->plate-calculator#updateWeight" : nil
               }.compact %>
         </div>
@@ -47,14 +75,15 @@
               class: "form-control form-control-sm text-center",
               inputmode: "numeric",
               onfocus: "this.select()",
-              data: { set_form_target: "reps" } %>
+              data: { set_form_target: "reps", copy_last_target: prev_set ? "reps" : nil }.compact %>
         <% when 'time' %>
           <label class="form-label small text-muted mb-1">Seconds</label>
           <%= form.number_field :duration_seconds,
               value: set.duration_seconds || last_duration_for(workout_exercise),
               class: "form-control form-control-sm text-center",
               inputmode: "numeric",
-              onfocus: "this.select()" %>
+              onfocus: "this.select()",
+              data: { copy_last_target: prev_set ? "duration" : nil }.compact %>
         <% when 'distance' %>
           <label class="form-label small text-muted mb-1">Meters</label>
           <%= form.number_field :distance_meters,
@@ -62,7 +91,8 @@
               class: "form-control form-control-sm text-center",
               inputmode: "decimal",
               step: "any",
-              onfocus: "this.select()" %>
+              onfocus: "this.select()",
+              data: { copy_last_target: prev_set ? "distance" : nil }.compact %>
         <% end %>
       </div>
     </div>
@@ -72,7 +102,8 @@
       <div class="col-auto">
         <label class="form-label small text-muted mb-1">Warmup</label>
         <div class="form-check d-flex justify-content-center">
-          <%= form.check_box :is_warmup, class: "form-check-input", title: "Warmup set" %>
+          <%= form.check_box :is_warmup, class: "form-check-input", title: "Warmup set",
+              data: prev_set ? { copy_last_target: "warmup" } : {} %>
         </div>
       </div>
 
