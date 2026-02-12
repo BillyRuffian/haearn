@@ -633,9 +633,9 @@ $text-muted: #6c757d;
 - [ ] Common scenario: equipment is occupied, swap to an alternative fast
 
 ### 11.2 Auto-Fill Weight From Last Session
-- [x] Pre-fill weight (and reps) inputs from the corresponding set of the previous session
-- [x] "Copy last" button on set form for one-tap population
-- [x] Progression suggester can override with its recommended weight
+- [ ] Pre-fill weight (and reps) inputs from the corresponding set of the previous session
+- [ ] "Copy last" button on set form for one-tap population
+- [ ] Progression suggester can override with its recommended weight
 
 ### 11.3 Workout Pinning / Favorites on Dashboard
 - [ ] Pin/favorite workouts or templates for quick access
@@ -656,29 +656,6 @@ $text-muted: #6c757d;
 - [ ] **Data export (CSV/JSON)** — Routes exist but unimplemented. Table-stakes for user trust and data portability.
 - [ ] **AMRAP sets** — Boolean flag on ExerciseSet + badge. Many popular programs (5/3/1, nSuns, GZCLP) rely on AMRAP final sets.
 - [ ] **Percentage-based programming** — With e1RM tracking already built, let users input "5x5 @ 80%" and auto-calculate working weight.
-
----
-
-## Phase 12: Admin & Authorization
-
-### 12.1 Role-Based Permissions (Pundit)
-- [ ] Add `pundit` gem for policy-based authorization
-- [ ] Add `role` column to User model (default: `user`, admin: `admin`)
-- [ ] Create base `ApplicationPolicy` and per-resource policies
-- [ ] Protect all controllers with `authorize` calls
-- [ ] Add `after_action :verify_authorized` safety net
-
-### 12.2 Administrator Role
-- [ ] Seed an initial admin user (or promote via `rails console` / rake task)
-- [ ] Admin-only access to management views
-- [ ] Admin badge in UI for admin users
-
-### 12.3 Admin Management Views
-- [ ] **User Management**: List all user accounts (email, sign-up date, last login, workout count)
-- [ ] **Global Exercises**: CRUD for seeded/global exercises (user_id: nil)
-- [ ] **Global Machines**: View machine catalog across all gyms
-- [ ] Admin dashboard with system stats (total users, workouts, exercises)
-- [ ] Namespaced under `/admin` routes
 
 ---
 

@@ -28,25 +28,24 @@ module ApplicationHelper
   end
 
   # Get last weight used for this exercise in this workout
-  # Falls back to the last set from the previous session
   def last_weight_for(workout_exercise)
     last_set = workout_exercise.exercise_sets.order(created_at: :desc).first
     if last_set&.weight_kg
       Current.user.format_weight(last_set.weight_kg)
-    else
-      prev_set = workout_exercise.previous_exercise&.exercise_sets&.order(:position, :created_at)&.last
+    elsif workout_exercise.previous_exercise
+      prev_set = workout_exercise.previous_exercise.exercise_sets.order(created_at: :desc).first
       prev_set&.weight_kg ? Current.user.format_weight(prev_set.weight_kg) : nil
     end
   end
 
   # Get last reps used for this exercise in this workout
-  # Falls back to the last set from the previous session
   def last_reps_for(workout_exercise)
     last_set = workout_exercise.exercise_sets.order(created_at: :desc).first
     if last_set&.reps
       last_set.reps
-    else
-      workout_exercise.previous_exercise&.exercise_sets&.order(:position, :created_at)&.last&.reps
+    elsif workout_exercise.previous_exercise
+      prev_set = workout_exercise.previous_exercise.exercise_sets.order(created_at: :desc).first
+      prev_set&.reps
     end
   end
 
@@ -55,8 +54,9 @@ module ApplicationHelper
     last_set = workout_exercise.exercise_sets.order(created_at: :desc).first
     if last_set&.duration_seconds
       last_set.duration_seconds
-    else
-      workout_exercise.previous_exercise&.exercise_sets&.order(:position, :created_at)&.last&.duration_seconds
+    elsif workout_exercise.previous_exercise
+      prev_set = workout_exercise.previous_exercise.exercise_sets.order(created_at: :desc).first
+      prev_set&.duration_seconds
     end
   end
 
@@ -65,8 +65,9 @@ module ApplicationHelper
     last_set = workout_exercise.exercise_sets.order(created_at: :desc).first
     if last_set&.distance_meters
       last_set.distance_meters
-    else
-      workout_exercise.previous_exercise&.exercise_sets&.order(:position, :created_at)&.last&.distance_meters
+    elsif workout_exercise.previous_exercise
+      prev_set = workout_exercise.previous_exercise.exercise_sets.order(created_at: :desc).first
+      prev_set&.distance_meters
     end
   end
 
