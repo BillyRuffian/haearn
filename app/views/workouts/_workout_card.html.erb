@@ -1,10 +1,12 @@
+<% show_date = local_assigns.fetch(:show_date, false) %>
+<% show_copy = local_assigns.fetch(:show_copy, false) %>
 <div class="list-group-item list-group-item-action bg-transparent border-secondary px-0 py-3 workout-history-item">
   <div class="d-flex justify-content-between align-items-center">
     <%= link_to workout_path(workout), class: "flex-grow-1 text-decoration-none", data: { turbo_frame: "_top" } do %>
       <div class="d-flex justify-content-between align-items-center mb-2 w-100">
         <div>
           <h6 class="mb-1">
-            <% if defined?(show_date) && show_date %>
+            <% if show_date %>
               <%= workout.started_at.strftime("%A, %B %-d, %Y") %>
             <% else %>
               <%= workout.gym&.name || "Workout" %>
@@ -35,7 +37,7 @@
       </div>
       <%= render "workouts/muscle_group_badges", workout: workout %>
     <% end %>
-    <% if defined?(show_copy) && show_copy && workout.completed? %>
+    <% if show_copy && workout.completed? %>
       <%= button_to copy_workout_path(workout), method: :post, class: "btn btn-outline-primary btn-sm copy-workout-btn", title: "Repeat this workout", data: { turbo_confirm: "Start a new workout based on this one?" } do %>
         <i class="bi bi-arrow-repeat"></i>
       <% end %>
