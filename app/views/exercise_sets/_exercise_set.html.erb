@@ -1,60 +1,94 @@
 <%= turbo_frame_tag dom_id(set) do %>
   <% is_weight_pr = set.weight_pr? %>
-  <div class="row align-items-center py-1 set-row <%= 'text-muted' if set.is_warmup %> <%= 'pr-set-row' if is_weight_pr %>">
-    <div class="col-1 text-center">
-      <% if set.is_warmup %>
-        <span class="badge bg-secondary">W</span>
-      <% else %>
-        <span class="set-number"><%= index %></span>
+  <div class="swipeable-container" data-controller="swipeable" data-swipeable-threshold-value="80">
+    <%# Left action (swipe right to reveal) - Duplicate %>
+    <div class="swipe-actions swipe-actions-left" data-swipeable-target="leftActions">
+      <%= button_to duplicate_workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
+          method: :post,
+          class: "swipe-action swipe-action-duplicate",
+          data: { action: "click->swipeable#reset click->swipeable#dispatchSetLogged" },
+          form: { data: { turbo_frame: "_top" } } do %>
+        <i class="bi bi-copy"></i>
       <% end %>
     </div>
-    <div class="col-3 text-center">
-      <span class="weight-display <%= 'pr-weight' if is_weight_pr %>">
-        <%= Current.user.format_weight(set.weight_kg) || "—" %>
-        <% if is_weight_pr %>
-          <i class="bi bi-trophy-fill text-warning ms-1"></i>
-        <% end %>
-      </span>
-      <small class="text-muted"><%= Current.user.preferred_unit %></small>
-    </div>
-    <div class="col-3 text-center">
-      <% case workout_exercise.exercise.exercise_type %>
-      <% when 'reps' %>
-        <span class="reps-display"><%= set.reps || "—" %></span>
-      <% when 'time' %>
-        <span><%= set.duration_seconds ? "#{set.duration_seconds}s" : "—" %></span>
-      <% when 'distance' %>
-        <span><%= set.distance_meters ? "#{set.distance_meters}m" : "—" %></span>
-      <% end %>
-    </div>
-    <div class="col-3 text-center">
-      <% if set.rpe.present? %>
-        <small class="text-muted">RPE <%= set.rpe %></small>
-      <% elsif set.rir.present? %>
-        <small class="text-muted">RIR <%= set.rir %></small>
-      <% else %>
-        <span class="text-muted">—</span>
-      <% end %>
-    </div>
-    <div class="col-2 text-end">
-      <div class="dropdown">
-        <button class="btn btn-sm btn-link text-muted" type="button" data-bs-toggle="dropdown">
-          <i class="bi bi-three-dots-vertical"></i>
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end">
-          <li>
-            <%= link_to "Edit", edit_workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
-                class: "dropdown-item",
-                data: { turbo_frame: dom_id(set) } %>
-          </li>
-          <li>
-            <%= button_to "Delete", workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
-                method: :delete,
-                class: "dropdown-item text-danger",
-                data: { turbo_confirm: "Delete this set?" } %>
-          </li>
-        </ul>
+
+    <%# Main set content %>
+    <div class="swipeable-content" data-swipeable-target="content">
+      <div class="row align-items-center py-1 set-row <%= 'text-muted' if set.is_warmup %> <%= 'pr-set-row' if is_weight_pr %>">
+        <div class="col-1 text-center">
+          <% if set.is_warmup %>
+            <span class="badge bg-secondary">W</span>
+          <% else %>
+            <span class="set-number"><%= index %></span>
+          <% end %>
+        </div>
+        <div class="col-3 text-center">
+          <span class="weight-display <%= 'pr-weight' if is_weight_pr %>">
+            <%= Current.user.format_weight(set.weight_kg) || "—" %>
+            <% if is_weight_pr %>
+              <i class="bi bi-trophy-fill text-warning ms-1"></i>
+            <% end %>
+          </span>
+          <small class="text-muted"><%= Current.user.preferred_unit %></small>
+        </div>
+        <div class="col-3 text-center">
+          <% case workout_exercise.exercise.exercise_type %>
+          <% when 'reps' %>
+            <span class="reps-display"><%= set.reps || "—" %></span>
+          <% when 'time' %>
+            <span><%= set.duration_seconds ? "#{set.duration_seconds}s" : "—" %></span>
+          <% when 'distance' %>
+            <span><%= set.distance_meters ? "#{set.distance_meters}m" : "—" %></span>
+          <% end %>
+        </div>
+        <div class="col-3 text-center">
+          <% if set.rpe.present? %>
+            <small class="text-muted">RPE <%= set.rpe %></small>
+          <% elsif set.rir.present? %>
+            <small class="text-muted">RIR <%= set.rir %></small>
+          <% else %>
+            <span class="text-muted">—</span>
+          <% end %>
+        </div>
+        <div class="col-2 text-end">
+          <div class="dropdown">
+            <button class="btn btn-sm btn-link text-muted" type="button" data-bs-toggle="dropdown">
+              <i class="bi bi-three-dots-vertical"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <%= link_to "Edit", edit_workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
+                    class: "dropdown-item",
+                    data: { turbo_frame: dom_id(set) } %>
+              </li>
+              <li>
+                <%= button_to "Duplicate", duplicate_workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
+                    method: :post,
+                    class: "dropdown-item",
+                    data: { action: "click->swipeable#dispatchSetLogged" },
+                    form: { data: { turbo_frame: "_top" } } %>
+              </li>
+              <li>
+                <%= button_to "Delete", workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
+                    method: :delete,
+                    class: "dropdown-item text-danger",
+                    data: { turbo_confirm: "Delete this set?" } %>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
+    </div>
+
+    <%# Right action (swipe left to reveal) - Delete %>
+    <div class="swipe-actions swipe-actions-right" data-swipeable-target="rightActions">
+      <%= button_to workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
+          method: :delete,
+          class: "swipe-action swipe-action-delete",
+          data: { action: "click->swipeable#reset" },
+          form: { data: { turbo_frame: "_top" } } do %>
+        <i class="bi bi-trash3"></i>
+      <% end %>
     </div>
   </div>
 <% end %>

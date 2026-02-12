@@ -166,7 +166,11 @@ Rails.application.routes.draw do
       get :share_text
     end
     resources :workout_exercises, only: [ :show, :edit, :update, :destroy ] do
-      resources :exercise_sets, only: [ :create, :edit, :update, :destroy ]
+      resources :exercise_sets, only: [ :create, :edit, :update, :destroy ] do
+        member do
+          post :duplicate
+        end
+      end
       member do
         patch :move_to_block
         post :generate_warmups

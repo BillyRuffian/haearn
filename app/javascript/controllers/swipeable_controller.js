@@ -1,46 +1,54 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Swipeable controller for touch-based delete/actions
-// Enables swipe-to-reveal actions on list items
+// Bidirectional swipe controller for touch-based actions on list items
+// Swipe left to reveal right actions (e.g. delete)
+// Swipe right to reveal left actions (e.g. duplicate)
 //
 // Usage:
 //   <div data-controller="swipeable" data-swipeable-threshold-value="80">
-//     <div data-swipeable-target="content">Main content</div>
-//     <div data-swipeable-target="actions" class="swipe-actions">
-//       <button data-action="click->swipeable#reset" class="btn-delete">Delete</button>
+//     <div data-swipeable-target="leftActions" class="swipe-actions swipe-actions-left">
+//       <button data-action="click->swipeable#reset">Duplicate</button>
+//     </div>
+//     <div data-swipeable-target="content" class="swipeable-content">
+//       Main content
+//     </div>
+//     <div data-swipeable-target="rightActions" class="swipe-actions swipe-actions-right">
+//       <button data-action="click->swipeable#reset">Delete</button>
 //     </div>
 //   </div>
 //
 export default class extends Controller {
-  static targets = ["content", "actions"]
+  static targets = ["content", "leftActions", "rightActions"]
   static values = {
     threshold: { type: Number, default: 80 },
+    fullSwipeRatio: { type: Number, default: 0.55 },
     enabled: { type: Boolean, default: true }
   }
 
   connect() {
     this.startX = 0
+    this.startY = 0
     this.currentX = 0
     this.isDragging = false
-    this.isOpen = false
+    this.openDirection = null // "left" or "right" or null
 
     if (!this.enabledValue) return
 
-    this.boundHandleTouchStart = this.handleTouchStart.bind(this)
-    this.boundHandleTouchMove = this.handleTouchMove.bind(this)
-    this.boundHandleTouchEnd = this.handleTouchEnd.bind(this)
+    this.boundTouchStart = this.handleTouchStart.bind(this)
+    this.boundTouchMove = this.handleTouchMove.bind(this)
+    this.boundTouchEnd = this.handleTouchEnd.bind(this)
 
-    this.element.addEventListener("touchstart", this.boundHandleTouchStart, { passive: true })
-    this.element.addEventListener("touchmove", this.boundHandleTouchMove, { passive: false })
-    this.element.addEventListener("touchend", this.boundHandleTouchEnd, { passive: true })
+    this.element.addEventListener("touchstart", this.boundTouchStart, { passive: true })
+    this.element.addEventListener("touchmove", this.boundTouchMove, { passive: false })
+    this.element.addEventListener("touchend", this.boundTouchEnd, { passive: true })
   }
 
   disconnect() {
     if (!this.enabledValue) return
 
-    this.element.removeEventListener("touchstart", this.boundHandleTouchStart)
-    this.element.removeEventListener("touchmove", this.boundHandleTouchMove)
-    this.element.removeEventListener("touchend", this.boundHandleTouchEnd)
+    this.element.removeEventListener("touchstart", this.boundTouchStart)
+    this.element.removeEventListener("touchmove", this.boundTouchMove)
+    this.element.removeEventListener("touchend", this.boundTouchEnd)
   }
 
   handleTouchStart(event) {
@@ -55,44 +63,73 @@ export default class extends Controller {
     if (event.touches.length !== 1) return
 
     const touch = event.touches[0]
-    const deltaX = this.startX - touch.clientX
-    const deltaY = Math.abs(this.startY - touch.clientY)
+    const deltaX = touch.clientX - this.startX
+    const deltaY = Math.abs(touch.clientY - this.startY)
 
-    // Only start dragging if horizontal movement is greater
+    // Only start dragging if horizontal movement dominates
     if (!this.isDragging && Math.abs(deltaX) > 10 && Math.abs(deltaX) > deltaY) {
       this.isDragging = true
+      // If already open in a direction and user swipes opposite, reset first
+      if (this.openDirection) {
+        this.close()
+        this.isDragging = false
+        return
+      }
     }
 
     if (!this.isDragging) return
 
-    // Prevent vertical scrolling while swiping
     event.preventDefault()
 
-    // Calculate position
-    let translateX = -deltaX
+    // Allow dragging up to full container width for full-swipe
+    const containerWidth = this.element.offsetWidth
+    const maxRight = this.hasLeftActionsTarget ? containerWidth : 0
+    const maxLeft = this.hasRightActionsTarget ? containerWidth : 0
 
-    // If already open, adjust starting position
-    if (this.isOpen) {
-      translateX = -this.thresholdValue - deltaX
-    }
-
-    // Limit movement
-    translateX = Math.max(-this.thresholdValue - 20, Math.min(20, translateX))
-
+    const translateX = Math.max(-maxLeft, Math.min(maxRight, deltaX))
     this.currentX = translateX
     this.updatePosition(translateX)
+
+    // Update action panel opacity and width for visual feedback
+    if (translateX > 0 && this.hasLeftActionsTarget) {
+      const progress = Math.min(translateX / this.thresholdValue, 1)
+      this.leftActionsTarget.style.opacity = progress
+      this.leftActionsTarget.style.width = `${Math.abs(translateX)}px`
+    } else if (translateX < 0 && this.hasRightActionsTarget) {
+      const progress = Math.min(Math.abs(translateX) / this.thresholdValue, 1)
+      this.rightActionsTarget.style.opacity = progress
+      this.rightActionsTarget.style.width = `${Math.abs(translateX)}px`
+    }
   }
 
   handleTouchEnd() {
     if (!this.isDragging) return
-
     this.isDragging = false
 
-    // Determine if we should open or close
-    const shouldOpen = this.currentX < -this.thresholdValue / 2
+    const containerWidth = this.element.offsetWidth
+    const fullSwipeThreshold = containerWidth * this.fullSwipeRatioValue
 
-    if (shouldOpen) {
-      this.open()
+    if (this.currentX > fullSwipeThreshold && this.hasLeftActionsTarget) {
+      // Full swipe right — auto-trigger left action (duplicate)
+      this.triggerAction(this.leftActionsTarget)
+    } else if (this.currentX < -fullSwipeThreshold && this.hasRightActionsTarget) {
+      // Full swipe left — auto-trigger right action (delete)
+      this.triggerAction(this.rightActionsTarget)
+    } else if (this.currentX > this.thresholdValue / 2 && this.hasLeftActionsTarget) {
+      this.openLeft()
+    } else if (this.currentX < -this.thresholdValue / 2 && this.hasRightActionsTarget) {
+      this.openRight()
+    } else {
+      this.close()
+    }
+  }
+
+  triggerAction(actionsTarget) {
+    // Find the first submit button or link inside the action panel and click it
+    const actionBtn = actionsTarget.querySelector("button[type='submit'], a, button")
+    if (actionBtn) {
+      this.close()
+      actionBtn.click()
     } else {
       this.close()
     }
@@ -105,20 +142,45 @@ export default class extends Controller {
     }
   }
 
-  open() {
-    this.isOpen = true
+  openLeft() {
+    this.openDirection = "left"
+    if (this.hasContentTarget) {
+      this.contentTarget.style.transform = `translateX(${this.thresholdValue}px)`
+      this.contentTarget.style.transition = "transform 0.2s ease-out"
+    }
+    if (this.hasLeftActionsTarget) {
+      this.leftActionsTarget.style.opacity = "1"
+      this.leftActionsTarget.style.width = `${this.thresholdValue}px`
+    }
+    this.dispatch("opened", { detail: { direction: "left" } })
+  }
+
+  openRight() {
+    this.openDirection = "right"
     if (this.hasContentTarget) {
       this.contentTarget.style.transform = `translateX(-${this.thresholdValue}px)`
       this.contentTarget.style.transition = "transform 0.2s ease-out"
     }
-    this.dispatch("opened")
+    if (this.hasRightActionsTarget) {
+      this.rightActionsTarget.style.opacity = "1"
+      this.rightActionsTarget.style.width = `${this.thresholdValue}px`
+    }
+    this.dispatch("opened", { detail: { direction: "right" } })
   }
 
   close() {
-    this.isOpen = false
+    this.openDirection = null
     if (this.hasContentTarget) {
       this.contentTarget.style.transform = "translateX(0)"
       this.contentTarget.style.transition = "transform 0.2s ease-out"
+    }
+    if (this.hasLeftActionsTarget) {
+      this.leftActionsTarget.style.opacity = "0"
+      this.leftActionsTarget.style.width = "0"
+    }
+    if (this.hasRightActionsTarget) {
+      this.rightActionsTarget.style.opacity = "0"
+      this.rightActionsTarget.style.width = "0"
     }
     this.dispatch("closed")
   }
@@ -127,11 +189,8 @@ export default class extends Controller {
     this.close()
   }
 
-  toggle() {
-    if (this.isOpen) {
-      this.close()
-    } else {
-      this.open()
-    }
+  // Dispatch set-logged event to reset the rest timer (used by duplicate action)
+  dispatchSetLogged() {
+    window.dispatchEvent(new CustomEvent("set-logged", { bubbles: true }))
   }
 }

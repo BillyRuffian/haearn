@@ -28,25 +28,25 @@ module ApplicationHelper
   end
 
   # Get last weight used for this exercise in this workout
-  # Falls back to the corresponding set from the previous session (set-for-set matching)
+  # Falls back to the last set from the previous session
   def last_weight_for(workout_exercise)
     last_set = workout_exercise.exercise_sets.order(created_at: :desc).first
     if last_set&.weight_kg
       Current.user.format_weight(last_set.weight_kg)
     else
-      prev_set = corresponding_previous_set(workout_exercise)
+      prev_set = workout_exercise.previous_exercise&.exercise_sets&.order(:position, :created_at)&.last
       prev_set&.weight_kg ? Current.user.format_weight(prev_set.weight_kg) : nil
     end
   end
 
   # Get last reps used for this exercise in this workout
-  # Falls back to the corresponding set from the previous session (set-for-set matching)
+  # Falls back to the last set from the previous session
   def last_reps_for(workout_exercise)
     last_set = workout_exercise.exercise_sets.order(created_at: :desc).first
     if last_set&.reps
       last_set.reps
     else
-      corresponding_previous_set(workout_exercise)&.reps
+      workout_exercise.previous_exercise&.exercise_sets&.order(:position, :created_at)&.last&.reps
     end
   end
 
@@ -56,7 +56,7 @@ module ApplicationHelper
     if last_set&.duration_seconds
       last_set.duration_seconds
     else
-      corresponding_previous_set(workout_exercise)&.duration_seconds
+      workout_exercise.previous_exercise&.exercise_sets&.order(:position, :created_at)&.last&.duration_seconds
     end
   end
 
@@ -66,39 +66,7 @@ module ApplicationHelper
     if last_set&.distance_meters
       last_set.distance_meters
     else
-      corresponding_previous_set(workout_exercise)&.distance_meters
-    end
-  end
-
-  # Get the corresponding set from the previous session for set-for-set matching
-  # For the Nth set being added, returns the Nth set from last time
-  # Falls back to the last set from the previous session if no Nth set exists
-  def corresponding_previous_set(workout_exercise)
-    prev_exercise = workout_exercise.previous_exercise
-    return nil unless prev_exercise
-
-    prev_sets = prev_exercise.exercise_sets.order(:position, :created_at).to_a
-    return nil if prev_sets.empty?
-
-    # The next set number is current count + 1 (0-indexed for array)
-    next_set_index = workout_exercise.exercise_sets.count
-    prev_sets[next_set_index] || prev_sets.last
-  end
-
-  # Get all sets from the previous session for copy-last UI
-  # Returns array of hashes with display-ready values
-  def previous_session_sets(workout_exercise)
-    prev_exercise = workout_exercise.previous_exercise
-    return [] unless prev_exercise
-
-    prev_exercise.exercise_sets.order(:position, :created_at).map do |set|
-      {
-        weight: set.weight_kg ? Current.user.format_weight(set.weight_kg) : nil,
-        reps: set.reps,
-        duration_seconds: set.duration_seconds,
-        distance_meters: set.distance_meters,
-        is_warmup: set.is_warmup
-      }
+      workout_exercise.previous_exercise&.exercise_sets&.order(:position, :created_at)&.last&.distance_meters
     end
   end
 

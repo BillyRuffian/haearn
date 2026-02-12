@@ -2,7 +2,7 @@
 # Uses Turbo Streams for smooth, inline editing without full page reloads
 class ExerciseSetsController < ApplicationController
   before_action :set_workout_and_exercise
-  before_action :set_exercise_set, only: %i[edit update destroy]
+  before_action :set_exercise_set, only: %i[edit update destroy duplicate]
 
   # POST /workouts/:workout_id/workout_exercises/:workout_exercise_id/exercise_sets
   # Creates a new set and updates the workout stats via Turbo Stream
@@ -14,29 +14,9 @@ class ExerciseSetsController < ApplicationController
 
     respond_to do |format|
       if @exercise_set.save
-        @workout.reload # Reload to get updated counts for stats display
-        index = @workout_exercise.exercise_sets.count
-        # Return multiple Turbo Streams: append new set, reset form, update stats
-        format.turbo_stream do
-          streams = [
-            turbo_stream.append("sets_list_#{@workout_exercise.id}",
-              partial: 'exercise_sets/exercise_set',
-              locals: { set: @exercise_set, workout_exercise: @workout_exercise, workout: @workout, index: index }),
-            turbo_stream.replace("new_set_#{@workout_exercise.id}",
-              partial: 'exercise_sets/form',
-              locals: { workout_exercise: @workout_exercise, workout: @workout, set: @workout_exercise.exercise_sets.build }),
-            turbo_stream.replace('workout_stats',
-              partial: 'workouts/stats',
-              locals: { workout: @workout })
-          ]
-
-          # Hide warmup generator after first set is logged
-          if @workout_exercise.exercise_sets.count == 1
-            streams << turbo_stream.remove("warmup_generator_#{@workout_exercise.id}")
-          end
-
-          render turbo_stream: streams
-        end
+        @workout.reload
+        @workout_exercise.reload
+        format.turbo_stream { render turbo_stream: refresh_exercise_and_stats_streams }
         format.html { redirect_to workout_path(@workout) }
       else
         format.turbo_stream do
@@ -63,19 +43,9 @@ class ExerciseSetsController < ApplicationController
   def update
     respond_to do |format|
       if @exercise_set.update(exercise_set_params)
-        @workout.reload # Reload to get updated volume for stats
-        # Calculate set number again after update
-        index = @workout_exercise.exercise_sets.order(:created_at).pluck(:id).index(@exercise_set.id) + 1
-        format.turbo_stream do
-          render turbo_stream: [
-            turbo_stream.replace(@exercise_set,
-              partial: 'exercise_sets/exercise_set',
-              locals: { set: @exercise_set, workout_exercise: @workout_exercise, workout: @workout, index: index }),
-            turbo_stream.replace('workout_stats',
-              partial: 'workouts/stats',
-              locals: { workout: @workout })
-          ]
-        end
+        @workout.reload
+        @workout_exercise.reload
+        format.turbo_stream { render turbo_stream: refresh_exercise_and_stats_streams }
         format.html { redirect_to workout_path(@workout) }
       else
         format.turbo_stream do
@@ -92,22 +62,71 @@ class ExerciseSetsController < ApplicationController
   # Removes set and updates workout stats
   def destroy
     @exercise_set.destroy
-    @workout.reload # Reload to get updated counts for stats
+    @workout.reload
+    @workout_exercise.reload
 
     respond_to do |format|
-      format.turbo_stream do
-        render turbo_stream: [
-          turbo_stream.remove(@exercise_set),
-          turbo_stream.replace('workout_stats',
-            partial: 'workouts/stats',
-            locals: { workout: @workout })
-        ]
-      end
+      format.turbo_stream { render turbo_stream: refresh_exercise_and_stats_streams }
       format.html { redirect_to workout_path(@workout) }
     end
   end
 
+  # POST /workouts/:workout_id/workout_exercises/:workout_exercise_id/exercise_sets/:id/duplicate
+  # Duplicates an existing set and appends it to the list
+  def duplicate
+    new_set = @workout_exercise.exercise_sets.build(
+      weight_kg: @exercise_set.weight_kg,
+      reps: @exercise_set.reps,
+      duration_seconds: @exercise_set.duration_seconds,
+      distance_meters: @exercise_set.distance_meters,
+      is_warmup: @exercise_set.is_warmup,
+      rpe: @exercise_set.rpe,
+      rir: @exercise_set.rir,
+      position: @workout_exercise.exercise_sets.count + 1,
+      completed_at: Time.current
+    )
+
+    respond_to do |format|
+      if new_set.save
+        @workout.reload
+        @workout_exercise.reload
+        format.turbo_stream { render turbo_stream: refresh_exercise_and_stats_streams }
+        format.html { redirect_to workout_path(@workout) }
+      else
+        format.html { redirect_to workout_path(@workout), alert: 'Could not duplicate set.' }
+      end
+    end
+  end
+
   private
+
+  # Builds turbo streams to replace the entire workout exercise card and stats.
+  # Re-rendering the full card ensures volume PR status stays in sync.
+  def refresh_exercise_and_stats_streams
+    [
+      turbo_stream.replace(
+        ActionView::RecordIdentifier.dom_id(@workout_exercise),
+        partial: 'workouts/workout_exercise',
+        locals: {
+          workout_exercise: @workout_exercise,
+          workout: @workout,
+          superset_label: superset_label_for(@workout_exercise)
+        }
+      ),
+      turbo_stream.replace('workout_stats',
+        partial: 'workouts/stats',
+        locals: { workout: @workout })
+    ]
+  end
+
+  # Compute the superset label (e.g. "A1", "A2") for a workout exercise
+  def superset_label_for(workout_exercise)
+    block = workout_exercise.workout_block
+    return nil unless block.workout_exercises.count > 1
+
+    index = block.workout_exercises.order(:position).pluck(:id).index(workout_exercise.id)
+    "#{(block.position + 64).chr}#{index + 1}"
+  end
 
   # Load workout and workout_exercise from nested route params
   def set_workout_and_exercise

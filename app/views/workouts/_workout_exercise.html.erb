@@ -126,12 +126,22 @@
     <% end %>
 
     <!-- Add Set Form -->
-    <%= turbo_frame_tag "new_set_#{workout_exercise.id}" do %>
-      <%= render "exercise_sets/form", 
-          workout: workout, 
-          workout_exercise: workout_exercise,
-          set: workout_exercise.exercise_sets.build %>
-    <% end %>
+    <div data-controller="add-set-toggle">
+      <button type="button"
+              class="btn btn-outline-primary w-100 mt-2 py-2"
+              data-add-set-toggle-target="button"
+              data-action="add-set-toggle#show">
+        <i class="bi bi-plus-lg me-1"></i>Add Set
+      </button>
+      <div data-add-set-toggle-target="form" class="d-none">
+        <%= turbo_frame_tag "new_set_#{workout_exercise.id}" do %>
+          <%= render "exercise_sets/form",
+              workout: workout,
+              workout_exercise: workout_exercise,
+              set: workout_exercise.exercise_sets.build %>
+        <% end %>
+      </div>
+    </div>
 
     <!-- Notes Section (editable) -->
     <%= render "workout_exercises/notes_display", workout: workout, workout_exercise: workout_exercise %>
