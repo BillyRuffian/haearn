@@ -23,15 +23,17 @@
 #  user_id  (user_id => users.id)
 #
 one:
-  name: MyString
-  exercise_type: MyString
-  has_weight: false
+  name: Custom Bench Press
+  exercise_type: reps
+  has_weight: true
   user: one
-  description: MyText
+  description: A custom bench press variation
+  primary_muscle_group: chest
 
 two:
-  name: MyString
-  exercise_type: MyString
-  has_weight: false
+  name: Custom Squat
+  exercise_type: reps
+  has_weight: true
   user: two
-  description: MyText
+  description: A custom squat variation
+  primary_muscle_group: quadriceps

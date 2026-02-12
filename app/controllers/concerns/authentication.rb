@@ -19,6 +19,14 @@ module Authentication
 
     def require_authentication
       resume_session || request_authentication
+      reject_deactivated_user
+    end
+
+    def reject_deactivated_user
+      return unless Current.user&.deactivated?
+
+      terminate_session
+      redirect_to new_session_path, alert: 'Your account has been deactivated.'
     end
 
     def resume_session

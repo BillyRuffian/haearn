@@ -180,6 +180,25 @@ Rails.application.routes.draw do
     end
   end
 
+  # Admin Panel
+  namespace :admin do
+    root 'dashboard#index'
+    resources :users, only: [ :index, :show, :edit, :update ] do
+      member do
+        patch :toggle_admin
+        patch :deactivate
+        patch :reactivate
+        post :impersonate
+      end
+    end
+    resources :exercises, only: [ :index, :show, :new, :create, :edit, :update, :destroy ] do
+      member { post :promote }
+      collection { get :review }
+    end
+    resources :audit_logs, only: [ :index ]
+    delete 'stop_impersonating', to: 'impersonation#destroy', as: :stop_impersonating
+  end
+
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get 'up' => 'rails/health#show', as: :rails_health_check

@@ -1,0 +1,5 @@
+one:
+  admin_user: admin
+  target_user: one
+  action: deactivate_user
+  ip_address: 127.0.0.1

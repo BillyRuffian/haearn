@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_11_214051) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_12_112557) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -37,6 +37,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_214051) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "admin_audit_logs", force: :cascade do |t|
+    t.string "action", null: false
+    t.integer "admin_user_id", null: false
+    t.datetime "created_at", null: false
+    t.string "ip_address"
+    t.text "metadata"
+    t.integer "resource_id"
+    t.string "resource_type"
+    t.integer "target_user_id"
+    t.datetime "updated_at", null: false
+    t.index ["action"], name: "index_admin_audit_logs_on_action"
+    t.index ["admin_user_id"], name: "index_admin_audit_logs_on_admin_user_id"
+    t.index ["created_at"], name: "index_admin_audit_logs_on_created_at"
+    t.index ["target_user_id"], name: "index_admin_audit_logs_on_target_user_id"
   end
 
   create_table "body_metrics", force: :cascade do |t|
@@ -143,7 +159,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_214051) do
   end
 
   create_table "users", force: :cascade do |t|
+    t.boolean "admin", default: false, null: false
     t.datetime "created_at", null: false
+    t.datetime "deactivated_at"
     t.integer "default_gym_id"
     t.integer "default_rest_seconds", default: 90
     t.string "email_address", null: false
@@ -153,6 +171,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_214051) do
     t.integer "progression_rep_target", default: 10, null: false
     t.datetime "updated_at", null: false
     t.boolean "weekly_summary_email", default: false, null: false
+    t.index ["admin"], name: "index_users_on_admin"
     t.index ["default_gym_id"], name: "index_users_on_default_gym_id"
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
   end
@@ -203,6 +222,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_11_214051) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "admin_audit_logs", "users", column: "admin_user_id"
+  add_foreign_key "admin_audit_logs", "users", column: "target_user_id"
   add_foreign_key "body_metrics", "users"
   add_foreign_key "exercise_sets", "workout_exercises"
   add_foreign_key "exercises", "users"

@@ -1,0 +1,127 @@
+<% content_for(:title, "#{@user.name} - Haearn Admin") %>
+
+<div class="mb-3">
+  <%= link_to admin_users_path, class: "text-muted text-decoration-none" do %>
+    <i class="bi bi-arrow-left me-1"></i>Back to Users
+  <% end %>
+</div>
+
+<div class="row g-4">
+  <!-- User Info -->
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-person me-2"></i>User Details</span>
+        <div>
+          <% if @user.admin? %>
+            <span class="badge bg-danger">Admin</span>
+          <% end %>
+          <% if @user.deactivated? %>
+            <span class="badge bg-secondary">Deactivated</span>
+          <% else %>
+            <span class="badge bg-success">Active</span>
+          <% end %>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <div class="stat-label">Name</div>
+            <div class="fs-5 fw-semibold"><%= @user.name %></div>
+          </div>
+          <div class="col-sm-6">
+            <div class="stat-label">Email</div>
+            <div class="fs-5"><%= @user.email_address %></div>
+          </div>
+          <div class="col-sm-6">
+            <div class="stat-label">Preferred Unit</div>
+            <div><%= @user.preferred_unit.upcase %></div>
+          </div>
+          <div class="col-sm-6">
+            <div class="stat-label">Member Since</div>
+            <div><%= @user.created_at.strftime('%B %d, %Y') %></div>
+          </div>
+          <% if @user.deactivated? %>
+            <div class="col-sm-6">
+              <div class="stat-label">Deactivated At</div>
+              <div class="text-danger"><%= @user.deactivated_at.strftime('%B %d, %Y %H:%M') %></div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="card mt-3">
+      <div class="card-header">
+        <i class="bi bi-bar-chart me-2"></i>Stats
+      </div>
+      <div class="card-body">
+        <div class="row g-3 text-center">
+          <div class="col-4">
+            <div class="stat-label">Workouts</div>
+            <div class="display-6 text-rust"><%= @workout_count %></div>
+          </div>
+          <div class="col-4">
+            <div class="stat-label">Sets Logged</div>
+            <div class="display-6"><%= @set_count %></div>
+          </div>
+          <div class="col-4">
+            <div class="stat-label">Last Workout</div>
+            <div class="fs-6">
+              <% if @last_workout %>
+                <%= time_ago_in_words(@last_workout.created_at) %> ago
+              <% else %>
+                <span class="text-muted">Never</span>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-lightning me-2"></i>Actions
+      </div>
+      <div class="card-body d-grid gap-2">
+        <%= link_to edit_admin_user_path(@user), class: "btn btn-outline-primary" do %>
+          <i class="bi bi-pencil me-1"></i>Edit User
+        <% end %>
+
+        <% if @user != Current.user %>
+          <% if @user.admin? %>
+            <%= button_to toggle_admin_admin_user_path(@user), method: :patch, class: "btn btn-outline-warning", data: { turbo_confirm: "Remove admin privileges from #{@user.name}?" } do %>
+              <i class="bi bi-shield-minus me-1"></i>Remove Admin
+            <% end %>
+          <% else %>
+            <%= button_to toggle_admin_admin_user_path(@user), method: :patch, class: "btn btn-outline-warning", data: { turbo_confirm: "Grant admin privileges to #{@user.name}?" } do %>
+              <i class="bi bi-shield-plus me-1"></i>Make Admin
+            <% end %>
+          <% end %>
+
+          <% if @user.deactivated? %>
+            <%= button_to reactivate_admin_user_path(@user), method: :patch, class: "btn btn-outline-success", data: { turbo_confirm: "Reactivate #{@user.name}?" } do %>
+              <i class="bi bi-person-check me-1"></i>Reactivate
+            <% end %>
+          <% else %>
+            <%= button_to deactivate_admin_user_path(@user), method: :patch, class: "btn btn-outline-danger", data: { turbo_confirm: "Deactivate #{@user.name}? They will be logged out." } do %>
+              <i class="bi bi-person-x me-1"></i>Deactivate
+            <% end %>
+
+            <%= button_to impersonate_admin_user_path(@user), method: :post, class: "btn btn-outline-secondary", data: { turbo_confirm: "Impersonate #{@user.name}? You'll be redirected to the app as this user." } do %>
+              <i class="bi bi-incognito me-1"></i>Impersonate
+            <% end %>
+          <% end %>
+        <% else %>
+          <div class="text-muted small text-center">
+            <i class="bi bi-info-circle me-1"></i>Cannot perform actions on yourself
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

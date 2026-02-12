@@ -3,6 +3,8 @@
 # Table name: users
 #
 #  id                     :integer          not null, primary key
+#  admin                  :boolean          default(FALSE), not null
+#  deactivated_at         :datetime
 #  default_rest_seconds   :integer          default(90)
 #  email_address          :string           not null
 #  name                   :string
@@ -16,6 +18,7 @@
 #
 # Indexes
 #
+#  index_users_on_admin           (admin)
 #  index_users_on_default_gym_id  (default_gym_id)
 #  index_users_on_email_address   (email_address) UNIQUE
 #

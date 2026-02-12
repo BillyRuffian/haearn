@@ -1,0 +1,97 @@
+<% content_for(:title, "Users - Haearn Admin") %>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="display-heading mb-0">
+    <i class="bi bi-people me-2 text-rust"></i>Users
+    <span class="badge bg-secondary fs-6 ms-2"><%= @total_count %></span>
+  </h1>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+  <div class="card-body">
+    <%= form_tag admin_users_path, method: :get, class: "row g-2 align-items-end" do %>
+      <div class="col-md-4">
+        <label class="form-label">Search</label>
+        <%= text_field_tag :search, params[:search], class: "form-control", placeholder: "Name or email..." %>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Status</label>
+        <%= select_tag :status, options_for_select([['All', ''], ['Active', 'active'], ['Deactivated', 'deactivated']], params[:status]), class: "form-select" %>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Role</label>
+        <%= select_tag :role, options_for_select([['All', ''], ['Admin', 'admin']], params[:role]), class: "form-select" %>
+      </div>
+      <div class="col-md-2">
+        <%= submit_tag "Filter", class: "btn btn-primary w-100" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<!-- Users Table -->
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th class="table-header-sm">User</th>
+            <th class="table-header-sm">Email</th>
+            <th class="table-header-sm">Status</th>
+            <th class="table-header-sm text-center">Workouts</th>
+            <th class="table-header-sm">Joined</th>
+            <th class="table-header-sm text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @users.each do |user| %>
+            <tr>
+              <td>
+                <%= link_to user.name, admin_user_path(user), class: "text-decoration-none fw-semibold" %>
+                <% if user.admin? %>
+                  <span class="badge bg-danger ms-1">Admin</span>
+                <% end %>
+              </td>
+              <td class="text-muted"><%= user.email_address %></td>
+              <td>
+                <% if user.deactivated? %>
+                  <span class="badge bg-secondary">Deactivated</span>
+                <% else %>
+                  <span class="badge bg-success">Active</span>
+                <% end %>
+              </td>
+              <td class="text-center"><%= user.workouts.count %></td>
+              <td class="text-muted"><%= user.created_at.strftime('%b %d, %Y') %></td>
+              <td class="text-end">
+                <%= link_to admin_user_path(user), class: "btn btn-sm btn-outline-primary" do %>
+                  <i class="bi bi-eye"></i>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Pagination -->
+<% if @total_pages > 1 %>
+  <nav class="mt-3">
+    <ul class="pagination justify-content-center">
+      <li class="page-item <%= 'disabled' if @page <= 1 %>">
+        <%= link_to "Prev", admin_users_path(page: @page - 1, search: params[:search], status: params[:status], role: params[:role]), class: "page-link" %>
+      </li>
+      <% (1..@total_pages).each do |p| %>
+        <li class="page-item <%= 'active' if p == @page %>">
+          <%= link_to p, admin_users_path(page: p, search: params[:search], status: params[:status], role: params[:role]), class: "page-link" %>
+        </li>
+      <% end %>
+      <li class="page-item <%= 'disabled' if @page >= @total_pages %>">
+        <%= link_to "Next", admin_users_path(page: @page + 1, search: params[:search], status: params[:status], role: params[:role]), class: "page-link" %>
+      </li>
+    </ul>
+  </nav>
+<% end %>

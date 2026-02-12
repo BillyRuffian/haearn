@@ -3,6 +3,8 @@
 # Table name: users
 #
 #  id                     :integer          not null, primary key
+#  admin                  :boolean          default(FALSE), not null
+#  deactivated_at         :datetime
 #  default_rest_seconds   :integer          default(90)
 #  email_address          :string           not null
 #  name                   :string
@@ -16,6 +18,7 @@
 #
 # Indexes
 #
+#  index_users_on_admin           (admin)
 #  index_users_on_default_gym_id  (default_gym_id)
 #  index_users_on_email_address   (email_address) UNIQUE
 #
@@ -38,6 +41,7 @@ class User < ApplicationRecord
   has_many :exercise_sets, through: :workout_exercises
   has_many :workout_templates, dependent: :destroy
   has_many :body_metrics, dependent: :destroy
+  has_many :admin_audit_logs, foreign_key: :admin_user_id, dependent: :nullify, inverse_of: :admin_user
   belongs_to :default_gym, class_name: 'Gym', optional: true
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
@@ -57,6 +61,11 @@ class User < ApplicationRecord
     greater_than_or_equal_to: 5,
     less_than_or_equal_to: 20
   }
+
+  # Scopes
+  scope :active, -> { where(deactivated_at: nil) }
+  scope :deactivated, -> { where.not(deactivated_at: nil) }
+  scope :admins, -> { where(admin: true) }
 
   # Supported weight units
   UNITS = %w[kg lbs].freeze
@@ -125,6 +134,18 @@ class User < ApplicationRecord
 
   # Alias for normalize_weight (more intuitive name for conversion)
   alias_method :to_kg, :normalize_weight
+
+  def admin?
+    admin
+  end
+
+  def deactivated?
+    deactivated_at.present?
+  end
+
+  def active?
+    !deactivated?
+  end
 
   # Get all available exercises for this user (global seeded + user's custom)
   # @return [ActiveRecord::Relation<Exercise>]

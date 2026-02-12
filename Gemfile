@@ -25,6 +25,9 @@ gem 'bcrypt', '~> 3.1.7'
 # CSV support (no longer bundled in Ruby 4)
 gem 'csv'
 
+# Authorization
+gem 'pundit'
+
 # Use rdoc version bundled with Ruby 4.0.1 to avoid conflicts
 gem 'rdoc', '~> 7.0.3'
 

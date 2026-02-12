@@ -1,0 +1,90 @@
+<% content_for(:title, "Audit Log - Haearn Admin") %>
+
+<h1 class="display-heading mb-4">
+  <i class="bi bi-journal-text me-2 text-rust"></i>Audit Log
+  <span class="badge bg-secondary fs-6 ms-2"><%= @total_count %></span>
+</h1>
+
+<!-- Filter -->
+<div class="card mb-4">
+  <div class="card-body">
+    <%= form_tag admin_audit_logs_path, method: :get, class: "row g-2 align-items-end" do %>
+      <div class="col-md-4">
+        <label class="form-label">Action Type</label>
+        <%= select_tag :action_filter, options_for_select([['All Actions', '']] + @action_types.map { |a| [a.titleize, a] }, params[:action_filter]), class: "form-select" %>
+      </div>
+      <div class="col-md-2">
+        <%= submit_tag "Filter", class: "btn btn-primary w-100" %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th class="table-header-sm">Timestamp</th>
+            <th class="table-header-sm">Admin</th>
+            <th class="table-header-sm">Action</th>
+            <th class="table-header-sm">Target</th>
+            <th class="table-header-sm">IP Address</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @audit_logs.each do |log| %>
+            <tr>
+              <td class="text-muted small"><%= log.created_at.strftime('%Y-%m-%d %H:%M:%S') %></td>
+              <td>
+                <% if log.admin_user %>
+                  <%= link_to log.admin_user.name, admin_user_path(log.admin_user), class: "text-decoration-none" %>
+                <% else %>
+                  <span class="text-muted">Deleted</span>
+                <% end %>
+              </td>
+              <td><span class="badge bg-secondary"><%= log.action.titleize %></span></td>
+              <td>
+                <% if log.target_user %>
+                  <%= link_to log.target_user.name, admin_user_path(log.target_user), class: "text-decoration-none" %>
+                <% elsif log.resource_type.present? %>
+                  <span class="text-muted"><%= log.resource_type %>#<%= log.resource_id %></span>
+                <% else %>
+                  <span class="text-muted">&mdash;</span>
+                <% end %>
+              </td>
+              <td class="text-muted small"><%= log.ip_address %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<% if @audit_logs.empty? %>
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-journal fs-1 mb-2"></i>
+    <p>No audit log entries yet.</p>
+  </div>
+<% end %>
+
+<!-- Pagination -->
+<% if @total_pages > 1 %>
+  <nav class="mt-3">
+    <ul class="pagination justify-content-center">
+      <li class="page-item <%= 'disabled' if @page <= 1 %>">
+        <%= link_to "Prev", admin_audit_logs_path(page: @page - 1, action_filter: params[:action_filter]), class: "page-link" %>
+      </li>
+      <% (1..[@total_pages, 10].min).each do |p| %>
+        <li class="page-item <%= 'active' if p == @page %>">
+          <%= link_to p, admin_audit_logs_path(page: p, action_filter: params[:action_filter]), class: "page-link" %>
+        </li>
+      <% end %>
+      <li class="page-item <%= 'disabled' if @page >= @total_pages %>">
+        <%= link_to "Next", admin_audit_logs_path(page: @page + 1, action_filter: params[:action_filter]), class: "page-link" %>
+      </li>
+    </ul>
+  </nav>
+<% end %>

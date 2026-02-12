@@ -1,0 +1,61 @@
+<% content_for(:title, "Review Exercises - Haearn Admin") %>
+
+<div class="mb-3">
+  <%= link_to admin_exercises_path, class: "text-muted text-decoration-none" do %>
+    <i class="bi bi-arrow-left me-1"></i>Back to Exercises
+  <% end %>
+</div>
+
+<h1 class="display-heading mb-4">
+  <i class="bi bi-stars me-2 text-rust"></i>Promotion Candidates
+</h1>
+
+<p class="text-muted mb-4">User-created exercises ranked by usage. Popular exercises may be good candidates for promotion to global.</p>
+
+<div class="card">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th class="table-header-sm">#</th>
+            <th class="table-header-sm">Exercise</th>
+            <th class="table-header-sm">Creator</th>
+            <th class="table-header-sm">Type</th>
+            <th class="table-header-sm text-center">Uses</th>
+            <th class="table-header-sm text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @exercises.each_with_index do |exercise, i| %>
+            <tr>
+              <td><%= i + 1 %></td>
+              <td>
+                <%= link_to exercise.name, admin_exercise_path(exercise), class: "text-decoration-none fw-semibold" %>
+              </td>
+              <td>
+                <% if exercise.user %>
+                  <%= link_to exercise.user.name, admin_user_path(exercise.user), class: "text-decoration-none text-muted" %>
+                <% end %>
+              </td>
+              <td><span class="badge bg-secondary"><%= exercise.exercise_type %></span></td>
+              <td class="text-center weight-display"><%= exercise.usage_count %></td>
+              <td class="text-end">
+                <%= button_to promote_admin_exercise_path(exercise), method: :post, class: "btn btn-sm btn-outline-warning", data: { turbo_confirm: "Promote '#{exercise.name}' to global?" } do %>
+                  <i class="bi bi-arrow-up-circle me-1"></i>Promote
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<% if @exercises.empty? %>
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-emoji-neutral fs-1 mb-2"></i>
+    <p>No user-created exercises found.</p>
+  </div>
+<% end %>

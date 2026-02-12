@@ -26,6 +26,15 @@
   </head>
 
   <body data-controller="offline" data-offline-show-class="d-block">
+    <% if session[:admin_session_id] %>
+      <div class="admin-impersonation-banner text-center py-2 small fw-semibold">
+        <i class="bi bi-exclamation-triangle me-1"></i>
+        Impersonating <strong><%= Current.user&.name %></strong>
+        &mdash;
+        <%= button_to "Stop Impersonating", admin_stop_impersonating_path, method: :delete, class: "btn btn-sm btn-outline-light ms-2" %>
+      </div>
+    <% end %>
+
     <!-- Offline Indicator -->
     <div data-offline-target="indicator" 
          class="d-none bg-warning text-dark text-center py-1 small fw-semibold"
@@ -103,6 +112,9 @@
                   <li><span class="dropdown-item-text text-muted small"><%= Current.user.email_address %></span></li>
                   <li><hr class="dropdown-divider"></li>
                   <li><%= link_to "Settings", settings_path, class: "dropdown-item" %></li>
+                  <% if Current.user.admin? %>
+                    <li><%= link_to "Admin Panel", admin_root_path, class: "dropdown-item" %></li>
+                  <% end %>
                   <li>
                     <%= button_to "Sign out", session_path, method: :delete, class: "dropdown-item" %>
                   </li>

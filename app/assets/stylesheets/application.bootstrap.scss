@@ -2333,6 +2333,83 @@ html {
   background: linear-gradient(to right, #a33232, #b8860b, #3d7ea6, #2d7a3e);
 }
 
+// =====================================================
+// Admin Panel
+// =====================================================
+.admin-navbar {
+  background: linear-gradient(180deg, #1a0808 0%, #0d0505 100%) !important;
+  border-bottom: 1px solid rgba(#8b1a1a, 0.4);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 4px 20px rgba(#8b1a1a, 0.15);
+
+  .navbar-brand {
+    background: linear-gradient(180deg, #c94d4d 0%, #8b1a1a 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+
+    i {
+      background: linear-gradient(180deg, #ff6b6b 0%, #8b1a1a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  }
+
+  .nav-link.active {
+    color: #ff6b6b !important;
+  }
+}
+
+.admin-stat-card {
+  .card-body {
+    padding: 1rem;
+  }
+
+  .display-5 {
+    font-size: 2rem;
+    margin-top: 0.25rem;
+  }
+}
+
+.admin-impersonation-banner {
+  background: linear-gradient(90deg, #8b1a1a 0%, #a33232 50%, #8b1a1a 100%);
+  color: #fff;
+  z-index: 1060;
+  position: relative;
+}
+
+.admin-sidebar {
+  position: fixed;
+  top: 56px;
+  left: 0;
+  bottom: 0;
+  width: 220px;
+  background: #0d0d0f;
+  border-right: 1px solid #1a1a1c;
+  overflow-y: auto;
+  z-index: 1020;
+
+  .nav-link {
+    color: #888 !important;
+    padding: 0.75rem 1.25rem;
+    border-left: 3px solid transparent;
+    font-size: 0.85rem;
+
+    &:hover {
+      color: #ccc !important;
+      background: rgba(#8b1a1a, 0.1);
+    }
+
+    &.active {
+      color: #ff6b6b !important;
+      border-left-color: #8b1a1a;
+      background: rgba(#8b1a1a, 0.15);
+    }
+  }
+}
+
 // Photo preview modal
 .photo-preview-modal {
   .photo-display {

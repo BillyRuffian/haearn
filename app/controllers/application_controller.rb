@@ -1,23 +1,31 @@
-# Base controller for all application controllers
-# Includes Rails 8 authentication, modern browser support, and security helpers
 class ApplicationController < ActionController::Base
   include Authentication
-  # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
-  allow_browser versions: :modern
+  include Pundit::Authorization
 
-  # Changes to the importmap will invalidate the etag for HTML responses
+  allow_browser versions: :modern
   stale_when_importmap_changes
+
+  after_action :verify_authorized, unless: :skip_pundit?
+  after_action :verify_policy_scoped, if: :admin_index_action?
 
   private
 
-  # Safely sanitize a return_to URL to prevent open redirect attacks
-  # Only allows relative paths starting with /
-  # Used throughout the app for safe redirects after creating records
+  def pundit_user
+    Current.user
+  end
+
+  def skip_pundit?
+    !self.class.module_parent.name&.start_with?('Admin')
+  end
+
+  def admin_index_action?
+    !skip_pundit? && action_name == 'index'
+  end
+
   def safe_return_to(url, fallback: root_path)
     return fallback if url.blank?
 
     uri = URI.parse(url.to_s)
-    # Only allow paths with no scheme and no host (relative URLs)
     if uri.scheme.nil? && uri.host.nil? && url.to_s.start_with?('/')
       url
     else
@@ -27,8 +35,6 @@ class ApplicationController < ActionController::Base
     fallback
   end
 
-  # Safely sanitize a return_to URL and append an additional query parameter
-  # Used for auto-selecting newly created items (exercises, machines) after redirect
   def safe_return_to_with_param(url, param_key, param_value, fallback: root_path)
     safe_url = safe_return_to(url, fallback: fallback)
     return safe_url if safe_url == fallback && url != fallback

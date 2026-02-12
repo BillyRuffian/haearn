@@ -1,0 +1,164 @@
+<% content_for(:title, "Admin Dashboard - Haearn") %>
+
+<h1 class="display-heading mb-4">
+  <i class="bi bi-speedometer2 me-2 text-rust"></i>Dashboard
+</h1>
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card admin-stat-card">
+      <div class="card-body text-center">
+        <div class="stat-label">Total Users</div>
+        <div class="display-5 text-rust"><%= @total_users %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card admin-stat-card">
+      <div class="card-body text-center">
+        <div class="stat-label">Active (7d)</div>
+        <div class="display-5 text-forge"><%= @active_users_7d %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card admin-stat-card">
+      <div class="card-body text-center">
+        <div class="stat-label">New Users (30d)</div>
+        <div class="display-5"><%= @new_registrations_30d %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card admin-stat-card">
+      <div class="card-body text-center">
+        <div class="stat-label">Workouts (Month)</div>
+        <div class="display-5"><%= @workouts_this_month %></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card admin-stat-card">
+      <div class="card-body text-center">
+        <div class="stat-label">Total Workouts</div>
+        <div class="display-5"><%= @total_workouts %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card admin-stat-card">
+      <div class="card-body text-center">
+        <div class="stat-label">Workouts (Week)</div>
+        <div class="display-5"><%= @workouts_this_week %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card admin-stat-card">
+      <div class="card-body text-center">
+        <div class="stat-label">Active (30d)</div>
+        <div class="display-5"><%= @active_users_30d %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card admin-stat-card">
+      <div class="card-body text-center">
+        <div class="stat-label">Total Sets</div>
+        <div class="display-5"><%= @system_info[:total_sets] %></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Registration Trend -->
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-graph-up me-2"></i>Registrations (Last 12 Weeks)
+      </div>
+      <div class="card-body">
+        <canvas id="registrationChart" height="200"
+                data-controller="admin-chart"
+                data-admin-chart-labels-value="<%= @registration_data.map { |d| d[:label] }.to_json %>"
+                data-admin-chart-data-value="<%= @registration_data.map { |d| d[:count] }.to_json %>">
+        </canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Info -->
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-gear me-2"></i>System Info
+      </div>
+      <div class="card-body">
+        <table class="table table-sm mb-0">
+          <tbody>
+            <tr>
+              <td class="text-muted">DB Size</td>
+              <td class="text-end"><%= @system_info[:db_size] %> MB</td>
+            </tr>
+            <tr>
+              <td class="text-muted">Global Exercises</td>
+              <td class="text-end"><%= @system_info[:global_exercises] %></td>
+            </tr>
+            <tr>
+              <td class="text-muted">User Exercises</td>
+              <td class="text-end"><%= @system_info[:user_exercises] %></td>
+            </tr>
+            <tr>
+              <td class="text-muted">Total Sets Logged</td>
+              <td class="text-end"><%= @system_info[:total_sets] %></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Popular Exercises -->
+<% if @popular_exercises.any? %>
+  <div class="card mt-3">
+    <div class="card-header">
+      <i class="bi bi-trophy me-2"></i>Most Popular Exercises (Last 30 Days)
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th class="table-header-sm">#</th>
+              <th class="table-header-sm">Exercise</th>
+              <th class="table-header-sm">Muscle Group</th>
+              <th class="table-header-sm text-end">Uses</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @popular_exercises.each_with_index do |ex, i| %>
+              <tr>
+                <td><%= i + 1 %></td>
+                <td><%= link_to ex[:name], admin_exercise_path(ex[:id]), class: "text-decoration-none" %></td>
+                <td>
+                  <% if ex[:muscle_group].present? %>
+                    <span class="badge badge-sm" style="background: <%= Exercise::MUSCLE_GROUP_COLORS[ex[:muscle_group]] %>">
+                      <%= Exercise::MUSCLE_GROUP_LABELS[ex[:muscle_group]] %>
+                    </span>
+                  <% end %>
+                </td>
+                <td class="text-end weight-display"><%= ex[:usage_count] %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+<% end %>

@@ -1,0 +1,16 @@
+<div class="admin-sidebar d-none d-lg-block">
+  <nav class="nav flex-column py-3">
+    <%= link_to admin_root_path, class: "nav-link #{'active' if controller_name == 'dashboard'}" do %>
+      <i class="bi bi-speedometer2 me-2"></i> Dashboard
+    <% end %>
+    <%= link_to admin_users_path, class: "nav-link #{'active' if controller_name == 'users'}" do %>
+      <i class="bi bi-people me-2"></i> Users
+    <% end %>
+    <%= link_to admin_exercises_path, class: "nav-link #{'active' if controller_name == 'exercises'}" do %>
+      <i class="bi bi-list-check me-2"></i> Exercises
+    <% end %>
+    <%= link_to admin_audit_logs_path, class: "nav-link #{'active' if controller_name == 'audit_logs'}" do %>
+      <i class="bi bi-journal-text me-2"></i> Audit Log
+    <% end %>
+  </nav>
+</div>

@@ -5,4 +5,20 @@
 # Load exercise seeds
 load Rails.root.join("db/seeds/exercises.rb")
 
+# Create admin user
+# admin = User.find_or_initialize_by(email_address: 'admin@haearn.com')
+# if admin.new_record?
+#   admin.update!(
+#     name: 'Admin',
+#     password: 'password',
+#     password_confirmation: 'password',
+#     admin: true,
+#     preferred_unit: 'kg'
+#   )
+#   puts "Admin user created: admin@haearn.com"
+# else
+#   admin.update!(admin: true) unless admin.admin?
+#   puts "Admin user already exists: admin@haearn.com"
+# end
+
 puts "Seeding complete!"
