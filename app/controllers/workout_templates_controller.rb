@@ -1,5 +1,5 @@
 class WorkoutTemplatesController < ApplicationController
-  before_action :set_template, only: [ :show, :edit, :update, :destroy, :start_workout, :reorder_blocks ]
+  before_action :set_template, only: [ :show, :edit, :update, :destroy, :start_workout, :reorder_blocks, :toggle_pin ]
 
   # GET /workout_templates
   def index
@@ -63,6 +63,22 @@ class WorkoutTemplatesController < ApplicationController
       redirect_to workout, notice: "Started workout from template \"#{@template.name}\"."
     else
       redirect_to @template, alert: "Failed to start workout: #{workout.errors.full_messages.join(', ')}"
+    end
+  end
+
+  # POST /workout_templates/:id/toggle_pin
+  # Pin or unpin a template for quick dashboard access
+  def toggle_pin
+    @template.toggle_pin!
+    status = @template.pinned? ? 'pinned' : 'unpinned'
+
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.replace(dom_id(@template, :pin),
+          partial: 'workout_templates/pin_button',
+          locals: { template: @template })
+      end
+      format.html { redirect_to @template, notice: "Template #{status}." }
     end
   end
 

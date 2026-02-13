@@ -3,9 +3,13 @@
 # Table name: workout_exercises
 #
 #  id               :integer          not null, primary key
+#  bar_type         :string
+#  grip_width       :string
+#  incline_angle    :integer
 #  persistent_notes :text
 #  position         :integer
 #  session_notes    :text
+#  stance           :string
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
 #  exercise_id      :integer          not null
@@ -28,6 +32,10 @@
 # - Session notes are logged once, help with injury tracking
 # - Persistent notes automatically copy to next workout for setup reminders
 class WorkoutExercise < ApplicationRecord
+  GRIP_WIDTHS = %w[close normal wide].freeze
+  STANCES = %w[narrow normal wide sumo].freeze
+  BAR_TYPES = %w[straight ez_curl ssb trap_bar cambered safety_squat].freeze
+
   belongs_to :workout_block
   belongs_to :exercise
   belongs_to :machine
@@ -36,6 +44,10 @@ class WorkoutExercise < ApplicationRecord
   has_one :workout, through: :workout_block
 
   validates :position, presence: true, numericality: { greater_than: 0 }
+  validates :grip_width, inclusion: { in: GRIP_WIDTHS }, allow_nil: true, allow_blank: true
+  validates :stance, inclusion: { in: STANCES }, allow_nil: true, allow_blank: true
+  validates :bar_type, inclusion: { in: BAR_TYPES }, allow_nil: true, allow_blank: true
+  validates :incline_angle, numericality: { greater_than_or_equal_to: -90, less_than_or_equal_to: 90, only_integer: true }, allow_nil: true
 
   scope :ordered, -> { order(:position) }
 
@@ -44,6 +56,36 @@ class WorkoutExercise < ApplicationRecord
   # Delegate methods to related models for convenience
   delegate :name, to: :exercise, prefix: true
   delegate :exercise_type, :has_weight, :reps?, :time?, :distance?, to: :exercise
+
+  # Whether any variation modifiers are set
+  def has_variations?
+    grip_width.present? || stance.present? || incline_angle.present? || bar_type.present?
+  end
+
+  # Human-readable variation summary
+  def variation_summary
+    parts = []
+    parts << grip_width_label if grip_width.present?
+    parts << stance_label if stance.present?
+    parts << "#{incline_angle}°" if incline_angle.present?
+    parts << bar_type_label if bar_type.present?
+    parts.join(' · ')
+  end
+
+  def grip_width_label
+    { 'close' => 'Close Grip', 'normal' => 'Normal Grip', 'wide' => 'Wide Grip' }[grip_width]
+  end
+
+  def stance_label
+    { 'narrow' => 'Narrow', 'normal' => 'Normal', 'wide' => 'Wide', 'sumo' => 'Sumo' }[stance]
+  end
+
+  def bar_type_label
+    {
+      'straight' => 'Straight Bar', 'ez_curl' => 'EZ-Curl', 'ssb' => 'SSB',
+      'trap_bar' => 'Trap Bar', 'cambered' => 'Cambered', 'safety_squat' => 'Safety Squat'
+    }[bar_type]
+  end
 
   # Get only working sets (exclude warmups)
   def working_sets

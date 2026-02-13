@@ -45,6 +45,15 @@
     <%= form.text_field :description, class: "form-control", placeholder: "Optional description..." %>
   </div>
 
+  <div class="col-md-6">
+    <%= form.label :form_cues, "Form Cues", class: "form-label" %>
+    <%= form.text_area :form_cues,
+        class: "form-control",
+        rows: 3,
+        placeholder: "One cue per line, e.g.:\nSqueeze at the top\nElbows tucked\nBrace before each rep" %>
+    <small class="form-text text-muted">Personal reminders shown during workouts. One per line.</small>
+  </div>
+
   <div class="col-12">
     <div class="d-flex gap-2">
       <%= form.submit exercise.persisted? ? "Update" : "Create Exercise", class: "btn btn-primary" %>

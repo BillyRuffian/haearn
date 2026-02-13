@@ -41,6 +41,10 @@ export default class extends Controller {
     this.setLoggedHandler = this.setLogged.bind(this)
     window.addEventListener("set-logged", this.setLoggedHandler)
 
+    // Listen for block rest duration changes
+    this.durationChangedHandler = this.handleDurationChanged.bind(this)
+    this.element.addEventListener("rest-duration-changed", this.durationChangedHandler)
+
     // Re-sync timer when page becomes visible (for backgrounded PWA)
     this.visibilityHandler = this.handleVisibilityChange.bind(this)
     document.addEventListener("visibilitychange", this.visibilityHandler)
@@ -53,6 +57,7 @@ export default class extends Controller {
       this.interval = null
     }
     window.removeEventListener("set-logged", this.setLoggedHandler)
+    this.element.removeEventListener("rest-duration-changed", this.durationChangedHandler)
     document.removeEventListener("visibilitychange", this.visibilityHandler)
   }
 
@@ -137,13 +142,13 @@ export default class extends Controller {
     this.vibrate()
     this.showNotification("Rest Complete!", "Time to lift! 💪")
 
-    // Flash the timer briefly, then hide
+    // Flash the timer, then hide
     if (this.hasContainerTarget) {
       this.containerTarget.classList.add("timer-complete")
       setTimeout(() => {
         this.hideTimer()
         this.containerTarget.classList.remove("timer-complete")
-      }, 2000)
+      }, 5000)
     }
   }
 
@@ -315,8 +320,50 @@ export default class extends Controller {
     return Notification.permission
   }
 
+  // Handle block rest duration change from block-rest controller
+  // Updates the default display but does NOT save to localStorage
+  // (block-specific durations are per-block, not global defaults)
+  handleDurationChanged(event) {
+    const newDuration = event.detail?.seconds
+    if (newDuration && newDuration >= 15 && newDuration <= 600) {
+      this.totalDuration = newDuration
+      this.durationValue = newDuration
+      if (!this.isRunning) {
+        this.updateDisplay()
+      }
+    }
+  }
+
+  // Stimulus callback when durationValue changes (e.g. via data attribute)
+  durationValueChanged() {
+    // Only update totalDuration if we're not currently running
+    // (avoid resetting mid-countdown)
+    if (!this.isRunning) {
+      this.totalDuration = this.durationValue
+      this.updateDisplay()
+    }
+  }
+
   // Called when a set is logged - auto-start the timer
-  setLogged() {
+  // Uses the block-specific rest time if the set came from a block with custom rest
+  setLogged(event) {
+    // Check if the event carries a block-specific duration
+    const blockDuration = event?.detail?.restSeconds
+    if (blockDuration && blockDuration >= 15 && blockDuration <= 600) {
+      this.totalDuration = blockDuration
+    } else {
+      // Restore global default from localStorage (in case a previous block changed totalDuration)
+      const savedDuration = localStorage.getItem("haearn_rest_duration")
+      if (savedDuration) {
+        const parsed = parseInt(savedDuration, 10)
+        if (parsed >= 15 && parsed <= 600) {
+          this.totalDuration = parsed
+        }
+      } else {
+        this.totalDuration = this.durationValue
+      }
+    }
+
     // Stop any existing timer and start fresh
     this.stop()
     this.warmUpAudio()

@@ -1,0 +1,89 @@
+<% content_for(:title) { "Progress Photos | Haearn" } %>
+
+<div class="container py-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-heading mb-0">
+      <i class="bi bi-camera me-2"></i>Progress Photos
+    </h1>
+    <div class="d-flex gap-2">
+      <%= link_to compare_progress_photos_path, class: "btn btn-outline-secondary" do %>
+        <i class="bi bi-layout-split me-1"></i>Compare
+      <% end %>
+      <%= link_to new_progress_photo_path, class: "btn btn-primary" do %>
+        <i class="bi bi-plus-lg me-1"></i>New Photo
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Category Filter -->
+  <div class="d-flex gap-2 mb-4 flex-wrap">
+    <%= link_to "All", progress_photos_path,
+        class: "btn btn-sm #{@active_category.nil? ? 'btn-primary' : 'btn-outline-secondary'}" %>
+    <% ProgressPhoto::CATEGORIES.each do |cat| %>
+      <%= link_to ProgressPhoto.new(category: cat).category_label,
+          progress_photos_path(category: cat),
+          class: "btn btn-sm #{@active_category == cat ? 'btn-primary' : 'btn-outline-secondary'}" %>
+    <% end %>
+  </div>
+
+  <% if @progress_photos.any? %>
+    <!-- Photo Timeline -->
+    <% @photos_by_month.each do |month, photos| %>
+      <h5 class="section-header mt-4">
+        <i class="bi bi-calendar3 me-2"></i><%= month %>
+        <span class="badge bg-secondary ms-2"><%= photos.count %></span>
+      </h5>
+
+      <div class="row g-3">
+        <% photos.each do |photo| %>
+          <div class="col-6 col-md-4 col-lg-3">
+            <%= link_to progress_photo_path(photo), class: "text-decoration-none" do %>
+              <div class="card progress-photo-card h-100">
+                <div class="position-relative">
+                  <% if photo.photo.attached? %>
+                    <%= image_tag photo.photo.variant(resize_to_fill: [400, 500]),
+                        class: "card-img-top progress-photo-thumb",
+                        loading: "lazy" %>
+                  <% end %>
+                  <!-- Date overlay -->
+                  <div class="progress-photo-overlay">
+                    <span class="progress-photo-date"><%= photo.overlay_date %></span>
+                    <% if (bw = photo.bodyweight_at_time) %>
+                      <span class="progress-photo-weight"><%= WeightConverter.from_kg(bw, Current.user.preferred_unit).round(1) %> <%= Current.user.preferred_unit %></span>
+                    <% end %>
+                  </div>
+                  <% if photo.category.present? %>
+                    <span class="badge bg-dark bg-opacity-75 position-absolute top-0 start-0 m-2">
+                      <%= photo.category_label %>
+                    </span>
+                  <% end %>
+                </div>
+                <% if photo.notes.present? %>
+                  <div class="card-body py-2 px-2">
+                    <small class="text-muted"><%= photo.notes.truncate(50) %></small>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  <% else %>
+    <!-- Empty State -->
+    <div class="card">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-camera display-1 text-muted mb-3"></i>
+        <h3 class="mb-2">No Progress Photos Yet</h3>
+        <p class="text-muted mb-4">
+          Take regular photos to visually track your physique changes over time.
+          <br>Photos are automatically stamped with the date and your bodyweight.
+        </p>
+        <%= link_to new_progress_photo_path, class: "btn btn-primary" do %>
+          <i class="bi bi-plus-lg me-1"></i>Take First Photo
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

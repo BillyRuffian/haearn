@@ -143,11 +143,19 @@ Rails.application.routes.draw do
   # Body Metrics (weight and measurements tracking)
   resources :body_metrics, except: [ :show ]
 
+  # Progress Photos (physique tracking with date overlay)
+  resources :progress_photos, only: [ :index, :new, :create, :show, :destroy ] do
+    collection do
+      get :compare
+    end
+  end
+
   # Workout Templates
   resources :workout_templates do
     member do
       post :start_workout
       patch :reorder_blocks
+      post :toggle_pin
     end
     resources :exercises, controller: 'template_exercises', as: 'template_exercises'
     resources :blocks, controller: 'template_blocks', as: 'template_blocks', only: [ :destroy ]
@@ -156,6 +164,9 @@ Rails.application.routes.draw do
 
   # Workouts
   resources :workouts do
+    collection do
+      get :calendar
+    end
     member do
       patch :finish
       patch :continue, to: 'workouts#continue_workout'
@@ -164,6 +175,7 @@ Rails.application.routes.draw do
       post :copy
       patch :reorder_blocks
       get :share_text
+      patch :update_block_rest
     end
     resources :workout_exercises, only: [ :show, :edit, :update, :destroy ] do
       resources :exercise_sets, only: [ :create, :edit, :update, :destroy ] do
@@ -192,7 +204,11 @@ Rails.application.routes.draw do
       end
     end
     resources :exercises, only: [ :index, :show, :new, :create, :edit, :update, :destroy ] do
-      member { post :promote }
+      member do
+        post :promote
+        get :merge
+        post :merge, action: :perform_merge
+      end
       collection { get :review }
     end
     resources :audit_logs, only: [ :index ]

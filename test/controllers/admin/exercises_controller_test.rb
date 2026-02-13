@@ -69,4 +69,47 @@ class Admin::ExercisesControllerTest < ActionDispatch::IntegrationTest
     get admin_exercises_path
     assert_redirected_to root_path
   end
+
+  test 'admin can view merge page' do
+    sign_in_as(@admin)
+    get merge_admin_exercise_path(@exercise)
+    assert_response :success
+  end
+
+  test 'admin can search on merge page' do
+    sign_in_as(@admin)
+    get merge_admin_exercise_path(@exercise), params: { search: 'Bench' }
+    assert_response :success
+  end
+
+  test 'admin can merge duplicate into target' do
+    sign_in_as(@admin)
+    target = exercises(:bench_press)
+
+    assert_difference 'Exercise.count', -1 do
+      post merge_admin_exercise_path(@exercise), params: { target_id: target.id }
+    end
+
+    assert_redirected_to admin_exercise_path(target)
+    assert_equal 0, WorkoutExercise.where(exercise_id: @exercise.id).count
+  end
+
+  test 'merge creates audit log entry' do
+    sign_in_as(@admin)
+    target = exercises(:bench_press)
+
+    assert_difference 'AdminAuditLog.count' do
+      post merge_admin_exercise_path(@exercise), params: { target_id: target.id }
+    end
+
+    log = AdminAuditLog.last
+    assert_equal 'merge_exercise', log.action
+  end
+
+  test 'non-admin cannot merge exercises' do
+    sign_in_as(@user)
+    target = exercises(:bench_press)
+    post merge_admin_exercise_path(@exercise), params: { target_id: target.id }
+    assert_redirected_to root_path
+  end
 end

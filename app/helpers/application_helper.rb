@@ -27,6 +27,41 @@ module ApplicationHelper
     end
   end
 
+  # Get corresponding set data from previous workout for "Copy last" button
+  # Returns a hash with weight, reps, duration, distance from the matching set number
+  def previous_session_set_data(workout_exercise, set_number)
+    prev = workout_exercise.previous_workout_exercise
+    return nil unless prev
+
+    prev_set = prev.exercise_sets.ordered.offset(set_number - 1).first
+    return nil unless prev_set
+
+    data = {}
+    data[:weight] = Current.user.format_weight(prev_set.weight_kg) if prev_set.weight_kg
+    data[:reps] = prev_set.reps if prev_set.reps
+    data[:duration_seconds] = prev_set.duration_seconds if prev_set.duration_seconds
+    data[:distance_meters] = prev_set.distance_meters if prev_set.distance_meters
+    data
+  end
+
+  # Get estimated 1RM for a workout exercise (in user's display unit)
+  # Returns nil if no data available or exercise doesn't use weight
+  def estimated_1rm_for(workout_exercise)
+    return nil unless workout_exercise.exercise.has_weight?
+
+    # Gather all historical sets for this exercise+machine
+    all_sets = Current.user.workout_exercises
+      .where(exercise_id: workout_exercise.exercise_id, machine_id: workout_exercise.machine_id)
+      .joins(workout_block: :workout)
+      .where('workouts.finished_at IS NOT NULL')
+      .flat_map { |we| we.exercise_sets.working }
+
+    result = OneRmCalculator.best_estimated_1rm(all_sets)
+    return nil unless result
+
+    result[:estimated_1rm]
+  end
+
   # Get last weight used for this exercise in this workout
   def last_weight_for(workout_exercise)
     last_set = workout_exercise.exercise_sets.order(created_at: :desc).first

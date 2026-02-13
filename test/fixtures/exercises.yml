@@ -7,6 +7,7 @@
 #  id                   :integer          not null, primary key
 #  description          :text
 #  exercise_type        :string
+#  form_cues            :text
 #  has_weight           :boolean
 #  name                 :string
 #  primary_muscle_group :string
@@ -37,3 +38,10 @@ two:
   user: two
   description: A custom squat variation
   primary_muscle_group: quadriceps
+
+bench_press:
+  name: Bench Press
+  exercise_type: reps
+  has_weight: true
+  description: Global bench press
+  primary_muscle_group: chest

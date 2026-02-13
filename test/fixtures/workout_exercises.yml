@@ -5,9 +5,13 @@
 # Table name: workout_exercises
 #
 #  id               :integer          not null, primary key
+#  bar_type         :string
+#  grip_width       :string
+#  incline_angle    :integer
 #  persistent_notes :text
 #  position         :integer
 #  session_notes    :text
+#  stance           :string
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
 #  exercise_id      :integer          not null

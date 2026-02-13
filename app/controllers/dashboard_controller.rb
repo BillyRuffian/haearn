@@ -42,6 +42,11 @@ class DashboardController < ApplicationController
       .order(finished_at: :desc)
       .limit(5)
 
+    # Pinned workout templates for quick access
+    @pinned_templates = Current.user.workout_templates
+      .pinned
+      .includes(template_blocks: :template_exercises)
+
     # Fatigue Analysis (active workout only)
     @fatigue_data = []
     if Current.user.active_workout

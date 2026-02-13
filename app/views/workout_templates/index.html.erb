@@ -40,6 +40,8 @@
                     data: { turbo_frame: "_top" } do %>
                   <i class="bi bi-play-fill me-1"></i>Start Workout
                 <% end %>
+
+                <%= render 'workout_templates/pin_button', template: template %>
                 
                 <%= link_to template, class: "btn btn-sm btn-outline-secondary" do %>
                   <i class="bi bi-eye"></i>

@@ -48,6 +48,38 @@
       </div>
     </div>
 
+    <!-- Pinned Templates -->
+    <% if @pinned_templates.any? %>
+    <div class="row mb-4">
+      <div class="col-12">
+        <h5 class="section-header mb-3">
+          <i class="bi bi-pin-angle-fill me-2 text-warning"></i>Pinned Routines
+        </h5>
+        <div class="row g-3">
+          <% @pinned_templates.each do |template| %>
+            <div class="col-6 col-md-4 col-lg-3">
+              <div class="card h-100">
+                <div class="card-body py-3 text-center">
+                  <h6 class="card-title mb-1"><%= template.name %></h6>
+                  <small class="text-muted">
+                    <%= pluralize(template.template_exercises.count, 'exercise') %>
+                  </small>
+                  <div class="mt-2">
+                    <%= button_to start_workout_workout_template_path(template),
+                        class: "btn btn-sm btn-primary w-100",
+                        data: { turbo_frame: "_top" } do %>
+                      <i class="bi bi-play-fill me-1"></i>Start
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+    <% end %>
+
     <!-- Training Intelligence Alerts -->
     <% if @readiness_alerts.any? || @fatigue_data.any? %>
     <div class="row mt-4">

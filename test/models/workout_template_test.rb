@@ -5,6 +5,7 @@
 #  id          :integer          not null, primary key
 #  description :text
 #  name        :string
+#  pinned      :boolean          default(FALSE)
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
 #  user_id     :integer          not null

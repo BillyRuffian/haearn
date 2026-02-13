@@ -2,7 +2,7 @@
 # Supports workout blocks for organizing exercises and enabling supersets
 # Each workout has a start time, optional finish time, gym, and multiple workout blocks
 class WorkoutsController < ApplicationController
-  before_action :set_workout, only: %i[show edit update destroy finish continue_workout add_exercise reorder_blocks share_text]
+  before_action :set_workout, only: %i[show edit update destroy finish continue_workout add_exercise reorder_blocks share_text update_block_rest copy]
 
   # GET /workouts
   # Lists all workouts with optional filters (gym, date range)
@@ -24,6 +24,30 @@ class WorkoutsController < ApplicationController
 
     @gyms = Current.user.gyms.ordered
     @active_workout = Current.user.active_workout
+  end
+
+  # GET /workouts/calendar
+  # Monthly calendar view of workout history
+  def calendar
+    @month = if params[:month].present?
+               Date.parse("#{params[:month]}-01")
+    else
+               Date.current.beginning_of_month
+    end
+
+    @start_date = @month.beginning_of_month.beginning_of_week(:monday)
+    @end_date = @month.end_of_month.end_of_week(:monday)
+
+    # Fetch workouts for the visible calendar range
+    workouts = Current.user.workouts
+      .where(started_at: @start_date.beginning_of_day..@end_date.end_of_day)
+      .includes(:gym, workout_exercises: :exercise)
+
+    # Build a hash of date => [workouts]
+    @workout_days = workouts.group_by { |w| w.started_at.to_date }
+
+    @prev_month = @month - 1.month
+    @next_month = @month + 1.month
   end
 
   # GET /workouts/:id
@@ -227,6 +251,15 @@ class WorkoutsController < ApplicationController
   def share_text
     text = generate_workout_text(@workout)
     render json: { text: text }
+  end
+
+  # PATCH /workouts/:id/update_block_rest
+  # Updates the rest_seconds for a specific workout block
+  def update_block_rest
+    block = @workout.workout_blocks.find(params[:block_id])
+    rest = params[:rest_seconds].to_i.clamp(15, 600)
+    block.update!(rest_seconds: rest)
+    head :ok
   end
 
   private

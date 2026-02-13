@@ -1,0 +1,8 @@
+<%= turbo_frame_tag dom_id(template, :pin) do %>
+  <%= button_to toggle_pin_workout_template_path(template),
+      method: :post,
+      class: "btn btn-sm #{template.pinned? ? 'btn-warning' : 'btn-outline-secondary'}",
+      title: template.pinned? ? 'Unpin from dashboard' : 'Pin to dashboard' do %>
+    <i class="bi bi-pin-angle<%= '-fill' if template.pinned? %>"></i>
+  <% end %>
+<% end %>

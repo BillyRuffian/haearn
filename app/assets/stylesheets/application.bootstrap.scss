@@ -668,7 +668,7 @@ select option:checked {
 
 // Workout page styles
 .workout-block {
-  overflow: hidden;
+  overflow: visible;
 
   .card-header {
     background: linear-gradient(135deg, $iron-medium 0%, $iron-dark 100%);
@@ -851,6 +851,8 @@ select option:checked {
   background: linear-gradient(180deg, rgba(20, 20, 22, 0.98) 0%, rgba(10, 10, 12, 0.98) 100%);
   border-top: 1px solid rgba($rust, 0.3);
   backdrop-filter: blur(10px);
+  // Clip the box-shadow so glow only shows on top
+  clip-path: inset(-60px 0 0 0);
 
   // On large screens, bottom nav is hidden so timer sits at bottom
   @media (min-width: 992px) {
@@ -890,15 +892,15 @@ select option:checked {
 }
 
 .rest-timer-bar {
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
 
   &.timer-active {
     border-top-color: $rust;
-    box-shadow: 0 -4px 20px rgba($rust, 0.3);
+    box-shadow: 0 -6px 25px rgba($rust, 0.35);
   }
 
   &.timer-complete {
-    animation: timerPulse 0.3s ease-in-out infinite;
+    animation: timerPulse 1.5s ease-in-out infinite;
     border-top-color: $forge-orange;
   }
 }
@@ -914,13 +916,13 @@ select option:checked {
 
 .rest-timer-center {
   flex: 1;
-  max-width: 200px;
+  max-width: 240px;
   text-align: center;
 }
 
 .rest-timer-display {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 1.75rem;
+  font-size: 2.5rem;
   font-weight: 700;
   color: #fff;
   text-shadow: 0 0 20px rgba($forge-orange, 0.5);
@@ -928,11 +930,11 @@ select option:checked {
 }
 
 .rest-timer-progress {
-  height: 4px;
+  height: 6px;
   background: $iron-light;
-  border-radius: 2px;
+  border-radius: 3px;
   overflow: hidden;
-  margin-top: 0.25rem;
+  margin-top: 0.4rem;
 }
 
 .rest-timer-progress-bar {
@@ -946,9 +948,9 @@ select option:checked {
   background: transparent;
   border: 1px solid $iron-light;
   color: $text-muted;
-  padding: 0.25rem 0.75rem;
+  padding: 0.4rem 0.9rem;
   border-radius: 0.25rem;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -962,13 +964,14 @@ select option:checked {
   background: transparent;
   border: 1px solid $rust;
   color: $rust-light;
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  font-size: 1.1rem;
   transition: all 0.2s ease;
 
   &:hover {
@@ -993,13 +996,13 @@ select option:checked {
 
   0%,
   100% {
-    border-color: $rust;
-    box-shadow: 0 0 20px rgba($rust, 0.3);
+    border-top-color: $rust;
+    box-shadow: 0 -8px 30px rgba($rust, 0.4);
   }
 
   50% {
-    border-color: $forge-orange;
-    box-shadow: 0 0 40px rgba($forge-orange, 0.6);
+    border-top-color: $forge-orange;
+    box-shadow: 0 -12px 50px rgba($forge-orange, 0.7);
   }
 }
 
@@ -1034,7 +1037,7 @@ select option:checked {
   }
 
   .rest-timer-display {
-    font-size: 1.5rem;
+    font-size: 2rem;
   }
 
   .rest-timer-bar-content {
@@ -1042,8 +1045,8 @@ select option:checked {
   }
 
   .rest-timer-adjust-btn {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
   }
 }
 
@@ -2462,4 +2465,215 @@ html {
       transform: scale(0.95);
     }
   }
+}
+
+// ==========================================
+// Calendar View
+// ==========================================
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-top: 1px solid $border-color;
+}
+
+.calendar-day-header {
+  text-align: center;
+  padding: 0.5rem 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: $text-muted;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.calendar-header {
+  border-bottom: 1px solid $border-color;
+}
+
+.calendar-day {
+  min-height: 60px;
+  padding: 0.25rem;
+  border-right: 1px solid $border-color;
+  border-bottom: 1px solid $border-color;
+  position: relative;
+
+  &:nth-child(7n) {
+    border-right: none;
+  }
+
+  &.other-month {
+    opacity: 0.3;
+  }
+
+  &.today {
+    background: rgba($rust, 0.1);
+
+    .calendar-date {
+      color: $rust;
+      font-weight: 700;
+    }
+  }
+
+  &.has-workout {
+    .calendar-date {
+      font-weight: 600;
+    }
+  }
+}
+
+.calendar-date {
+  font-size: 0.8rem;
+  color: $text-muted;
+  padding: 0.125rem 0.25rem;
+}
+
+.calendar-workout-dot {
+  display: inline-block;
+  text-decoration: none;
+}
+
+.workout-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin: 1px;
+
+  &.completed {
+    background: $rust;
+  }
+
+  &.in-progress {
+    background: $forge-orange;
+    animation: pulse 1.5s infinite;
+  }
+}
+
+// ============================================================
+// Progress Photos
+// ============================================================
+
+.progress-photo-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background: $iron-medium;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.02);
+  }
+}
+
+.progress-photo-thumb {
+  width: 100%;
+  aspect-ratio: 3/4;
+  object-fit: cover;
+  display: block;
+}
+
+.progress-photo-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.5rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.progress-photo-date {
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.progress-photo-weight {
+  color: $forge-orange;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+// Show page overlay
+.progress-photo-show-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.progress-photo-show-date {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.progress-photo-show-time {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.progress-photo-show-weight {
+  color: $forge-orange;
+  font-size: 1rem;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+// Compare page
+.progress-photo-compare-container {
+  position: relative;
+
+  img {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: cover;
+    border-radius: 0.5rem;
+  }
+}
+
+// Set type badges
+.set-type-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+// Equipment/outcome tracking micro-badges
+.tracking-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 0.55rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+
+.bg-purple {
+  background-color: #7b2d8e !important;
+}
+
+.bg-iron-light {
+  background-color: $iron-light !important;
 }

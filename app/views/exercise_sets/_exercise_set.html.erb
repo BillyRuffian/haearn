@@ -18,6 +18,10 @@
         <div class="col-1 text-center">
           <% if set.is_warmup %>
             <span class="badge bg-secondary">W</span>
+          <% elsif set.is_amrap %>
+            <span class="badge bg-info">A</span>
+          <% elsif set.set_type_badge %>
+            <span class="badge bg-<%= set.set_type_color %>" title="<%= set.set_type_label %>"><%= set.set_type_badge %></span>
           <% else %>
             <span class="set-number"><%= index %></span>
           <% end %>
@@ -35,6 +39,9 @@
           <% case workout_exercise.exercise.exercise_type %>
           <% when 'reps' %>
             <span class="reps-display"><%= set.reps || "—" %></span>
+            <% if set.partial_reps.present? %>
+              <small class="text-muted">+<%= set.partial_reps %>p</small>
+            <% end %>
           <% when 'time' %>
             <span><%= set.duration_seconds ? "#{set.duration_seconds}s" : "—" %></span>
           <% when 'distance' %>
@@ -46,8 +53,25 @@
             <small class="text-muted">RPE <%= set.rpe %></small>
           <% elsif set.rir.present? %>
             <small class="text-muted">RIR <%= set.rir %></small>
+          <% elsif set.has_tempo? %>
+            <small class="text-muted font-monospace"><%= set.tempo_display %></small>
           <% else %>
             <span class="text-muted">—</span>
+          <% end %>
+          <% if (set.rpe.present? || set.rir.present?) && set.has_tempo? %>
+            <br><small class="text-muted font-monospace"><%= set.tempo_display %></small>
+          <% end %>
+          <%# Equipment & outcome micro-badges %>
+          <% badges = set.equipment_badges + set.outcome_badges %>
+          <% if badges.any? %>
+            <div class="d-flex gap-1 justify-content-center mt-1 flex-wrap">
+              <% badges.each do |b| %>
+                <span class="tracking-badge bg-<%= b[:color] %>" title="<%= b[:title] %>"><%= b[:label] %></span>
+              <% end %>
+              <% if set.has_accommodating_resistance? %>
+                <span class="tracking-badge bg-purple" title="Bands: <%= set.band_tension_kg %>kg, Chains: <%= set.chain_weight_kg %>kg">+R</span>
+              <% end %>
+            </div>
           <% end %>
         </div>
         <div class="col-2 text-end">

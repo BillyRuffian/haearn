@@ -1,0 +1,103 @@
+<% content_for(:title) { "Workout Calendar | Haearn" } %>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-heading mb-0">
+      <i class="bi bi-calendar3 me-2"></i>Calendar
+    </h1>
+    <div class="d-flex gap-2">
+      <%= link_to workouts_path, class: "btn btn-outline-secondary btn-sm" do %>
+        <i class="bi bi-list-ul me-1"></i>List View
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Month Navigation -->
+  <%= turbo_frame_tag "calendar" do %>
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <%= link_to calendar_workouts_path(month: @prev_month.strftime('%Y-%m')),
+            class: "btn btn-sm btn-outline-secondary",
+            data: { turbo_frame: "calendar" } do %>
+          <i class="bi bi-chevron-left"></i>
+        <% end %>
+        <h4 class="mb-0"><%= @month.strftime('%B %Y') %></h4>
+        <% if @next_month <= Date.current.beginning_of_month + 1.month %>
+          <%= link_to calendar_workouts_path(month: @next_month.strftime('%Y-%m')),
+              class: "btn btn-sm btn-outline-secondary",
+              data: { turbo_frame: "calendar" } do %>
+            <i class="bi bi-chevron-right"></i>
+          <% end %>
+        <% else %>
+          <div style="width: 38px;"></div>
+        <% end %>
+      </div>
+
+      <div class="card-body p-0">
+        <!-- Day Headers -->
+        <div class="calendar-grid calendar-header">
+          <% %w[Mon Tue Wed Thu Fri Sat Sun].each do |day| %>
+            <div class="calendar-day-header"><%= day %></div>
+          <% end %>
+        </div>
+
+        <!-- Calendar Days -->
+        <div class="calendar-grid">
+          <% date = @start_date %>
+          <% while date <= @end_date %>
+            <% is_current_month = date.month == @month.month %>
+            <% is_today = date == Date.current %>
+            <% day_workouts = @workout_days[date] || [] %>
+            <div class="calendar-day <%= 'other-month' unless is_current_month %> <%= 'today' if is_today %> <%= 'has-workout' if day_workouts.any? %>">
+              <div class="calendar-date"><%= date.day %></div>
+              <% if day_workouts.any? %>
+                <% day_workouts.each do |workout| %>
+                  <%= link_to workout_path(workout), class: "calendar-workout-dot", data: { turbo_frame: "_top" } do %>
+                    <span class="workout-indicator <%= workout.in_progress? ? 'in-progress' : 'completed' %>"
+                          title="<%= workout.gym&.name || 'Workout' %> — <%= pluralize(workout.workout_exercises.count, 'exercise') %>">
+                    </span>
+                  <% end %>
+                <% end %>
+              <% end %>
+            </div>
+            <% date += 1.day %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monthly Summary -->
+    <% month_workouts = @workout_days.values.flatten.select { |w| w.started_at.to_date.month == @month.month } %>
+    <% if month_workouts.any? %>
+      <div class="row g-3 mt-3">
+        <div class="col-4">
+          <div class="card text-center">
+            <div class="card-body py-2">
+              <div class="h5 mb-0"><%= month_workouts.count %></div>
+              <small class="text-muted">Workouts</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="card text-center">
+            <div class="card-body py-2">
+              <div class="h5 mb-0"><%= @workout_days.select { |d, _| d.month == @month.month }.count %></div>
+              <small class="text-muted">Training Days</small>
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="card text-center">
+            <div class="card-body py-2">
+              <div class="h5 mb-0">
+                <% total_vol = month_workouts.sum(&:total_volume_kg) %>
+                <%= number_with_delimiter(Current.user.format_weight(total_vol).round) %>
+              </div>
+              <small class="text-muted">Volume (<%= Current.user.preferred_unit %>)</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+</div>

@@ -1,0 +1,65 @@
+<% content_for(:title) { "Progress Photo - #{@progress_photo.overlay_date} | Haearn" } %>
+
+<div class="container py-4">
+  <!-- Back link -->
+  <div class="mb-3">
+    <%= link_to progress_photos_path, class: "btn btn-outline-secondary btn-sm" do %>
+      <i class="bi bi-arrow-left me-1"></i>Back to Gallery
+    <% end %>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+      <!-- Full-size photo with overlay -->
+      <div class="card">
+        <div class="position-relative" data-controller="photo-overlay">
+          <% if @progress_photo.photo.attached? %>
+            <%= image_tag @progress_photo.photo.variant(resize_to_limit: [1200, 1600]),
+                class: "card-img-top",
+                data: { photo_overlay_target: "image" } %>
+          <% end %>
+
+          <!-- Date overlay (bottom-left) -->
+          <div class="progress-photo-show-overlay">
+            <div class="progress-photo-show-date">
+              <i class="bi bi-calendar3 me-1"></i><%= @progress_photo.overlay_date %>
+            </div>
+            <div class="progress-photo-show-time">
+              <i class="bi bi-clock me-1"></i><%= @progress_photo.overlay_time %>
+            </div>
+            <% bw = @progress_photo.bodyweight_at_time %>
+            <% if bw %>
+              <div class="progress-photo-show-weight">
+                <i class="bi bi-speedometer2 me-1"></i><%= WeightConverter.from_kg(bw, Current.user.preferred_unit).round(1) %> <%= Current.user.preferred_unit %>
+              </div>
+            <% end %>
+          </div>
+
+          <% if @progress_photo.category.present? %>
+            <span class="badge bg-dark bg-opacity-75 position-absolute top-0 start-0 m-3 fs-6">
+              <%= @progress_photo.category_label %>
+            </span>
+          <% end %>
+        </div>
+
+        <% if @progress_photo.notes.present? %>
+          <div class="card-body">
+            <p class="mb-0 text-muted"><%= @progress_photo.notes %></p>
+          </div>
+        <% end %>
+
+        <div class="card-footer d-flex justify-content-between align-items-center">
+          <small class="text-muted">
+            Uploaded <%= time_ago_in_words(@progress_photo.created_at) %> ago
+          </small>
+          <%= button_to progress_photo_path(@progress_photo),
+              method: :delete,
+              class: "btn btn-outline-danger btn-sm",
+              data: { turbo_confirm: "Delete this progress photo?" } do %>
+            <i class="bi bi-trash me-1"></i>Delete
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

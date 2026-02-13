@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: February 3, 2026
+> Last Updated: February 13, 2026
 
 ## Overview
 
@@ -292,29 +292,29 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Phase 7.5: Granular Tracking (Future)
 
 ### 7.5.1 Equipment Modifiers
-- [ ] Belt used (boolean per set) - PRs with/without are different
-- [ ] Wraps/sleeves (knee, wrist, elbow)
-- [ ] Straps used (for grip-limited exercises)
+- [x] Belt used (boolean per set) - PRs with/without are different
+- [x] Wraps/sleeves (knee, wrist, elbow)
+- [x] Straps used (for grip-limited exercises)
 - [ ] Track "raw" vs "equipped" PRs separately
 
 ### 7.5.2 Exercise Variations
-- [ ] Grip width (close/normal/wide)
-- [ ] Stance (narrow/normal/wide/sumo)
-- [ ] Incline/decline angle for benches
-- [ ] Bar type (straight, EZ-curl, SSB, trap bar, cambered)
-- [ ] Store as modifiers on WorkoutExercise, not separate exercises
+- [x] Grip width (close/normal/wide)
+- [x] Stance (narrow/normal/wide/sumo)
+- [x] Incline/decline angle for benches
+- [x] Bar type (straight, EZ-curl, SSB, trap bar, cambered)
+- [x] Store as modifiers on WorkoutExercise, not separate exercises
 
 ### 7.5.3 Set Outcomes
-- [ ] Failed rep tracking (attempted but didn't complete)
-- [ ] Partial reps (half reps, cheat reps)
-- [ ] Spotter assisted (and how much help)
-- [ ] Pain/discomfort flag on set (something tweaked)
+- [x] Failed rep tracking (attempted but didn't complete)
+- [x] Partial reps (half reps, cheat reps)
+- [x] Spotter assisted (and how much help)
+- [x] Pain/discomfort flag on set (something tweaked)
 
 ### 7.5.4 Advanced Loading
-- [ ] Band tension (accommodating resistance)
-- [ ] Chain weight
-- [ ] Blood flow restriction (BFR) sets
-- [ ] Tempo prescription (3-1-2-0 format: eccentric-pause-concentric-pause)
+- [x] Band tension (accommodating resistance)
+- [x] Chain weight
+- [x] Blood flow restriction (BFR) sets
+- [x] Tempo prescription (3-1-2-0 format: eccentric-pause-concentric-pause)
 
 ### 7.5.5 Form Video
 - [ ] Record video of a set (Active Storage, local)
@@ -323,9 +323,9 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [ ] Optional: side-by-side comparison of same lift over time
 
 ### 7.5.6 Exercise Cues
-- [ ] Personal form reminders per exercise ("squeeze at top", "elbows tucked")
-- [ ] Display cues when exercise is selected
-- [ ] Quick-add cues during workout
+- [x] Personal form reminders per exercise ("squeeze at top", "elbows tucked")
+- [x] Display cues when exercise is selected
+- [x] Quick-add cues during workout
 
 ---
 
@@ -537,12 +537,12 @@ $text-muted: #6c757d;
 - [ ] Strength standards comparison (beginner → elite)
 
 ### 8.4 Advanced Set Types
-- [ ] Drop sets (weight decrements tracked)
-- [ ] Rest-pause sets (micro-rest within set)
-- [ ] Cluster sets (inter-rep rest)
-- [ ] Myo-reps / Back-off sets
-- [ ] AMRAP sets (as many reps as possible, flag for PR tracking)
-- [ ] Tempo tracking (eccentric/pause/concentric, e.g., 3-1-2)
+- [x] Drop sets (weight decrements tracked) _(set_type field on ExerciseSet, badge display)_
+- [x] Rest-pause sets (micro-rest within set) _(set_type: rest_pause)_
+- [x] Cluster sets (inter-rep rest) _(set_type: cluster)_
+- [x] Myo-reps / Back-off sets _(set_type: myo_rep, backoff)_
+- [x] AMRAP sets (as many reps as possible, flag for PR tracking) _(is_amrap boolean, already existed)_
+- [x] Tempo tracking (eccentric/pause/concentric, e.g., 3-1-2) _(4-field tempo: ecc/pause_bottom/con/pause_top, displayed as 3-1-2-0)_
 
 ### 8.5 Warm-up Generator
 - [x] Auto-generate warmup sets for working weight
@@ -552,7 +552,7 @@ $text-muted: #6c757d;
 ### 8.6 Body Metrics Tracking
 - [x] Bodyweight log (morning weigh-ins) _(BodyMetric model with datetime, weight_kg, measurements in cm, trend charts)_
 - [x] Body measurements (arms, chest, waist, legs) _(Optional measurements: chest, waist, hips, left/right arms, left/right legs in cm)_
-- [ ] Progress photos with date overlay
+- [x] Progress photos with date overlay _(ProgressPhoto model with Active Storage, category poses, date/weight overlay, comparison view)_
 - [x] Wilks/DOTS/IPF GL score calculation for powerlifters _(WilksCalculator service with 2020 formula, shows score + classification: novice → world class)_
 - [x] Bodyweight-relative strength tracking (e.g., 2x BW squat) _(Displays on exercise history PRs, shows ratio like "2.1x BW" with best lift @ bodyweight)_
 
@@ -628,94 +628,94 @@ $text-muted: #6c757d;
 ## Phase 11: Workflow & Convenience
 
 ### 11.1 Quick-Swap Exercise Mid-Workout
-- [ ] "Swap" action on WorkoutExercise opens exercise/machine picker
-- [ ] Replaces exercise_id/machine_id in-place, preserving block position and logged sets
-- [ ] Common scenario: equipment is occupied, swap to an alternative fast
+- [x] "Swap" action on WorkoutExercise opens exercise/machine picker
+- [x] Replaces exercise_id/machine_id in-place, preserving block position and logged sets
+- [x] Common scenario: equipment is occupied, swap to an alternative fast
 
 ### 11.2 Auto-Fill Weight From Last Session
-- [ ] Pre-fill weight (and reps) inputs from the corresponding set of the previous session
-- [ ] "Copy last" button on set form for one-tap population
-- [ ] Progression suggester can override with its recommended weight
+- [x] Pre-fill weight (and reps) inputs from the corresponding set of the previous session
+- [x] "Copy last" button on set form for one-tap population
+- [x] Progression suggester can override with its recommended weight
 
 ### 11.3 Workout Pinning / Favorites on Dashboard
-- [ ] Pin/favorite workouts or templates for quick access
-- [ ] Dashboard shows pinned workouts with one-tap "Start this again"
-- [ ] Faster than scrolling history to find and copy a routine
+- [x] Pin/favorite workouts or templates for quick access
+- [x] Dashboard shows pinned workouts with one-tap "Start this again"
+- [x] Faster than scrolling history to find and copy a routine
 
 ### 11.4 Calendar View for Workout History
-- [ ] Monthly calendar grid with colored dots on training days
-- [ ] Clickable days to filter/view that day's workout(s)
-- [ ] Complements existing streak and frequency charts for spotting consistency gaps
+- [x] Monthly calendar grid with colored dots on training days
+- [x] Clickable days to filter/view that day's workout(s)
+- [x] Complements existing streak and frequency charts for spotting consistency gaps
 
 ### 11.5 Per-Block Rest Timer Configuration
-- [ ] Expose rest time adjuster on each block header during active workout
-- [ ] Compound lifts need 3-5 min, accessories need 60-90s
-- [ ] Block already has `rest_seconds` in schema — surface it in the UI
+- [x] Expose rest time adjuster on each block header during active workout
+- [x] Compound lifts need 3-5 min, accessories need 60-90s
+- [x] Block already has `rest_seconds` in schema — surface it in the UI
 
 ### 11.6 Prioritized Existing Items
-- [ ] **Data export (CSV/JSON)** — Routes exist but unimplemented. Table-stakes for user trust and data portability.
-- [ ] **AMRAP sets** — Boolean flag on ExerciseSet + badge. Many popular programs (5/3/1, nSuns, GZCLP) rely on AMRAP final sets.
-- [ ] **Percentage-based programming** — With e1RM tracking already built, let users input "5x5 @ 80%" and auto-calculate working weight.
+- [x] **Data export (CSV/JSON)** — Fully implemented in SettingsController (export_data, export_csv, export_prs).
+- [x] **AMRAP sets** — Boolean flag on ExerciseSet + badge. Many popular programs (5/3/1, nSuns, GZCLP) rely on AMRAP final sets.
+- [x] **Percentage-based programming** — With e1RM tracking already built, let users input "5x5 @ 80%" and auto-calculate working weight.
 
 ---
 
 ## Phase 12: Admin Panel & Authorization (Pundit)
 
 ### 12.1 Pundit Setup & Admin Role
-- [ ] Add `pundit` gem to Gemfile
-- [ ] Run `bundle install`
-- [ ] Add `admin` boolean column to `users` table (default: `false`)
-- [ ] Run `rails generate pundit:install` to create `ApplicationPolicy`
-- [ ] Include `Pundit::Authorization` in `ApplicationController`
-- [ ] Add `after_action :verify_authorized` (with appropriate skips)
-- [ ] Create admin seed user in `db/seeds.rb`
+- [x] Add `pundit` gem to Gemfile
+- [x] Run `bundle install`
+- [x] Add `admin` boolean column to `users` table (default: `false`)
+- [x] Run `rails generate pundit:install` to create `ApplicationPolicy`
+- [x] Include `Pundit::Authorization` in `ApplicationController`
+- [x] Add `after_action :verify_authorized` (with appropriate skips)
+- [x] Create admin seed user in `db/seeds.rb`
 
 ### 12.2 Authorization Policies
-- [ ] `UserPolicy` — admin can list/edit/destroy any user; users can edit own profile
-- [ ] `ExercisePolicy` — admin can CRUD global exercises (user_id: nil); users can only CRUD their own
-- [ ] `GymPolicy` — users manage own gyms; admin can view all
-- [ ] `MachinePolicy` — users manage own machines; admin can view all
-- [ ] `WorkoutPolicy` — users manage own workouts; admin can view all
-- [ ] `WorkoutTemplatePolicy` — admin can create "official" templates; users manage own
-- [ ] `BodyMetricPolicy` — users manage own; admin can view all (aggregate stats)
+- [x] `UserPolicy` — admin can list/edit/destroy any user; users can edit own profile
+- [x] `ExercisePolicy` — admin can CRUD global exercises (user_id: nil); users can only CRUD their own
+- [x] `GymPolicy` — users manage own gyms; admin can view all
+- [x] `MachinePolicy` — users manage own machines; admin can view all
+- [x] `WorkoutPolicy` — users manage own workouts; admin can view all
+- [x] `WorkoutTemplatePolicy` — admin can create "official" templates; users manage own
+- [x] `BodyMetricPolicy` — users manage own; admin can view all (aggregate stats)
 
 ### 12.3 Admin Namespace & Layout
-- [ ] Create `Admin::` namespace with `admin/` route prefix
-- [ ] Admin-specific layout with distinct styling (iron-red accent header/sidebar)
-- [ ] Admin dashboard (`Admin::DashboardController`) with:
+- [x] Create `Admin::` namespace with `admin/` route prefix
+- [x] Admin-specific layout with distinct styling (iron-red accent header/sidebar)
+- [x] Admin dashboard (`Admin::DashboardController`) with:
   - Total users / active users (last 7/30 days)
   - Total workouts logged (this week/month/all time)
   - New registrations chart
   - Most popular exercises
   - System health (DB size, storage usage)
-- [ ] Navigation: Dashboard, Users, Exercises, Analytics
+- [x] Navigation: Dashboard, Users, Exercises, Analytics
 
 ### 12.4 User Management
-- [ ] `Admin::UsersController` — list, show, edit, deactivate users
-- [ ] Search/filter users by name, email, signup date, activity
-- [ ] View user stats (workouts, volume, last active)
-- [ ] Grant/revoke admin role
-- [ ] Deactivate/reactivate accounts (soft delete, not hard delete)
-- [ ] Impersonate user for debugging (with audit log)
+- [x] `Admin::UsersController` — list, show, edit, deactivate users
+- [x] Search/filter users by name, email, signup date, activity
+- [x] View user stats (workouts, volume, last active)
+- [x] Grant/revoke admin role
+- [x] Deactivate/reactivate accounts (soft delete, not hard delete)
+- [x] Impersonate user for debugging (with audit log)
 
 ### 12.5 Global Exercise Management
-- [ ] `Admin::ExercisesController` — full CRUD for global exercises (user_id: nil)
+- [x] `Admin::ExercisesController` — full CRUD for global exercises (user_id: nil)
 - [ ] Bulk import/edit exercises
-- [ ] Manage exercise categories and muscle group mappings
-- [ ] Review user-created exercises for promotion to global library
-- [ ] Merge duplicate exercises
+- [x] Manage exercise categories and muscle group mappings
+- [x] Review user-created exercises for promotion to global library
+- [x] Merge duplicate exercises
 
 ### 12.6 Content & Data Administration
-- [ ] View aggregate analytics (most used exercises, popular gyms, avg workout duration)
+- [x] View aggregate analytics (most used exercises, popular gyms, avg workout duration)
 - [ ] Manage workout templates flagged as "official"
 - [ ] Data export tools (all users, all workouts — CSV/JSON)
-- [ ] Audit log for admin actions (who did what, when)
+- [x] Audit log for admin actions (who did what, when)
 
 ### 12.7 Admin Access Control
-- [ ] `before_action` guard in `Admin::BaseController` requiring admin role
-- [ ] Redirect non-admins with flash message
+- [x] `before_action` guard in `Admin::BaseController` requiring admin role
+- [x] Redirect non-admins with flash message
 - [ ] Rate-limit admin actions (optional)
-- [ ] Admin activity log (track logins, user edits, exercise changes)
+- [x] Admin activity log (track logins, user edits, exercise changes)
 
 ---
 

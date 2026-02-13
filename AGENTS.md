@@ -6,7 +6,11 @@
 
 1. **Read this file first** at the start of every session
 2. **Read `docs/PLAN.md`** to understand the implementation roadmap and current progress
-3. **Update `docs/PLAN.md`** when completing tasks (check off items) or when plans change
+3. **Keep `docs/PLAN.md` up to date** — this is critical:
+   - Check off completed items (`- [x]`) immediately after implementing them
+   - Add new items when the user requests features not yet in the plan
+   - Move or re-prioritize items when the user changes direction
+   - Update the "Last Updated" date at the top when making changes
 4. **Update this file (AGENTS.md)** when:
    - The user makes a design decision that affects future work
    - New patterns or conventions are established

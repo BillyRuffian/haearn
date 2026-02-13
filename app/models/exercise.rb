@@ -5,6 +5,7 @@
 #  id                   :integer          not null, primary key
 #  description          :text
 #  exercise_type        :string
+#  form_cues            :text
 #  has_weight           :boolean
 #  name                 :string
 #  primary_muscle_group :string
@@ -101,5 +102,16 @@ class Exercise < ApplicationRecord
 
   def distance?
     exercise_type == 'distance'
+  end
+
+  # Form cues as array (stored as newline-separated text)
+  def cues_list
+    return [] if form_cues.blank?
+
+    form_cues.split("\n").map(&:strip).reject(&:blank?)
+  end
+
+  def has_cues?
+    form_cues.present?
   end
 end

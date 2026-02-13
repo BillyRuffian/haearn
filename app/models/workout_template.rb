@@ -5,6 +5,7 @@
 #  id          :integer          not null, primary key
 #  description :text
 #  name        :string
+#  pinned      :boolean          default(FALSE)
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
 #  user_id     :integer          not null
@@ -29,4 +30,13 @@ class WorkoutTemplate < ApplicationRecord
 
   scope :ordered, -> { order(name: :asc) }
   scope :recent, -> { order(created_at: :desc) }
+  scope :pinned, -> { where(pinned: true) }
+
+  def pinned?
+    pinned == true
+  end
+
+  def toggle_pin!
+    update!(pinned: !pinned?)
+  end
 end

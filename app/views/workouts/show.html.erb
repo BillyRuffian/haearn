@@ -224,7 +224,7 @@
 
 <!-- Rest Timer (fixed footer bar) -->
 <% if @workout.in_progress? %>
-  <div class="rest-timer-footer" data-controller="rest-timer" data-rest-timer-duration-value="120">
+  <div class="rest-timer-footer" data-controller="rest-timer" data-rest-timer-duration-value="<%= Current.user.default_rest_seconds || 90 %>">
     <!-- Collapsed state: just a button -->
     <div class="rest-timer-collapsed" data-rest-timer-target="collapsed">
       <button type="button" 

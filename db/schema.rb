@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_12_112557) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_13_160005) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -74,18 +74,36 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_112557) do
   end
 
   create_table "exercise_sets", force: :cascade do |t|
+    t.decimal "band_tension_kg"
+    t.boolean "belt", default: false, null: false
+    t.decimal "chain_weight_kg"
     t.datetime "completed_at"
     t.datetime "created_at", null: false
     t.decimal "distance_meters"
     t.integer "duration_seconds"
+    t.boolean "is_amrap", default: false
+    t.boolean "is_bfr", default: false, null: false
+    t.boolean "is_failed", default: false, null: false
     t.boolean "is_warmup"
+    t.boolean "knee_sleeves", default: false, null: false
+    t.boolean "pain_flag", default: false, null: false
+    t.string "pain_note"
+    t.integer "partial_reps"
     t.integer "position"
     t.integer "reps"
     t.integer "rir"
     t.decimal "rpe"
+    t.string "set_type", default: "normal"
+    t.boolean "spotter_assisted", default: false, null: false
+    t.boolean "straps", default: false, null: false
+    t.integer "tempo_concentric"
+    t.integer "tempo_eccentric"
+    t.integer "tempo_pause_bottom"
+    t.integer "tempo_pause_top"
     t.datetime "updated_at", null: false
     t.decimal "weight_kg"
     t.integer "workout_exercise_id", null: false
+    t.boolean "wrist_wraps", default: false, null: false
     t.index ["workout_exercise_id"], name: "index_exercise_sets_on_workout_exercise_id"
   end
 
@@ -93,6 +111,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_112557) do
     t.datetime "created_at", null: false
     t.text "description"
     t.string "exercise_type"
+    t.text "form_cues"
     t.boolean "has_weight"
     t.string "name"
     t.string "primary_muscle_group"
@@ -121,6 +140,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_112557) do
     t.datetime "updated_at", null: false
     t.decimal "weight_ratio"
     t.index ["gym_id"], name: "index_machines_on_gym_id"
+  end
+
+  create_table "progress_photos", force: :cascade do |t|
+    t.string "category"
+    t.datetime "created_at", null: false
+    t.text "notes"
+    t.datetime "taken_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id", "category"], name: "index_progress_photos_on_user_id_and_category"
+    t.index ["user_id", "taken_at"], name: "index_progress_photos_on_user_id_and_taken_at"
+    t.index ["user_id"], name: "index_progress_photos_on_user_id"
   end
 
   create_table "sessions", force: :cascade do |t|
@@ -186,12 +217,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_112557) do
   end
 
   create_table "workout_exercises", force: :cascade do |t|
+    t.string "bar_type"
     t.datetime "created_at", null: false
     t.integer "exercise_id", null: false
+    t.string "grip_width"
+    t.integer "incline_angle"
     t.integer "machine_id", null: false
     t.text "persistent_notes"
     t.integer "position"
     t.text "session_notes"
+    t.string "stance"
     t.datetime "updated_at", null: false
     t.integer "workout_block_id", null: false
     t.index ["exercise_id"], name: "index_workout_exercises_on_exercise_id"
@@ -203,6 +238,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_112557) do
     t.datetime "created_at", null: false
     t.text "description"
     t.string "name"
+    t.boolean "pinned", default: false
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
     t.index ["user_id"], name: "index_workout_templates_on_user_id"
@@ -229,6 +265,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_12_112557) do
   add_foreign_key "exercises", "users"
   add_foreign_key "gyms", "users"
   add_foreign_key "machines", "gyms"
+  add_foreign_key "progress_photos", "users"
   add_foreign_key "sessions", "users"
   add_foreign_key "template_blocks", "workout_templates"
   add_foreign_key "template_exercises", "exercises"

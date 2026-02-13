@@ -27,6 +27,14 @@ class ExercisePolicy < ApplicationPolicy
     user.admin?
   end
 
+  def merge?
+    user.admin?
+  end
+
+  def perform_merge?
+    user.admin?
+  end
+
   class Scope < ApplicationPolicy::Scope
     def resolve
       if user.admin?

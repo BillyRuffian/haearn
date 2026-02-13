@@ -19,6 +19,15 @@
           <span class="ms-2"><%= @exercise.description %></span>
         <% end %>
       </p>
+      <% if @exercise.has_cues? %>
+        <div class="form-cues small px-2 py-1 rounded" style="background: rgba(255, 107, 53, 0.08); border-left: 3px solid var(--bs-warning);">
+          <i class="bi bi-lightbulb text-warning me-1"></i>
+          <strong class="text-muted">Cues:</strong>
+          <% @exercise.cues_list.each_with_index do |cue, i| %>
+            <span class="text-muted"><%= cue %></span><%= '  ·  ' unless i == @exercise.cues_list.length - 1 %>
+          <% end %>
+        </div>
+      <% end %>
     </div>
   </div>
 

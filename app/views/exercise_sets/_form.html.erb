@@ -1,5 +1,7 @@
 <% show_plate_calc = workout_exercise.exercise.has_weight && workout_exercise.machine&.plate_loaded? %>
 <% initial_weight = set.weight_kg ? Current.user.format_weight(set.weight_kg) : last_weight_for(workout_exercise) %>
+<% next_set_number = workout_exercise.exercise_sets.count + 1 %>
+<% prev_set_data = previous_session_set_data(workout_exercise, next_set_number) %>
 
 <% if workout_exercise.exercise.has_weight? %>
   <% suggester = ProgressionSuggester.new(workout_exercise: workout_exercise, user: Current.user) %>
@@ -76,6 +78,22 @@
         </div>
       </div>
 
+      <div class="col-auto">
+        <label class="form-label small text-muted mb-1" title="As Many Reps As Possible">AMRAP</label>
+        <div class="form-check d-flex justify-content-center">
+          <%= form.check_box :is_amrap, class: "form-check-input", title: "AMRAP set (as many reps as possible)" %>
+        </div>
+      </div>
+
+      <div class="col">
+        <label class="form-label small text-muted mb-1">Type</label>
+        <%= form.select :set_type,
+            ExerciseSet::SET_TYPES.map { |t| [ExerciseSet.new(set_type: t).set_type_label, t] },
+            {},
+            class: "form-select form-select-sm",
+            data: { action: "change->set-type-toggle#toggle" } %>
+      </div>
+
       <div class="col">
         <label class="form-label small text-muted mb-1" title="Rate of Perceived Exertion (1-10)">RPE</label>
         <%= form.number_field :rpe,
@@ -106,7 +124,157 @@
           <%= form.submit "✓", class: "btn btn-primary btn-sm", data: { set_form_target: "submit" } %>
         </div>
       </div>
+
+      <% if prev_set_data.present? %>
+        <div class="col-auto">
+          <div class="mt-3"
+               data-controller="copy-last"
+               <%= "data-copy-last-weight-value=#{prev_set_data[:weight]}" if prev_set_data[:weight] %>
+               <%= "data-copy-last-reps-value=#{prev_set_data[:reps]}" if prev_set_data[:reps] %>
+               <%= "data-copy-last-duration-value=#{prev_set_data[:duration_seconds]}" if prev_set_data[:duration_seconds] %>
+               <%= "data-copy-last-distance-value=#{prev_set_data[:distance_meters]}" if prev_set_data[:distance_meters] %>>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-action="copy-last#copy" title="Copy from last session (set <%= next_set_number %>)">
+              <i class="bi bi-clipboard me-1"></i>Last
+            </button>
+          </div>
+        </div>
+      <% end %>
     </div>
+
+    <%# Row 3: Tempo prescription (collapsible) %>
+    <div data-controller="set-type-toggle">
+      <div class="mt-2">
+        <button type="button" class="btn btn-sm btn-link text-muted p-0" data-action="set-type-toggle#toggleTempo" data-set-type-toggle-target="tempoToggle">
+          <i class="bi bi-stopwatch me-1"></i><span class="small">Tempo</span>
+          <i class="bi bi-chevron-down ms-1 small"></i>
+        </button>
+      </div>
+      <div class="row g-1 mt-1 d-none" data-set-type-toggle-target="tempoRow">
+        <div class="col-3">
+          <label class="form-label small text-muted mb-0 text-center d-block" title="Eccentric (lowering) phase in seconds">Ecc</label>
+          <%= form.number_field :tempo_eccentric,
+              class: "form-control form-control-sm text-center",
+              placeholder: "—",
+              min: 0, max: 30,
+              inputmode: "numeric",
+              onfocus: "this.select()" %>
+        </div>
+        <div class="col-3">
+          <label class="form-label small text-muted mb-0 text-center d-block" title="Pause at bottom/stretch position">Pause</label>
+          <%= form.number_field :tempo_pause_bottom,
+              class: "form-control form-control-sm text-center",
+              placeholder: "—",
+              min: 0, max: 30,
+              inputmode: "numeric",
+              onfocus: "this.select()" %>
+        </div>
+        <div class="col-3">
+          <label class="form-label small text-muted mb-0 text-center d-block" title="Concentric (lifting) phase in seconds">Con</label>
+          <%= form.number_field :tempo_concentric,
+              class: "form-control form-control-sm text-center",
+              placeholder: "—",
+              min: 0, max: 30,
+              inputmode: "numeric",
+              onfocus: "this.select()" %>
+        </div>
+        <div class="col-3">
+          <label class="form-label small text-muted mb-0 text-center d-block" title="Pause at top/lockout position">Top</label>
+          <%= form.number_field :tempo_pause_top,
+              class: "form-control form-control-sm text-center",
+              placeholder: "—",
+              min: 0, max: 30,
+              inputmode: "numeric",
+              onfocus: "this.select()" %>
+        </div>
+        <div class="col-12">
+          <small class="text-muted">Format: eccentric-pause-concentric-pause (seconds)</small>
+        </div>
+      </div>
+    </div>
+
+    <%# Row 4: Equipment & Outcomes (collapsible) %>
+    <div data-controller="set-type-toggle">
+      <div class="mt-2">
+        <button type="button" class="btn btn-sm btn-link text-muted p-0" data-action="set-type-toggle#toggleTempo" data-set-type-toggle-target="tempoToggle">
+          <i class="bi bi-gear me-1"></i><span class="small">Equipment & Tracking</span>
+          <i class="bi bi-chevron-down ms-1 small"></i>
+        </button>
+      </div>
+      <div class="d-none mt-2" data-set-type-toggle-target="tempoRow">
+        <%# Equipment checkboxes %>
+        <div class="d-flex flex-wrap gap-3 mb-2">
+          <div class="form-check form-check-inline">
+            <%= form.check_box :belt, class: "form-check-input" %>
+            <label class="form-check-label small">Belt</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <%= form.check_box :knee_sleeves, class: "form-check-input" %>
+            <label class="form-check-label small">Knee Sleeves</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <%= form.check_box :wrist_wraps, class: "form-check-input" %>
+            <label class="form-check-label small">Wrist Wraps</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <%= form.check_box :straps, class: "form-check-input" %>
+            <label class="form-check-label small">Straps</label>
+          </div>
+        </div>
+
+        <%# Outcome flags %>
+        <div class="d-flex flex-wrap gap-3 mb-2">
+          <div class="form-check form-check-inline">
+            <%= form.check_box :is_failed, class: "form-check-input" %>
+            <label class="form-check-label small text-danger">Failed</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <%= form.check_box :spotter_assisted, class: "form-check-input" %>
+            <label class="form-check-label small">Spotter</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <%= form.check_box :pain_flag, class: "form-check-input" %>
+            <label class="form-check-label small text-danger">Pain</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <%= form.check_box :is_bfr, class: "form-check-input" %>
+            <label class="form-check-label small">BFR</label>
+          </div>
+        </div>
+
+        <%# Partial reps + pain note %>
+        <div class="row g-2 mb-2">
+          <div class="col-4">
+            <label class="form-label small text-muted mb-0">Partials</label>
+            <%= form.number_field :partial_reps,
+                class: "form-control form-control-sm text-center",
+                placeholder: "—", min: 1, inputmode: "numeric" %>
+          </div>
+          <div class="col-8">
+            <label class="form-label small text-muted mb-0">Pain Note</label>
+            <%= form.text_field :pain_note,
+                class: "form-control form-control-sm",
+                placeholder: "What hurts?" %>
+          </div>
+        </div>
+
+        <%# Accommodating resistance %>
+        <div class="row g-2">
+          <div class="col-6">
+            <label class="form-label small text-muted mb-0">Bands (<%= Current.user.preferred_unit %>)</label>
+            <%= form.number_field :band_tension_kg,
+                class: "form-control form-control-sm text-center",
+                placeholder: "—", step: "any", min: 0, inputmode: "decimal" %>
+          </div>
+          <div class="col-6">
+            <label class="form-label small text-muted mb-0">Chains (<%= Current.user.preferred_unit %>)</label>
+            <%= form.number_field :chain_weight_kg,
+                class: "form-control form-control-sm text-center",
+                placeholder: "—", step: "any", min: 0, inputmode: "decimal" %>
+          </div>
+        </div>
+      </div>
+    </div>
+
   <% end %>
 
   <%# Plate calculator display for barbell/smith machine exercises %>
@@ -118,5 +286,33 @@
       </div>
       <div data-plate-calculator-target="display"></div>
     </div>
+  <% end %>
+
+  <%# Percentage-based programming calculator %>
+  <% if workout_exercise.exercise.has_weight? %>
+    <% e1rm_kg = estimated_1rm_for(workout_exercise) %>
+    <% if e1rm_kg %>
+      <% e1rm_display = Current.user.format_weight(e1rm_kg.round(1)) %>
+      <div class="percentage-calculator mt-2" data-controller="percentage-calculator"
+           data-percentage-calculator-e1rm-value="<%= e1rm_display %>"
+           data-percentage-calculator-unit-value="<%= Current.user.preferred_unit %>">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-percent text-muted"></i>
+          <span class="small text-muted">e1RM: <%= e1rm_display %> <%= Current.user.preferred_unit %></span>
+          <input type="number" min="50" max="100" step="5" placeholder="%"
+                 class="form-control form-control-sm text-center"
+                 style="width: 60px;"
+                 inputmode="numeric"
+                 data-percentage-calculator-target="percentage"
+                 data-action="input->percentage-calculator#calculate">
+          <span class="small fw-bold text-rust" data-percentage-calculator-target="result"></span>
+          <button type="button" class="btn btn-outline-primary btn-sm py-0"
+                  data-action="percentage-calculator#applyWeight"
+                  title="Apply calculated weight">
+            <i class="bi bi-arrow-left"></i>
+          </button>
+        </div>
+      </div>
+    <% end %>
   <% end %>
 </div>

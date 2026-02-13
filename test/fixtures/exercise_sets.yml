@@ -5,15 +5,33 @@
 # Table name: exercise_sets
 #
 #  id                  :integer          not null, primary key
+#  band_tension_kg     :decimal(, )
+#  belt                :boolean          default(FALSE), not null
+#  chain_weight_kg     :decimal(, )
 #  completed_at        :datetime
 #  distance_meters     :decimal(, )
 #  duration_seconds    :integer
+#  is_amrap            :boolean          default(FALSE)
+#  is_bfr              :boolean          default(FALSE), not null
+#  is_failed           :boolean          default(FALSE), not null
 #  is_warmup           :boolean
+#  knee_sleeves        :boolean          default(FALSE), not null
+#  pain_flag           :boolean          default(FALSE), not null
+#  pain_note           :string
+#  partial_reps        :integer
 #  position            :integer
 #  reps                :integer
 #  rir                 :integer
 #  rpe                 :decimal(, )
+#  set_type            :string           default("normal")
+#  spotter_assisted    :boolean          default(FALSE), not null
+#  straps              :boolean          default(FALSE), not null
+#  tempo_concentric    :integer
+#  tempo_eccentric     :integer
+#  tempo_pause_bottom  :integer
+#  tempo_pause_top     :integer
 #  weight_kg           :decimal(, )
+#  wrist_wraps         :boolean          default(FALSE), not null
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
 #  workout_exercise_id :integer          not null

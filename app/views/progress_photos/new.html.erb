@@ -1,0 +1,94 @@
+<% content_for(:title) { "New Progress Photo | Haearn" } %>
+
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <h1 class="display-heading mb-4">
+        <i class="bi bi-camera me-2"></i>New Progress Photo
+      </h1>
+
+      <%= form_with model: @progress_photo, class: "card" do |form| %>
+        <div class="card-body">
+          <% if @progress_photo.errors.any? %>
+            <div class="alert alert-danger">
+              <ul class="mb-0">
+                <% @progress_photo.errors.full_messages.each do |msg| %>
+                  <li><%= msg %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+
+          <!-- Photo Upload -->
+          <div class="mb-4">
+            <label class="form-label">Photo</label>
+            <div data-controller="photo-upload">
+              <!-- Preview area -->
+              <div class="mb-2 d-none" data-photo-upload-target="preview">
+                <img src="" class="img-fluid rounded" style="max-height: 400px;" data-photo-upload-target="image">
+              </div>
+
+              <!-- Camera/file input -->
+              <div class="d-flex gap-2">
+                <label class="btn btn-primary flex-fill text-center" style="cursor: pointer;">
+                  <i class="bi bi-camera-fill me-2"></i>Take Photo
+                  <%= form.file_field :photo,
+                      accept: "image/*",
+                      capture: "environment",
+                      class: "d-none",
+                      data: { action: "change->photo-upload#preview", photo_upload_target: "input" } %>
+                </label>
+                <label class="btn btn-outline-secondary flex-fill text-center" style="cursor: pointer;">
+                  <i class="bi bi-image me-2"></i>Choose File
+                  <%= form.file_field :photo,
+                      accept: "image/*",
+                      class: "d-none",
+                      data: { action: "change->photo-upload#preview", photo_upload_target: "input" } %>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Category -->
+          <div class="mb-3">
+            <label class="form-label">Pose / Category</label>
+            <div class="d-flex gap-2 flex-wrap">
+              <% ProgressPhoto::CATEGORIES.each do |cat| %>
+                <div class="form-check">
+                  <%= form.radio_button :category, cat,
+                      class: "form-check-input",
+                      id: "category_#{cat}" %>
+                  <label class="form-check-label" for="category_<%= cat %>">
+                    <%= ProgressPhoto.new(category: cat).category_label %>
+                  </label>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Date & Time -->
+          <div class="mb-3">
+            <label class="form-label">Date & Time</label>
+            <%= form.datetime_local_field :taken_at,
+                class: "form-control",
+                value: @progress_photo.taken_at&.strftime('%Y-%m-%dT%H:%M') %>
+          </div>
+
+          <!-- Notes -->
+          <div class="mb-3">
+            <label class="form-label">Notes <span class="text-muted">(optional)</span></label>
+            <%= form.text_area :notes,
+                class: "form-control",
+                rows: 2,
+                placeholder: "Morning, fasted, post-pump, etc." %>
+          </div>
+        </div>
+
+        <div class="card-footer d-flex gap-2 justify-content-end">
+          <%= link_to "Cancel", progress_photos_path, class: "btn btn-outline-secondary" %>
+          <%= form.submit "Save Photo", class: "btn btn-primary" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

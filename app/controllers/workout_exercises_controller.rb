@@ -2,6 +2,8 @@
 # Handles two types of notes: session_notes (temporary) and persistent_notes (carried forward)
 # Supports moving exercises between blocks for creating/breaking supersets
 class WorkoutExercisesController < ApplicationController
+  include ActionView::RecordIdentifier
+
   before_action :set_workout
   before_action :set_workout_exercise
 
@@ -40,23 +42,23 @@ class WorkoutExercisesController < ApplicationController
       respond_to do |format|
         format.turbo_stream do
           render turbo_stream: turbo_stream.replace(
-            "workout_exercise_notes_#{@workout_exercise.id}",
-            partial: 'workout_exercises/notes_display',
-            locals: { workout: @workout, workout_exercise: @workout_exercise }
+            dom_id(@workout_exercise),
+            partial: 'workouts/workout_exercise',
+            locals: { workout: @workout, workout_exercise: @workout_exercise, superset_label: superset_label_for(@workout_exercise) }
           )
         end
-        format.html { redirect_to @workout, notice: 'Notes updated.' }
+        format.html { redirect_to @workout, notice: 'Updated.' }
       end
     else
       respond_to do |format|
         format.turbo_stream do
           render turbo_stream: turbo_stream.replace(
-            "workout_exercise_notes_#{@workout_exercise.id}",
-            partial: 'workout_exercises/notes_form',
-            locals: { workout: @workout, workout_exercise: @workout_exercise }
+            dom_id(@workout_exercise),
+            partial: 'workouts/workout_exercise',
+            locals: { workout: @workout, workout_exercise: @workout_exercise, superset_label: superset_label_for(@workout_exercise) }
           )
         end
-        format.html { redirect_to @workout, alert: 'Could not update notes.' }
+        format.html { redirect_to @workout, alert: 'Could not update.' }
       end
     end
   end
@@ -214,6 +216,15 @@ class WorkoutExercisesController < ApplicationController
     @workout_exercise = @workout.workout_exercises.find(params[:id])
   end
 
+  # Compute superset label (e.g. "A1", "A2") for re-rendering the workout_exercise partial
+  def superset_label_for(workout_exercise)
+    block = workout_exercise.workout_block
+    return nil unless block.workout_exercises.count > 1
+
+    index = block.workout_exercises.order(:position).pluck(:id).index(workout_exercise.id)
+    "#{(block.position + 64).chr}#{index + 1}"
+  end
+
   # Swaps exercise and/or machine on existing workout_exercise
   # Preserves block position, sets, and session_notes
   # Refreshes persistent_notes from new exercise+machine history
@@ -237,6 +248,6 @@ class WorkoutExercisesController < ApplicationController
   # session_notes: specific to this workout ("elbow hurt on set 3")
   # persistent_notes: carried to future workouts ("use neutral grip handle")
   def workout_exercise_params
-    params.require(:workout_exercise).permit(:session_notes, :persistent_notes)
+    params.require(:workout_exercise).permit(:session_notes, :persistent_notes, :grip_width, :stance, :incline_angle, :bar_type)
   end
 end

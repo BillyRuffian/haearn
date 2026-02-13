@@ -1,6 +1,6 @@
 module Admin
   class ExercisesController < BaseController
-    before_action :set_exercise, only: [ :show, :edit, :update, :destroy, :promote ]
+    before_action :set_exercise, only: [ :show, :edit, :update, :destroy, :promote, :merge, :perform_merge ]
 
     PER_PAGE = 25
 
@@ -96,6 +96,36 @@ module Admin
         .order('COUNT(workout_exercises.id) DESC')
         .limit(50)
         .select('exercises.*, COUNT(workout_exercises.id) AS usage_count')
+    end
+
+    def merge
+      authorize @exercise
+      @target_exercises = Exercise.where.not(id: @exercise.id).order(:name)
+      @target_exercises = @target_exercises.where('name LIKE ?', "%#{params[:search]}%") if params[:search].present?
+      @usage_count = @exercise.workout_exercises.count
+      @template_count = TemplateExercise.where(exercise_id: @exercise.id).count
+    end
+
+    def perform_merge
+      authorize @exercise
+      target = Exercise.find(params[:target_id])
+
+      result = ExerciseMerger.call(target: target, duplicate: @exercise)
+
+      if result.success?
+        log_admin_action(
+          action: 'merge_exercise',
+          resource: target,
+          metadata: {
+            merged_exercise_id: @exercise.id,
+            merged_exercise_name: @exercise.name,
+            message: result.message
+          }
+        )
+        redirect_to admin_exercise_path(target), notice: result.message
+      else
+        redirect_to merge_admin_exercise_path(@exercise), alert: result.message
+      end
     end
 
     private

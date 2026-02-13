@@ -1,0 +1,121 @@
+<% content_for(:title) { "Compare Progress | Haearn" } %>
+
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="display-heading mb-0">
+      <i class="bi bi-layout-split me-2"></i>Compare Photos
+    </h1>
+    <%= link_to progress_photos_path, class: "btn btn-outline-secondary btn-sm" do %>
+      <i class="bi bi-arrow-left me-1"></i>Gallery
+    <% end %>
+  </div>
+
+  <!-- Category Filter -->
+  <div class="d-flex gap-2 mb-4 flex-wrap">
+    <%= link_to "All", compare_progress_photos_path,
+        class: "btn btn-sm #{params[:category].blank? ? 'btn-primary' : 'btn-outline-secondary'}" %>
+    <% ProgressPhoto::CATEGORIES.each do |cat| %>
+      <%= link_to ProgressPhoto.new(category: cat).category_label,
+          compare_progress_photos_path(category: cat),
+          class: "btn btn-sm #{params[:category] == cat ? 'btn-primary' : 'btn-outline-secondary'}" %>
+    <% end %>
+  </div>
+
+  <% if @photos.count >= 2 %>
+    <!-- Comparison View -->
+    <div class="row g-3" data-controller="photo-compare">
+      <!-- Left Photo -->
+      <div class="col-6">
+        <div class="card h-100">
+          <div class="card-header py-2">
+            <select class="form-select form-select-sm" data-photo-compare-target="leftSelect" data-action="change->photo-compare#updateLeft">
+              <option value="">Select a photo...</option>
+              <% @photos.each do |photo| %>
+                <option value="<%= photo.id %>"
+                        data-url="<%= url_for(photo.photo.variant(resize_to_limit: [800, 1000])) %>"
+                        data-date="<%= photo.overlay_date %>"
+                        data-weight="<%= photo.bodyweight_at_time ? "#{WeightConverter.from_kg(photo.bodyweight_at_time, Current.user.preferred_unit).round(1)} #{Current.user.preferred_unit}" : '' %>"
+                        <%= 'selected' if @left_photo&.id == photo.id %>>
+                  <%= photo.overlay_date %> - <%= photo.category_label %>
+                </option>
+              <% end %>
+            </select>
+          </div>
+          <div class="card-body p-0 position-relative">
+            <% if @left_photo&.photo&.attached? %>
+              <%= image_tag @left_photo.photo.variant(resize_to_limit: [800, 1000]),
+                  class: "img-fluid w-100",
+                  data: { photo_compare_target: "leftImage" } %>
+              <div class="progress-photo-show-overlay">
+                <div class="progress-photo-show-date" data-photo-compare-target="leftDate"><%= @left_photo.overlay_date %></div>
+                <% if (bw = @left_photo.bodyweight_at_time) %>
+                  <div class="progress-photo-show-weight" data-photo-compare-target="leftWeight"><%= WeightConverter.from_kg(bw, Current.user.preferred_unit).round(1) %> <%= Current.user.preferred_unit %></div>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="d-flex align-items-center justify-content-center text-muted" style="min-height: 300px;" data-photo-compare-target="leftImage">
+                <span>Select a photo</span>
+              </div>
+              <div class="progress-photo-show-overlay d-none">
+                <div class="progress-photo-show-date" data-photo-compare-target="leftDate"></div>
+                <div class="progress-photo-show-weight" data-photo-compare-target="leftWeight"></div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Photo -->
+      <div class="col-6">
+        <div class="card h-100">
+          <div class="card-header py-2">
+            <select class="form-select form-select-sm" data-photo-compare-target="rightSelect" data-action="change->photo-compare#updateRight">
+              <option value="">Select a photo...</option>
+              <% @photos.each_with_index do |photo, i| %>
+                <option value="<%= photo.id %>"
+                        data-url="<%= url_for(photo.photo.variant(resize_to_limit: [800, 1000])) %>"
+                        data-date="<%= photo.overlay_date %>"
+                        data-weight="<%= photo.bodyweight_at_time ? "#{WeightConverter.from_kg(photo.bodyweight_at_time, Current.user.preferred_unit).round(1)} #{Current.user.preferred_unit}" : '' %>"
+                        <%= 'selected' if @right_photo&.id == photo.id %>>
+                  <%= photo.overlay_date %> - <%= photo.category_label %>
+                </option>
+              <% end %>
+            </select>
+          </div>
+          <div class="card-body p-0 position-relative">
+            <% if @right_photo&.photo&.attached? %>
+              <%= image_tag @right_photo.photo.variant(resize_to_limit: [800, 1000]),
+                  class: "img-fluid w-100",
+                  data: { photo_compare_target: "rightImage" } %>
+              <div class="progress-photo-show-overlay">
+                <div class="progress-photo-show-date" data-photo-compare-target="rightDate"><%= @right_photo.overlay_date %></div>
+                <% if (bw = @right_photo.bodyweight_at_time) %>
+                  <div class="progress-photo-show-weight" data-photo-compare-target="rightWeight"><%= WeightConverter.from_kg(bw, Current.user.preferred_unit).round(1) %> <%= Current.user.preferred_unit %></div>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="d-flex align-items-center justify-content-center text-muted" style="min-height: 300px;" data-photo-compare-target="rightImage">
+                <span>Select a photo</span>
+              </div>
+              <div class="progress-photo-show-overlay d-none">
+                <div class="progress-photo-show-date" data-photo-compare-target="rightDate"></div>
+                <div class="progress-photo-show-weight" data-photo-compare-target="rightWeight"></div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <div class="card">
+      <div class="card-body text-center py-5">
+        <i class="bi bi-layout-split display-1 text-muted mb-3"></i>
+        <h3 class="mb-2">Need More Photos</h3>
+        <p class="text-muted mb-4">You need at least 2 progress photos to compare. Take photos regularly to track visual changes.</p>
+        <%= link_to new_progress_photo_path, class: "btn btn-primary" do %>
+          <i class="bi bi-plus-lg me-1"></i>Take Photo
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>
