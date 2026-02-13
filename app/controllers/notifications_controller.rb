@@ -28,6 +28,7 @@ class NotificationsController < ApplicationController
   def rest_timer_expired
     completed_at_ms = params[:completed_at_ms].to_i
     return head :unprocessable_entity if completed_at_ms <= 0
+    return render json: { ok: true, skipped: true } unless Current.user.notify_rest_timer_in_app?
 
     workout = Current.user.active_workout
     dedupe_key = "rest-timer:#{workout&.id || 'none'}:#{completed_at_ms}"

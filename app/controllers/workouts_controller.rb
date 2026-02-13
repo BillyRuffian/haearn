@@ -41,7 +41,7 @@ class WorkoutsController < ApplicationController
     # Fetch workouts for the visible calendar range
     workouts = Current.user.workouts
       .where(started_at: @start_date.beginning_of_day..@end_date.end_of_day)
-      .includes(:gym, workout_exercises: :exercise)
+      .includes(:gym, workout_exercises: [ :exercise, :exercise_sets ])
 
     # Build a hash of date => [workouts]
     @workout_days = workouts.group_by { |w| w.started_at.to_date }

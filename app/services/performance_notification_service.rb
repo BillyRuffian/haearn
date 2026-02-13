@@ -23,7 +23,9 @@ class PerformanceNotificationService
   private
 
   def build_candidates
-    [ *readiness_candidates, *plateau_candidates, streak_risk_candidate, weekly_volume_drop_candidate ].compact
+    [ *readiness_candidates, *plateau_candidates, streak_risk_candidate, weekly_volume_drop_candidate ]
+      .compact
+      .select { |candidate| @user.notification_enabled_for?(candidate[:kind]) }
   end
 
   def readiness_candidates

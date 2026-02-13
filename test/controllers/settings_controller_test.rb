@@ -114,4 +114,26 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
     # CSV should have header row
     assert_includes response.body, 'Date,Gym,Exercise'
   end
+
+  test 'should update notification preferences' do
+    patch settings_path, params: {
+      user: {
+        notify_readiness: false,
+        notify_plateau: false,
+        notify_streak_risk: true,
+        notify_volume_drop: false,
+        notify_rest_timer_in_app: false,
+        notify_rest_timer_push: false
+      }
+    }
+    assert_redirected_to settings_path
+
+    @user.reload
+    assert_not @user.notify_readiness?
+    assert_not @user.notify_plateau?
+    assert @user.notify_streak_risk?
+    assert_not @user.notify_volume_drop?
+    assert_not @user.notify_rest_timer_in_app?
+    assert_not @user.notify_rest_timer_push?
+  end
 end

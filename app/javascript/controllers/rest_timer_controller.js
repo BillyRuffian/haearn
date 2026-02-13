@@ -297,6 +297,11 @@ export default class extends Controller {
   }
 
   showNotification(title, body) {
+    const pushEnabled = document.body?.dataset?.restTimerPushEnabled !== "false"
+    if (!pushEnabled) {
+      return
+    }
+
     // Only show notification if page is not visible (user switched tabs/apps)
     if (document.visibilityState === "visible") {
       return

@@ -6,7 +6,8 @@ export default class extends Controller {
   static values = {
     feedUrl: String,
     markAllUrl: String,
-    pollInterval: { type: Number, default: 30000 }
+    pollInterval: { type: Number, default: 30000 },
+    unreadOnly: { type: Boolean, default: false }
   }
 
   connect() {
@@ -35,7 +36,12 @@ export default class extends Controller {
       if (!response.ok) return
 
       const payload = await response.json()
-      this.render(payload.notifications || [])
+      let notifications = payload.notifications || []
+      if (this.unreadOnlyValue) {
+        notifications = notifications.filter((notification) => !notification.read)
+      }
+
+      this.render(notifications)
       this.updateBadge(payload.unread_count || 0)
     } finally {
       this.showLoading(false)

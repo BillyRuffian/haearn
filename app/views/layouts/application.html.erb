@@ -26,7 +26,9 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body data-controller="offline" data-offline-show-class="d-block">
+  <body data-controller="offline"
+        data-offline-show-class="d-block"
+        data-rest-timer-push-enabled="<%= Current.user&.notify_rest_timer_push? ? 'true' : 'false' %>">
     <% if session[:admin_session_id] %>
       <div class="admin-impersonation-banner text-center py-2 small fw-semibold">
         <i class="bi bi-exclamation-triangle me-1"></i>
@@ -102,7 +104,7 @@
           <ul class="navbar-nav me-auto">
             <% if Current.user %>
               <li class="nav-item">
-                <%= link_to "Dashboard", root_path, class: "nav-link #{'active' if controller_name == 'dashboard'}" %>
+                <%= link_to "Dashboard", root_path, class: "nav-link #{'active' if controller_name == 'dashboard' && action_name == 'index'}" %>
               </li>
               <li class="nav-item">
                 <%= link_to workouts_path, class: "nav-link #{'active' if controller_name == 'workouts'}" do %>
@@ -113,6 +115,9 @@
                     </span>
                   <% end %>
                 <% end %>
+              </li>
+              <li class="nav-item">
+                <%= link_to "Analytics", analytics_path, class: "nav-link #{'active' if controller_name == 'dashboard' && action_name == 'analytics'}" %>
               </li>
               <li class="nav-item">
                 <%= link_to "Templates", workout_templates_path, class: "nav-link #{'active' if controller_name == 'workout_templates'}" %>

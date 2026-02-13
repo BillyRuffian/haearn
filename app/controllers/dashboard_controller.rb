@@ -5,7 +5,19 @@ class DashboardController < ApplicationController
   # Main dashboard view with comprehensive workout analytics
   def index
     return unless Current.user
+    load_dashboard_data
+  end
 
+  # GET /analytics
+  # Dedicated analytics page containing all training charts and trends
+  def analytics
+    return unless Current.user
+    load_dashboard_data
+  end
+
+  private
+
+  def load_dashboard_data
     # Stats for dashboard
     # Quick stats for the top of dashboard
     @workouts_this_week = Current.user.workouts
@@ -150,8 +162,6 @@ class DashboardController < ApplicationController
     # Muscle group spider chart data (last 30 days for balance)
     @muscle_balance_data = calculate_muscle_balance
   end
-
-  private
 
   # Calculate distribution of rep ranges (1-5, 6-10, 11-15, 16+) from last 30 days
   # Helps identify training bias toward strength vs hypertrophy vs endurance

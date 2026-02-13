@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_13_193000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_13_202000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -214,6 +214,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_193000) do
     t.integer "default_rest_seconds", default: 90
     t.string "email_address", null: false
     t.string "name"
+    t.boolean "notify_plateau", default: true, null: false
+    t.boolean "notify_readiness", default: true, null: false
+    t.boolean "notify_rest_timer_in_app", default: true, null: false
+    t.boolean "notify_rest_timer_push", default: true, null: false
+    t.boolean "notify_streak_risk", default: true, null: false
+    t.boolean "notify_volume_drop", default: true, null: false
     t.string "password_digest", null: false
     t.string "preferred_unit"
     t.integer "progression_rep_target", default: 10, null: false

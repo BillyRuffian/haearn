@@ -2470,6 +2470,16 @@ html {
 // ==========================================
 // Calendar View
 // ==========================================
+.calendar-shell {
+  border: 1px solid rgba($rust, 0.22);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.calendar-month-header {
+  background: linear-gradient(180deg, rgba($rust, 0.18) 0%, rgba($rust, 0.06) 100%);
+  border-bottom: 1px solid rgba($rust, 0.18);
+}
+
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -2491,40 +2501,131 @@ html {
 }
 
 .calendar-day {
-  min-height: 60px;
-  padding: 0.25rem;
+  min-height: 104px;
+  padding: 0.4rem;
   border-right: 1px solid $border-color;
   border-bottom: 1px solid $border-color;
   position: relative;
+  overflow: hidden;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 
   &:nth-child(7n) {
     border-right: none;
   }
 
+  &:hover {
+    background: rgba($rust, 0.07);
+  }
+
   &.other-month {
-    opacity: 0.3;
+    opacity: 0.38;
   }
 
   &.today {
-    background: rgba($rust, 0.1);
+    background: linear-gradient(180deg, rgba($rust, 0.2) 0%, rgba($rust, 0.08) 100%);
 
     .calendar-date {
-      color: $rust;
+      color: $forge-orange;
       font-weight: 700;
     }
   }
 
   &.has-workout {
+    background: linear-gradient(180deg, rgba($forge-orange, 0.09) 0%, rgba($forge-orange, 0.03) 100%);
+
     .calendar-date {
       font-weight: 600;
     }
   }
 }
 
+.calendar-day > *:not(.calendar-day-link) {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.calendar-day-link {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  text-decoration: none;
+}
+
+.calendar-day-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .calendar-date {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   color: $text-muted;
-  padding: 0.125rem 0.25rem;
+  padding: 0.125rem 0.35rem;
+  border-radius: 999px;
+}
+
+.calendar-day-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: $white;
+  background: rgba($rust, 0.7);
+}
+
+.calendar-day-metrics {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.calendar-day-volume,
+.calendar-day-sets {
+  color: $text-muted;
+  font-size: 0.74rem;
+  line-height: 1.2;
+  font-weight: 500;
+}
+
+.calendar-metric-row {
+  display: grid;
+  grid-template-columns: 0.9rem 1fr;
+  align-items: center;
+  column-gap: 0.3rem;
+}
+
+.calendar-metric-icon {
+  width: 0.9rem;
+  text-align: center;
+  color: $text-muted;
+  opacity: 0.9;
+}
+
+.calendar-metric-number {
+  font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: $white;
+}
+
+.calendar-metric-unit {
+  font-size: 0.68rem;
+  color: $text-muted;
+}
+
+.calendar-day-workouts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  margin-top: 0.1rem;
 }
 
 .calendar-workout-dot {
@@ -2534,10 +2635,11 @@ html {
 
 .workout-indicator {
   display: inline-block;
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  margin: 1px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
 
   &.completed {
     background: $rust;
@@ -2546,6 +2648,23 @@ html {
   &.in-progress {
     background: $forge-orange;
     animation: pulse 1.5s infinite;
+  }
+}
+
+.calendar-summary-card {
+  border: 1px solid rgba($rust, 0.15);
+  background: linear-gradient(180deg, rgba($iron-medium, 0.85) 0%, rgba($iron-dark, 0.95) 100%);
+}
+
+@media (max-width: 767.98px) {
+  .calendar-day {
+    min-height: 90px;
+    padding: 0.3rem;
+  }
+
+  .calendar-day-volume,
+  .calendar-day-sets {
+    font-size: 0.68rem;
   }
 }
 

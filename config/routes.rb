@@ -132,6 +132,7 @@ Rails.application.routes.draw do
 
   # Dashboard
   root 'dashboard#index'
+  get 'analytics', to: 'dashboard#analytics', as: :analytics
 
   # Gyms & Machines
   resources :gyms do

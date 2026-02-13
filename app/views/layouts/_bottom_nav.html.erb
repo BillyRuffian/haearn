@@ -2,7 +2,7 @@
 <% if Current.user %>
   <nav class="bottom-nav d-lg-none">
     <div class="bottom-nav-container">
-      <%= link_to root_path, class: "bottom-nav-item #{'active' if controller_name == 'dashboard'}" do %>
+      <%= link_to root_path, class: "bottom-nav-item #{'active' if controller_name == 'dashboard' && action_name == 'index'}" do %>
         <i class="bi bi-house-fill"></i>
         <span>Home</span>
       <% end %>
@@ -24,14 +24,14 @@
         <% end %>
       <% end %>
 
+      <%= link_to analytics_path, class: "bottom-nav-item #{'active' if controller_name == 'dashboard' && action_name == 'analytics'}" do %>
+        <i class="bi bi-bar-chart-line-fill"></i>
+        <span>Analytics</span>
+      <% end %>
+
       <%= link_to exercises_path, class: "bottom-nav-item #{'active' if controller_name == 'exercises'}" do %>
         <i class="bi bi-list-check"></i>
         <span>Exercises</span>
-      <% end %>
-
-      <%= link_to body_metrics_path, class: "bottom-nav-item #{'active' if controller_name == 'body_metrics'}" do %>
-        <i class="bi bi-person-fill"></i>
-        <span>Metrics</span>
       <% end %>
     </div>
   </nav>

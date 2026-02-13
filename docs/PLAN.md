@@ -260,6 +260,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Quick stats (workouts this week, volume, PRs)
 - [x] Quick-start buttons (Start Workout, View History)
 - [x] Workout frequency chart
+- [x] Split dashboard into Overview + Analytics tabs (graphs moved to dedicated `dashboard#analytics` page)
 
 ### 7.2 Mobile Optimization
 - [x] Touch-friendly tap targets (44px minimum)
@@ -268,6 +269,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Safe area padding for notched devices
 - [x] iOS font-size fix to prevent zoom
 - [x] Settings button in navbar (replaces hamburger menu on mobile)
+- [x] Analytics access in bottom navigation for mobile users
 
 ### 7.3 User Settings
 - [x] Settings page (`SettingsController`)
@@ -754,7 +756,7 @@ $text-muted: #6c757d;
 ## Phase 16: Notification System
 
 ### 16.1 In-App + Push Notifications
-- [ ] Build notification preferences (readiness alerts, streak risk, reminders, PR events)
+- [x] Build notification preferences (readiness alerts, streak risk, reminders, PR events) _(User-level toggles added in Settings for readiness/plateau/streak/volume-drop and rest timer in-app/push notifications; services/controllers now honor these preferences)_
 - [x] Implement in-app notification center (recent alerts, read/unread state) _(Dynamic bell dropdown + dashboard panel powered by `notifications_center_controller`, polling JSON feed with mark-read/mark-all-read actions; rest timer expiry now enters the same in-app feed for consistency)_
 - [ ] Add Web Push subscription + delivery pipeline for PWA users
 - [x] Trigger notifications from progression/readiness/streak events _(PerformanceNotificationService generates plateau/readiness/streak risk/volume drop alerts and stores deduped notifications per user)_

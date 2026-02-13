@@ -52,6 +52,15 @@ class PerformanceNotificationServiceTest < ActiveSupport::TestCase
     assert_equal first_count, second_count
   end
 
+  test 'does not create streak risk notification when preference is disabled' do
+    @user.update!(notify_streak_risk: false)
+    create_workout_with_volume(days_ago: 5, sets: [ [ 100, 5 ] ])
+
+    notifications = PerformanceNotificationService.new(user: @user).refresh!
+
+    assert_nil notifications.find { |n| n.kind == 'streak_risk' }
+  end
+
   private
 
   def create_workout_with_volume(days_ago:, sets:)
