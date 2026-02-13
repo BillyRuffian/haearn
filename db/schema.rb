@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_13_160005) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_13_193000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -142,6 +142,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_160005) do
     t.index ["gym_id"], name: "index_machines_on_gym_id"
   end
 
+  create_table "notifications", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "dedupe_key", null: false
+    t.string "kind", null: false
+    t.text "message", null: false
+    t.json "metadata", default: {}, null: false
+    t.datetime "read_at"
+    t.string "severity", default: "info", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["user_id", "created_at"], name: "index_notifications_on_user_id_and_created_at"
+    t.index ["user_id", "dedupe_key"], name: "index_notifications_on_user_id_and_dedupe_key", unique: true
+    t.index ["user_id", "read_at"], name: "index_notifications_on_user_id_and_read_at"
+    t.index ["user_id"], name: "index_notifications_on_user_id"
+  end
+
   create_table "progress_photos", force: :cascade do |t|
     t.string "category"
     t.datetime "created_at", null: false
@@ -265,6 +282,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_160005) do
   add_foreign_key "exercises", "users"
   add_foreign_key "gyms", "users"
   add_foreign_key "machines", "gyms"
+  add_foreign_key "notifications", "users"
   add_foreign_key "progress_photos", "users"
   add_foreign_key "sessions", "users"
   add_foreign_key "template_blocks", "workout_templates"

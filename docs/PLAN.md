@@ -295,7 +295,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Belt used (boolean per set) - PRs with/without are different
 - [x] Wraps/sleeves (knee, wrist, elbow)
 - [x] Straps used (for grip-limited exercises)
-- [ ] Track "raw" vs "equipped" PRs separately
+- [x] Track "raw" vs "equipped" PRs separately _(PR calculator now supports equipped/raw filtering; history shows heaviest raw and equipped sets separately, and live set rows show `RAW PR`/`EQ PR` badges)_
 
 ### 7.5.2 Exercise Variations
 - [x] Grip width (close/normal/wide)
@@ -716,6 +716,71 @@ $text-muted: #6c757d;
 - [x] Redirect non-admins with flash message
 - [ ] Rate-limit admin actions (optional)
 - [x] Admin activity log (track logins, user edits, exercise changes)
+
+---
+
+## Phase 13: Data Model Alignment
+
+### 13.1 Machine Optionality Consistency
+- [ ] Align `workout_exercises.machine_id` nullability with product intent (optional machine support)
+- [ ] Update model validations/associations and controller flows for true optional machine selection
+- [ ] Add migration + backfill strategy for existing records
+- [ ] Add regression tests for workout logging, history, PRs, and filters when machine is nil
+
+---
+
+## Phase 14: Offline Sync Reliability
+
+### 14.1 Conflict Detection & Resolution
+- [ ] Define conflict policy for offline queued actions (last-write-wins vs timestamp/version checks)
+- [ ] Detect stale updates/deletes during sync replay
+- [ ] Surface conflict UI with user choices (keep local, keep server, merge where possible)
+- [ ] Add idempotency keys/replay safeguards for queued set submissions
+- [ ] Add end-to-end tests for offline create/edit/delete conflict scenarios
+
+---
+
+## Phase 15: Performance & Scalability
+
+### 15.1 Analytics Query Hardening
+- [ ] Add profiling pass for dashboard/history queries on large datasets
+- [ ] Add/adjust DB indexes for heavy filters/grouping paths (dates, user_id, exercise_id, machine_id)
+- [ ] Reduce N+1 and high-memory loops in analytics aggregations
+- [ ] Introduce caching strategy for expensive aggregates/charts
+- [ ] Add performance regression checks (baseline timings for key pages)
+
+---
+
+## Phase 16: Notification System
+
+### 16.1 In-App + Push Notifications
+- [ ] Build notification preferences (readiness alerts, streak risk, reminders, PR events)
+- [x] Implement in-app notification center (recent alerts, read/unread state) _(Dynamic bell dropdown + dashboard panel powered by `notifications_center_controller`, polling JSON feed with mark-read/mark-all-read actions; rest timer expiry now enters the same in-app feed for consistency)_
+- [ ] Add Web Push subscription + delivery pipeline for PWA users
+- [x] Trigger notifications from progression/readiness/streak events _(PerformanceNotificationService generates plateau/readiness/streak risk/volume drop alerts and stores deduped notifications per user)_
+- [ ] Add delivery audit + retry logic for failed notification sends
+
+---
+
+## Phase 17: Program Execution Workflow
+
+### 17.1 Daily Prescription UX
+- [ ] Build "Today’s Session" view from active program/template
+- [ ] Show prescribed sets/reps/percentages with quick logging actions
+- [ ] Track completion status per prescribed set/exercise/session
+- [ ] Add adherence scoring (planned vs completed volume/sets)
+- [ ] Add skip/modify flows with reason tracking (equipment busy, fatigue, pain, time)
+
+---
+
+## Phase 18: Backup & Recovery Operations
+
+### 18.1 Operational Data Safety
+- [ ] Define scheduled backup policy for DB + Active Storage files
+- [ ] Implement backup integrity verification (checksum/restore validation)
+- [ ] Add documented restore drill process with recovery time targets
+- [ ] Add attachment consistency checks (orphan blobs/records)
+- [ ] Add admin-facing backup/restore status dashboard
 
 ---
 

@@ -155,6 +155,8 @@ class ExercisesController < ApplicationController
 
     # Calculate overall PRs for the exercise (max weight, max volume, best E1RM)
     @prs = PrCalculator.calculate_all(@workout_exercises, exercise: @exercise)
+    @raw_prs = PrCalculator.calculate_all(@workout_exercises, exercise: @exercise, equipped: false)
+    @equipped_prs = PrCalculator.calculate_all(@workout_exercises, exercise: @exercise, equipped: true)
 
     # Calculate bodyweight-relative strength if we have current weight and weight PRs
     @relative_strength = nil

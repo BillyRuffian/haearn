@@ -49,6 +49,53 @@ class ExerciseSetTest < ActiveSupport::TestCase
     @set = exercise_sets(:one)
   end
 
+  def create_pr_scope_candidate(previous_weight:, current_weight:, equipped: false)
+    user = users(:one)
+    gym = gyms(:one)
+    exercise = exercises(:one)
+    machine = machines(:one)
+
+    previous_workout = Workout.create!(
+      user: user,
+      gym: gym,
+      started_at: 7.days.ago,
+      finished_at: 7.days.ago + 1.hour
+    )
+    previous_block = previous_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    previous_we = previous_block.workout_exercises.create!(
+      exercise: exercise,
+      machine: machine,
+      position: 1
+    )
+    previous_we.exercise_sets.create!(
+      weight_kg: previous_weight,
+      reps: 5,
+      position: 1,
+      is_warmup: false,
+      belt: equipped
+    )
+
+    current_workout = Workout.create!(
+      user: user,
+      gym: gym,
+      started_at: Time.current,
+      finished_at: nil
+    )
+    current_block = current_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    current_we = current_block.workout_exercises.create!(
+      exercise: exercise,
+      machine: machine,
+      position: 1
+    )
+    current_we.exercise_sets.create!(
+      weight_kg: current_weight,
+      reps: 5,
+      position: 1,
+      is_warmup: false,
+      belt: equipped
+    )
+  end
+
   # --- Set Type Validations ---
 
   test 'default set_type is normal' do
@@ -273,6 +320,23 @@ class ExerciseSetTest < ActiveSupport::TestCase
 
   test 'outcome_badges empty when no outcomes' do
     assert_empty @set.outcome_badges
+  end
+
+  # --- PR Scope Labels ---
+
+  test 'pr_scope_label returns nil when set is not a PR' do
+    set = create_pr_scope_candidate(previous_weight: 120, current_weight: 100, equipped: false)
+    assert_nil set.pr_scope_label
+  end
+
+  test 'pr_scope_label returns RAW PR when PR is unequipped' do
+    set = create_pr_scope_candidate(previous_weight: 90, current_weight: 100, equipped: false)
+    assert_equal 'RAW PR', set.pr_scope_label
+  end
+
+  test 'pr_scope_label returns EQ PR when PR is equipped' do
+    set = create_pr_scope_candidate(previous_weight: 100, current_weight: 110, equipped: true)
+    assert_equal 'EQ PR', set.pr_scope_label
   end
 
   # --- Partial Reps ---

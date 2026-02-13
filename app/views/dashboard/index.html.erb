@@ -141,6 +141,31 @@
     </div>
     <% end %>
 
+    <!-- Dynamic Performance Notifications -->
+    <div class="row mt-4">
+      <div class="col-12">
+        <div class="card position-relative"
+             data-controller="notifications-center"
+             data-notifications-center-feed-url-value="<%= feed_notifications_path %>"
+             data-notifications-center-mark-all-url-value="<%= mark_all_read_notifications_path %>"
+             data-notifications-center-poll-interval-value="30000">
+          <div class="card-body py-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5 class="section-header mb-0">
+                <i class="bi bi-bell-fill me-2"></i>Live Performance Alerts
+              </h5>
+              <button class="btn btn-sm btn-link text-muted p-0" data-action="notifications-center#markAllRead">
+                Mark all read
+              </button>
+            </div>
+            <div data-notifications-center-target="loading" class="small text-muted d-none">Refreshing alerts…</div>
+            <div data-notifications-center-target="empty" class="small text-muted">No active alerts. Keep training.</div>
+            <div data-notifications-center-target="list" class="list-group list-group-flush mt-2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Stats -->
     <div class="row g-4">
       <div class="col-md-3">

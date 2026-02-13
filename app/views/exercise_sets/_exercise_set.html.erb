@@ -34,6 +34,9 @@
             <% end %>
           </span>
           <small class="text-muted"><%= Current.user.preferred_unit %></small>
+          <% if is_weight_pr && set.pr_scope_label %>
+            <div><small class="badge bg-warning-subtle text-warning-emphasis"><%= set.pr_scope_label %></small></div>
+          <% end %>
         </div>
         <div class="col-3 text-center">
           <% case workout_exercise.exercise.exercise_type %>

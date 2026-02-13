@@ -42,6 +42,7 @@ class User < ApplicationRecord
   has_many :workout_templates, dependent: :destroy
   has_many :body_metrics, dependent: :destroy
   has_many :progress_photos, dependent: :destroy
+  has_many :notifications, dependent: :destroy
   has_many :admin_audit_logs, foreign_key: :admin_user_id, dependent: :nullify, inverse_of: :admin_user
   belongs_to :default_gym, class_name: 'Gym', optional: true
 

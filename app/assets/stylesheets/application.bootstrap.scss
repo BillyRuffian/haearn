@@ -2677,3 +2677,30 @@ html {
 .bg-iron-light {
   background-color: $iron-light !important;
 }
+
+// Notifications
+.notifications-dropdown {
+  width: min(420px, 92vw);
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  border-left: 3px solid transparent !important;
+}
+
+.notification-success {
+  border-left-color: $success !important;
+}
+
+.notification-info {
+  border-left-color: $info !important;
+}
+
+.notification-warning {
+  border-left-color: $warning !important;
+}
+
+.notification-danger {
+  border-left-color: $danger !important;
+}

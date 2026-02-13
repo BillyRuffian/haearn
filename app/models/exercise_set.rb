@@ -250,8 +250,25 @@ class ExerciseSet < ApplicationRecord
   # Check if this set achieved a weight PR
   # (highest weight ever lifted for this exercise+machine combo)
   # @return [Boolean]
-  def weight_pr?
-    PrCalculator.weight_pr?(self)
+  def weight_pr?(equipped: nil)
+    PrCalculator.weight_pr?(self, equipped: equipped)
+  end
+
+  # Raw PR = best weight without supportive equipment
+  def raw_weight_pr?
+    weight_pr?(equipped: false)
+  end
+
+  # Equipped PR = best weight while using belt/sleeves/wraps/straps
+  def equipped_weight_pr?
+    weight_pr?(equipped: true)
+  end
+
+  # Convenience label used by views for badge text
+  def pr_scope_label
+    return nil unless weight_pr?
+
+    equipped? ? 'EQ PR' : 'RAW PR'
   end
 
   private

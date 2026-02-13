@@ -118,6 +118,18 @@ Rails.application.routes.draw do
     get :export_prs, on: :member
   end
 
+  # Notifications (performance analytics alerts)
+  resources :notifications, only: [ :index ] do
+    collection do
+      get :feed
+      patch :mark_all_read
+      post :rest_timer_expired
+    end
+    member do
+      patch :read
+    end
+  end
+
   # Dashboard
   root 'dashboard#index'
 

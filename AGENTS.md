@@ -118,6 +118,10 @@ User
    - `WorkoutExercise.session_notes` - "Shoulder twinge on set 3"
    - `WorkoutExercise.persistent_notes` - "Use handle B, seat at 4"
 
+6. **PR Scope Includes Equipment State**: PRs can be tracked separately as raw vs equipped, where "equipped" means any set using belt, knee sleeves, wrist wraps, or straps.
+
+7. **Performance Notifications Pattern**: Analytics alerts are persisted in `notifications` and surfaced dynamically via JSON polling (`/notifications/feed`) with Stimulus (`notifications_center_controller`) in navbar + dashboard. Rest timer completion should also persist to this same notification feed (`/notifications/rest_timer_expired`) so browser push and in-app notifications stay consistent.
+
 ## Equipment Types (Enum)
 
 ```ruby

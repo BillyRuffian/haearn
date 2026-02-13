@@ -66,6 +66,33 @@
 
         <%# Mobile: Settings button instead of hamburger menu (nav items are in bottom bar) %>
         <% if Current.user %>
+          <div class="dropdown d-lg-none me-2"
+               data-controller="notifications-center"
+               data-notifications-center-feed-url-value="<%= feed_notifications_path %>"
+               data-notifications-center-mark-all-url-value="<%= mark_all_read_notifications_path %>"
+               data-notifications-center-poll-interval-value="20000">
+            <button class="btn btn-link nav-link p-2 position-relative" type="button" data-bs-toggle="dropdown" aria-label="Notifications">
+              <i class="bi bi-bell-fill fs-5"></i>
+              <span data-notifications-center-target="badge"
+                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end dropdown-menu-dark p-0 notifications-dropdown">
+              <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom border-secondary">
+                <strong class="small">Performance Alerts</strong>
+                <button class="btn btn-sm btn-link text-muted p-0"
+                        data-action="notifications-center#markAllRead">
+                  Mark all read
+                </button>
+              </div>
+              <div data-notifications-center-target="loading" class="small text-muted px-3 py-2 d-none">Loading…</div>
+              <div data-notifications-center-target="empty" class="small text-muted px-3 py-3">No alerts right now.</div>
+              <div data-notifications-center-target="list" class="list-group list-group-flush"></div>
+              <div class="px-3 py-2 border-top border-secondary">
+                <%= link_to "View all", notifications_path, class: "small text-decoration-none" %>
+              </div>
+            </div>
+          </div>
+
           <%= link_to settings_path, class: "btn btn-link nav-link d-lg-none p-2 #{'active' if controller_name == 'settings'}" do %>
             <i class="bi bi-gear-fill fs-5"></i>
           <% end %>
@@ -104,6 +131,33 @@
 
           <ul class="navbar-nav align-items-center">
             <% if Current.user %>
+              <li class="nav-item dropdown d-none d-lg-block"
+                  data-controller="notifications-center"
+                  data-notifications-center-feed-url-value="<%= feed_notifications_path %>"
+                  data-notifications-center-mark-all-url-value="<%= mark_all_read_notifications_path %>"
+                  data-notifications-center-poll-interval-value="20000">
+                <button class="nav-link btn btn-link position-relative p-0 me-3" type="button" data-bs-toggle="dropdown" aria-label="Notifications">
+                  <i class="bi bi-bell-fill fs-5"></i>
+                  <span data-notifications-center-target="badge"
+                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end dropdown-menu-dark p-0 notifications-dropdown">
+                  <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom border-secondary">
+                    <strong class="small">Performance Alerts</strong>
+                    <button class="btn btn-sm btn-link text-muted p-0"
+                            data-action="notifications-center#markAllRead">
+                      Mark all read
+                    </button>
+                  </div>
+                  <div data-notifications-center-target="loading" class="small text-muted px-3 py-2 d-none">Loading…</div>
+                  <div data-notifications-center-target="empty" class="small text-muted px-3 py-3">No alerts right now.</div>
+                  <div data-notifications-center-target="list" class="list-group list-group-flush"></div>
+                  <div class="px-3 py-2 border-top border-secondary">
+                    <%= link_to "View all", notifications_path, class: "small text-decoration-none" %>
+                  </div>
+                </div>
+              </li>
+
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                   <i class="bi bi-person-circle me-1"></i>

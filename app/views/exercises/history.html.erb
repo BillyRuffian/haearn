@@ -110,6 +110,38 @@
               </div>
             <% end %>
 
+            <% if @raw_prs[:best_set_weight] %>
+              <div class="col-md-4">
+                <div class="pr-stat">
+                  <div class="pr-label">Heaviest Raw Set</div>
+                  <div class="pr-value weight-display">
+                    <%= number_with_delimiter(Current.user.format_weight(@raw_prs[:best_set_weight][:weight_kg])) %>
+                    <small class="text-muted"><%= Current.user.preferred_unit %></small>
+                  </div>
+                  <div class="pr-detail">
+                    × <%= @raw_prs[:best_set_weight][:reps] %> reps
+                    <span class="text-muted ms-2"><%= @raw_prs[:best_set_weight][:date].strftime("%b %d, %Y") %></span>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+
+            <% if @equipped_prs[:best_set_weight] %>
+              <div class="col-md-4">
+                <div class="pr-stat">
+                  <div class="pr-label">Heaviest Equipped Set</div>
+                  <div class="pr-value weight-display">
+                    <%= number_with_delimiter(Current.user.format_weight(@equipped_prs[:best_set_weight][:weight_kg])) %>
+                    <small class="text-muted"><%= Current.user.preferred_unit %></small>
+                  </div>
+                  <div class="pr-detail">
+                    × <%= @equipped_prs[:best_set_weight][:reps] %> reps
+                    <span class="text-muted ms-2"><%= @equipped_prs[:best_set_weight][:date].strftime("%b %d, %Y") %></span>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+
             <% if @prs[:best_set_volume] %>
               <div class="col-md-4">
                 <div class="pr-stat">

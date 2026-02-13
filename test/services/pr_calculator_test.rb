@@ -33,13 +33,23 @@ class PrCalculatorTest < ActiveSupport::TestCase
       position: 1
     )
 
-    weights_and_reps.each_with_index do |(weight, reps), idx|
+    weights_and_reps.each_with_index do |entry, idx|
+      weight, reps, attrs = if entry.is_a?(Hash)
+                              [ entry[:weight], entry[:reps], entry ]
+      else
+                              [ entry[0], entry[1], {} ]
+      end
+
       we.exercise_sets.create!(
         weight_kg: weight,
         reps: reps,
         position: idx + 1,
         is_warmup: false,
-        completed_at: days_ago.days.ago
+        completed_at: days_ago.days.ago,
+        belt: attrs.fetch(:belt, false),
+        knee_sleeves: attrs.fetch(:knee_sleeves, false),
+        wrist_wraps: attrs.fetch(:wrist_wraps, false),
+        straps: attrs.fetch(:straps, false)
       )
     end
 
@@ -270,5 +280,65 @@ class PrCalculatorTest < ActiveSupport::TestCase
     set = we3.exercise_sets.create!(weight_kg: 85, reps: 5, position: 1, is_warmup: false)
 
     assert PrCalculator.weight_pr?(set)
+  end
+
+  test 'weight_pr? supports raw-only and equipped-only comparisons' do
+    # Historical baseline: raw 100, equipped 120
+    create_workout_with_sets(
+      [
+        { weight: 100, reps: 5, belt: false, knee_sleeves: false, wrist_wraps: false, straps: false },
+        { weight: 120, reps: 3, belt: true }
+      ],
+      days_ago: 7
+    )
+
+    workout = Workout.create!(
+      user: @user,
+      gym: @gym,
+      started_at: Time.current,
+      finished_at: nil
+    )
+    block = workout.workout_blocks.create!(position: 1, rest_seconds: 60)
+    we = block.workout_exercises.create!(
+      exercise: @exercise,
+      machine: @machine,
+      position: 1
+    )
+
+    raw_set = we.exercise_sets.create!(weight_kg: 105, reps: 4, position: 1, is_warmup: false)
+    equipped_set = we.exercise_sets.create!(weight_kg: 121, reps: 2, position: 2, is_warmup: false, belt: true)
+
+    assert PrCalculator.weight_pr?(raw_set, equipped: false)
+    assert_not PrCalculator.weight_pr?(raw_set, equipped: true)
+
+    assert PrCalculator.weight_pr?(equipped_set, equipped: true)
+    assert_not PrCalculator.weight_pr?(equipped_set, equipped: false)
+  end
+
+  test 'previous_best_weight supports raw and equipped filters' do
+    create_workout_with_sets(
+      [
+        { weight: 90, reps: 6 },
+        { weight: 110, reps: 3, belt: true }
+      ],
+      days_ago: 10
+    )
+
+    workout = Workout.create!(
+      user: @user,
+      gym: @gym,
+      started_at: Time.current,
+      finished_at: nil
+    )
+    block = workout.workout_blocks.create!(position: 1, rest_seconds: 60)
+    we = block.workout_exercises.create!(
+      exercise: @exercise,
+      machine: @machine,
+      position: 1
+    )
+
+    assert_equal 90, PrCalculator.previous_best_weight(we, equipped: false)
+    assert_equal 110, PrCalculator.previous_best_weight(we, equipped: true)
+    assert_equal 110, PrCalculator.previous_best_weight(we)
   end
 end

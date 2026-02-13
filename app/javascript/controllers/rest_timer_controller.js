@@ -137,10 +137,12 @@ export default class extends Controller {
   }
 
   complete() {
+    const completionTimestamp = this.endTime || Date.now()
     this.stop()
     this.playAlert()
     this.vibrate()
     this.showNotification("Rest Complete!", "Time to lift! 💪")
+    this.persistInAppNotification(completionTimestamp)
 
     // Flash the timer, then hide
     if (this.hasContainerTarget) {
@@ -310,6 +312,31 @@ export default class extends Controller {
         silent: false
       })
     }
+  }
+
+  async persistInAppNotification(completedAtMs) {
+    try {
+      const response = await fetch("/notifications/rest_timer_expired", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": this.csrfToken(),
+          "X-Requested-With": "XMLHttpRequest",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({ completed_at_ms: completedAtMs })
+      })
+
+      if (response.ok) {
+        window.dispatchEvent(new CustomEvent("notifications:refresh"))
+      }
+    } catch (e) {
+      console.log("Failed to persist rest timer notification:", e)
+    }
+  }
+
+  csrfToken() {
+    return document.querySelector("meta[name='csrf-token']")?.getAttribute("content")
   }
 
   // Request notification permission - call this from settings or first timer start

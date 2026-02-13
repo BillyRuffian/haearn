@@ -24,8 +24,8 @@ class PrCalculator
   # @param workout_exercises [Array<WorkoutExercise>] collection to analyze
   # @param exercise [Exercise] the exercise being analyzed
   # @return [Hash] all PR types with details
-  def self.calculate_all(workout_exercises, exercise:)
-    new(workout_exercises, exercise: exercise).calculate_all
+  def self.calculate_all(workout_exercises, exercise:, equipped: nil)
+    new(workout_exercises, exercise: exercise, equipped: equipped).calculate_all
   end
 
   # Check if a workout_exercise achieved a volume PR compared to previous sessions
@@ -34,8 +34,8 @@ class PrCalculator
   #
   # @param workout_exercise [WorkoutExercise] the current workout exercise
   # @return [Boolean] true if this session's volume is a PR
-  def self.volume_pr?(workout_exercise)
-    new(nil, workout_exercise: workout_exercise).volume_pr?
+  def self.volume_pr?(workout_exercise, equipped: nil)
+    new(nil, workout_exercise: workout_exercise, equipped: equipped).volume_pr?
   end
 
   # Check if a set achieved a weight PR
@@ -44,8 +44,8 @@ class PrCalculator
   #
   # @param exercise_set [ExerciseSet] the set to check
   # @return [Boolean] true if this is the heaviest weight ever for this exercise+machine
-  def self.weight_pr?(exercise_set)
-    new(nil, exercise_set: exercise_set).weight_pr?
+  def self.weight_pr?(exercise_set, equipped: nil)
+    new(nil, exercise_set: exercise_set, equipped: equipped).weight_pr?
   end
 
   # Get the previous best weight for an exercise+machine combo
@@ -53,8 +53,8 @@ class PrCalculator
   #
   # @param workout_exercise [WorkoutExercise]
   # @return [Numeric, nil] previous best weight in kg
-  def self.previous_best_weight(workout_exercise)
-    new(nil, workout_exercise: workout_exercise).previous_best_weight
+  def self.previous_best_weight(workout_exercise, equipped: nil)
+    new(nil, workout_exercise: workout_exercise, equipped: equipped).previous_best_weight
   end
 
   # Calculate PR timeline for dashboard visualization
@@ -72,12 +72,13 @@ class PrCalculator
     new(nil, user: user).calculate_timeline(since: since, limit: limit)
   end
 
-  def initialize(workout_exercises, exercise: nil, workout_exercise: nil, exercise_set: nil, user: nil)
+  def initialize(workout_exercises, exercise: nil, workout_exercise: nil, exercise_set: nil, user: nil, equipped: nil)
     @workout_exercises = workout_exercises
     @exercise = exercise
     @workout_exercise = workout_exercise
     @exercise_set = exercise_set
     @user = user
+    @equipped = equipped
   end
 
   # Main calculation method - analyzes collection and returns all PR types
@@ -111,10 +112,10 @@ class PrCalculator
   def volume_pr?
     return false unless @workout_exercise&.exercise&.has_weight?
 
-    current_volume = session_volume(@workout_exercise)
+    current_volume = session_volume(@workout_exercise, equipped: @equipped)
     return false if current_volume <= 0
 
-    previous_volumes = previous_session_volumes
+    previous_volumes = previous_session_volumes(equipped: @equipped)
     return false if previous_volumes.empty?
 
     current_volume > previous_volumes.max
@@ -126,6 +127,8 @@ class PrCalculator
     return false if @exercise_set&.warmup?  # Never count warmups as PRs
     return false unless @exercise_set&.weight_kg&.positive?
     return false unless @exercise_set&.reps&.positive?
+    return false if @equipped == true && !@exercise_set.equipped?
+    return false if @equipped == false && @exercise_set.equipped?
 
     prev_best = previous_best_weight_for_set
     return false if prev_best.nil?
@@ -140,7 +143,7 @@ class PrCalculator
       return nil unless @workout_exercise
 
       user = @workout_exercise.workout.user
-      user.exercise_sets
+      relation = user.exercise_sets
         .joins(workout_exercise: { workout_block: :workout })
         .where(workout_exercises: {
           exercise_id: @workout_exercise.exercise_id,
@@ -149,7 +152,8 @@ class PrCalculator
         .where.not(workouts: { id: @workout_exercise.workout.id })
         .where.not(workouts: { finished_at: nil })
         .where(is_warmup: false)
-        .maximum(:weight_kg)
+
+      apply_equipped_scope(relation, @equipped).maximum(:weight_kg)
     end
   end
 
@@ -159,10 +163,8 @@ class PrCalculator
 
   # Calculate total volume for a workout_exercise session (all working sets)
   # Volume = sum of (weight × reps) for each set
-  def session_volume(workout_exercise)
-    workout_exercise.exercise_sets
-      .select { |s| !s.is_warmup }
-      .sum { |s| set_volume(s) }
+  def session_volume(workout_exercise, equipped: nil)
+    filtered_working_sets(workout_exercise.exercise_sets, equipped: equipped).sum { |s| set_volume(s) }
   end
 
   # Calculate volume for a single set (weight × reps)
@@ -174,7 +176,7 @@ class PrCalculator
   # Extract all working sets from workout_exercises collection
   # Excludes warmup sets
   def working_sets_from_collection
-    @workout_exercises.flat_map(&:exercise_sets).select { |s| !s.is_warmup }
+    filtered_working_sets(@workout_exercises.flat_map(&:exercise_sets), equipped: @equipped)
   end
 
   # === Individual PR Type Calculations ===
@@ -236,7 +238,7 @@ class PrCalculator
   # Sums all working sets from each workout_exercise
   def calculate_best_session_volume
     session_data = @workout_exercises.map do |we|
-      { workout_exercise: we, volume: session_volume(we) }
+      { workout_exercise: we, volume: session_volume(we, equipped: @equipped) }
     end
 
     best = session_data.max_by { |d| d[:volume] }
@@ -252,7 +254,7 @@ class PrCalculator
 
   # Get all previous session volumes for this exercise+machine combo
   # Used to determine if current session is a volume PR
-  def previous_session_volumes
+  def previous_session_volumes(equipped: nil)
     user = @workout_exercise.workout.user
     user.workout_exercises
       .where(exercise_id: @workout_exercise.exercise_id, machine_id: @workout_exercise.machine_id)
@@ -260,7 +262,8 @@ class PrCalculator
       .where('workouts.id != ?', @workout_exercise.workout.id)
       .where('workouts.finished_at IS NOT NULL')
       .includes(:exercise_sets)
-      .map { |we| session_volume(we) }
+      .map { |we| session_volume(we, equipped: equipped) }
+      .select(&:positive?)
   end
 
   # Get the previous best weight for a specific set
@@ -270,13 +273,41 @@ class PrCalculator
 
     we = @exercise_set.workout_exercise
     user = we.workout.user
-    user.exercise_sets
+    relation = user.exercise_sets
       .joins(workout_exercise: { workout_block: :workout })
       .where(workout_exercises: { exercise_id: we.exercise_id, machine_id: we.machine_id })
       .where.not(workouts: { id: we.workout.id })
       .where.not(workouts: { finished_at: nil })
       .where(is_warmup: false)
-      .maximum(:weight_kg)
+
+    apply_equipped_scope(relation, @equipped).maximum(:weight_kg)
+  end
+
+  def filtered_working_sets(sets, equipped:)
+    sets
+      .select { |s| !s.is_warmup }
+      .select do |set|
+        if equipped.nil?
+          true
+        elsif equipped
+          set.equipped?
+        else
+          !set.equipped?
+        end
+      end
+  end
+
+  def apply_equipped_scope(relation, equipped)
+    return relation if equipped.nil?
+
+    if equipped
+      relation.where(
+        'exercise_sets.belt = ? OR exercise_sets.knee_sleeves = ? OR exercise_sets.wrist_wraps = ? OR exercise_sets.straps = ?',
+        true, true, true, true
+      )
+    else
+      relation.where(belt: false, knee_sleeves: false, wrist_wraps: false, straps: false)
+    end
   end
 
   public
