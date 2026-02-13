@@ -13,8 +13,9 @@ class PerformanceNotificationService
   def refresh!
     candidates = build_candidates
     keys = candidates.map { |candidate| candidate[:dedupe_key] }
+    existing_by_key = @user.notifications.where(dedupe_key: keys).index_by(&:dedupe_key)
 
-    candidates.each { |candidate| upsert_notification(candidate) }
+    candidates.each { |candidate| upsert_notification(candidate, existing_by_key) }
     expire_stale_notifications!(keys)
 
     @user.notifications.recent.limit(MAX_NOTIFICATIONS)
@@ -34,15 +35,20 @@ class PerformanceNotificationService
     recent_combos = @user.workouts
       .where.not(finished_at: nil)
       .where('finished_at >= ?', 30.days.ago)
-      .joins(workout_exercises: :exercise)
-      .pluck(Arel.sql('DISTINCT exercises.id, workout_exercises.machine_id'))
+      .joins(:workout_exercises)
+      .pluck(Arel.sql('DISTINCT workout_exercises.exercise_id, workout_exercises.machine_id'))
       .first(8)
 
+    exercise_ids = recent_combos.map(&:first).compact.uniq
+    machine_ids = recent_combos.map(&:last).compact.uniq
+    exercises_by_id = Exercise.where(id: exercise_ids).index_by(&:id)
+    machines_by_id = Machine.where(id: machine_ids).index_by(&:id)
+
     recent_combos.each do |exercise_id, machine_id|
-      exercise = Exercise.find_by(id: exercise_id)
+      exercise = exercises_by_id[exercise_id]
       next unless exercise
 
-      machine = machine_id ? Machine.find_by(id: machine_id) : nil
+      machine = machine_id ? machines_by_id[machine_id] : nil
       checker = ProgressionReadinessChecker.new(exercise: exercise, user: @user, machine: machine)
       readiness = checker.check_readiness
       next unless readiness
@@ -77,15 +83,19 @@ class PerformanceNotificationService
       .distinct
       .pluck(Arel.sql('exercises.id'), Arel.sql('exercises.name'))
 
+    exercise_ids = active_exercises.map(&:first)
+    sets_by_exercise = @user.exercise_sets
+      .joins(workout_exercise: { workout_block: :workout })
+      .where(workout_exercises: { exercise_id: exercise_ids })
+      .where.not(workouts: { finished_at: nil })
+      .where(is_warmup: false)
+      .where.not(weight_kg: nil)
+      .order(Arel.sql('workout_exercises.exercise_id ASC, workouts.finished_at ASC'))
+      .pluck(Arel.sql('workout_exercises.exercise_id'), :weight_kg, Arel.sql('workouts.finished_at'))
+      .group_by(&:first)
+
     active_exercises.each do |exercise_id, exercise_name|
-      sets = @user.exercise_sets
-        .joins(workout_exercise: { workout_block: :workout })
-        .where(workout_exercises: { exercise_id: exercise_id })
-        .where.not(workouts: { finished_at: nil })
-        .where(is_warmup: false)
-        .where.not(weight_kg: nil)
-        .order(Arel.sql('workouts.finished_at ASC'))
-        .pluck(:weight_kg, Arel.sql('workouts.finished_at'))
+      sets = sets_by_exercise[exercise_id]&.map { |(_, weight, finished_at)| [ weight, finished_at ] } || []
 
       next if sets.size < 3
 
@@ -146,8 +156,9 @@ class PerformanceNotificationService
   end
 
   def weekly_volume_drop_candidate
-    this_week = week_volume(0)
-    last_week = week_volume(1)
+    weekly_volumes = weekly_volumes_for_recent_weeks
+    this_week = weekly_volumes[week_key(0)] || 0
+    last_week = weekly_volumes[week_key(1)] || 0
     return nil unless last_week.positive?
 
     ratio = this_week / last_week.to_f
@@ -167,20 +178,25 @@ class PerformanceNotificationService
     }
   end
 
-  def week_volume(weeks_ago)
-    week_start = weeks_ago.weeks.ago.beginning_of_week
-    week_end = weeks_ago.weeks.ago.end_of_week
+  def weekly_volumes_for_recent_weeks
+    range_start = 1.week.ago.beginning_of_week
+    range_end = Time.current.end_of_week
 
     @user.workouts
       .joins(workout_exercises: :exercise_sets)
-      .where(finished_at: week_start..week_end)
+      .where(finished_at: range_start..range_end)
       .where(exercise_sets: { is_warmup: false })
+      .group(Arel.sql("strftime('%Y-%W', workouts.finished_at)"))
       .sum('COALESCE(exercise_sets.weight_kg, 0) * COALESCE(exercise_sets.reps, 0)')
-      .to_f
   end
 
-  def upsert_notification(candidate)
-    notification = @user.notifications.find_or_initialize_by(dedupe_key: candidate[:dedupe_key])
+  def week_key(weeks_ago)
+    weeks_ago.weeks.ago.beginning_of_week.strftime('%Y-%W')
+  end
+
+  def upsert_notification(candidate, existing_by_key)
+    notification = existing_by_key[candidate[:dedupe_key]] ||
+      @user.notifications.build(dedupe_key: candidate[:dedupe_key])
     notification.assign_attributes(
       kind: candidate[:kind],
       severity: candidate[:severity],
@@ -188,7 +204,10 @@ class PerformanceNotificationService
       message: candidate[:message],
       metadata: candidate[:metadata]
     )
-    notification.save! if notification.changed?
+    if notification.changed?
+      notification.save!
+      existing_by_key[candidate[:dedupe_key]] = notification
+    end
   end
 
   def expire_stale_notifications!(active_keys)

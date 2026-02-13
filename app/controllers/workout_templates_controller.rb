@@ -106,7 +106,9 @@ class WorkoutTemplatesController < ApplicationController
   # POST /workouts/:workout_id/save_as_template
   # Creates a template from an existing workout
   def create_from_workout
-    source_workout = Current.user.workouts.find(params[:workout_id])
+    source_workout = Current.user.workouts
+      .includes(workout_blocks: { workout_exercises: [ :exercise, :machine, :exercise_sets ] })
+      .find(params[:workout_id])
 
     template = WorkoutTemplate.new(
       user: Current.user,
@@ -122,18 +124,15 @@ class WorkoutTemplatesController < ApplicationController
       )
 
       block.workout_exercises.each do |we|
-        # Calculate average/target values from completed sets
-        working_sets = we.exercise_sets.where(is_warmup: false)
-        avg_weight = working_sets.average(:weight_kg)&.round(2)
-        avg_reps = working_sets.average(:reps)&.round
+        set_targets = template_set_targets(we)
 
         template_block.template_exercises.build(
           exercise: we.exercise,
           machine: we.machine,
           persistent_notes: we.persistent_notes,
-          target_sets: working_sets.count,
-          target_reps: avg_reps,
-          target_weight_kg: avg_weight
+          target_sets: set_targets[:target_sets],
+          target_reps: set_targets[:target_reps],
+          target_weight_kg: set_targets[:target_weight_kg]
         )
       end
     end
@@ -153,6 +152,23 @@ class WorkoutTemplatesController < ApplicationController
 
   def template_params
     params.require(:workout_template).permit(:name, :description)
+  end
+
+  def template_set_targets(workout_exercise)
+    working_sets = workout_exercise.exercise_sets.select { |set| set.is_warmup == false }
+    {
+      target_sets: working_sets.size,
+      target_reps: averaged_value(working_sets.filter_map(&:reps), scale: 0)&.to_i,
+      target_weight_kg: averaged_value(working_sets.filter_map(&:weight_kg), scale: 2)
+    }
+  end
+
+  def averaged_value(values, scale:)
+    return nil if values.empty?
+
+    total = values.reduce(BigDecimal('0')) { |sum, value| sum + BigDecimal(value.to_s) }
+    average = total / BigDecimal(values.size.to_s)
+    average.round(scale)
   end
 
   # Creates a new workout instance from a template

@@ -21,12 +21,17 @@ module Admin
     private
 
     def registration_chart_data
+      range_start = 12.weeks.ago.beginning_of_week
+      range_end = Time.current.end_of_week
+      weekly_counts = User.where(created_at: range_start..range_end)
+        .group(Arel.sql("strftime('%Y-%W', created_at)"))
+        .count
+
       12.downto(0).map do |weeks_ago|
         week_start = weeks_ago.weeks.ago.beginning_of_week
-        week_end = week_start.end_of_week
         {
           label: week_start.strftime('%b %d'),
-          count: User.where(created_at: week_start..week_end).count
+          count: weekly_counts[week_start.strftime('%Y-%W')] || 0
         }
       end
     end

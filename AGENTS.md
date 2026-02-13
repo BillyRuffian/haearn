@@ -124,6 +124,15 @@ User
 
 8. **Dashboard Information Architecture**: Keep `dashboard#index` focused on overview/quick actions and place charts in `dashboard#analytics` (accessible from desktop nav and mobile bottom nav).
 
+9. **Analytics Query Pattern**: For week-based dashboard analytics, use grouped SQL week buckets (SQLite `strftime`) plus Ruby gap-filling instead of issuing one query per week; preload lookup tables (exercise/machine) before loops to avoid N+1.
+
+10. **Analytics/Admin Index Baseline**: Maintain indexes for time-window analytics and admin counters (`workouts(user_id, finished_at)`, `users.created_at`, `users.updated_at`, `workouts.created_at`) before adding new chart/counter queries.
+
+11. **Dashboard Analytics Caching**: Expensive dashboard analytics datasets should use user-scoped short-TTL `Rails.cache` entries; keep active workout and readiness checks uncached for near-real-time feedback.
+    Invalidate dashboard analytics cache after commits that affect analytics inputs (`Workout`, `WorkoutExercise`, `ExerciseSet`) using `DashboardAnalyticsCache.invalidate_for_user!`.
+    Cache invalidation is deduped per request/context via `Current` tracking to avoid repeated key deletes during bulk set/exercise updates.
+    Prefer scoped invalidation keys per model/change type so non-impacting updates (e.g., notes-only edits) do not clear unrelated analytics caches.
+
 ## Equipment Types (Enum)
 
 ```ruby
@@ -201,6 +210,13 @@ Make sure the code linter passes
 ```bash
 # Run Rubocop
 bundle exec rubocop -A
+```
+
+## Performance Baseline
+
+```bash
+# Dashboard/notification timing baseline (supports USER_ID, RUNS, WARMUP)
+bin/rails performance:benchmark_dashboard RUNS=10 WARMUP=2
 ```
 
 ## Common Patterns

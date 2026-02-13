@@ -13,8 +13,10 @@
 #
 # Indexes
 #
-#  index_workouts_on_gym_id   (gym_id)
-#  index_workouts_on_user_id  (user_id)
+#  index_workouts_on_created_at               (created_at)
+#  index_workouts_on_gym_id                   (gym_id)
+#  index_workouts_on_user_id                  (user_id)
+#  index_workouts_on_user_id_and_finished_at  (user_id,finished_at)
 #
 # Foreign Keys
 #
@@ -27,6 +29,9 @@
 # Example: Block A has [Bench Press, Bent Row]
 #   Do: A1 set 1 → A2 set 1 → rest → A1 set 2 → A2 set 2 → etc.
 class Workout < ApplicationRecord
+  ANALYTICS_KEYS = DashboardAnalyticsCache::ANALYTICS_KEYS.freeze
+  ANALYTICS_UPDATE_COLUMNS = %w[finished_at started_at gym_id user_id].freeze
+
   belongs_to :user
   belongs_to :gym
   has_many :workout_blocks, -> { order(:position) }, dependent: :destroy
@@ -38,6 +43,8 @@ class Workout < ApplicationRecord
   scope :recent, -> { order(started_at: :desc) }
   scope :completed, -> { where.not(finished_at: nil) }
   scope :in_progress, -> { where(finished_at: nil) }
+  after_commit :invalidate_dashboard_analytics_cache_after_create_destroy, on: %i[create destroy]
+  after_commit :invalidate_dashboard_analytics_cache_after_update, on: :update
 
   # Check workout state
   def in_progress?
@@ -86,5 +93,18 @@ class Workout < ApplicationRecord
   # Mark workout as complete by setting finished_at timestamp
   def finish!
     update!(finished_at: Time.current)
+  end
+
+  private
+
+  def invalidate_dashboard_analytics_cache_after_create_destroy
+    DashboardAnalyticsCache.invalidate_for_user!(user_id, keys: ANALYTICS_KEYS)
+  end
+
+  def invalidate_dashboard_analytics_cache_after_update
+    changed_columns = previous_changes.keys
+    return if (changed_columns & ANALYTICS_UPDATE_COLUMNS).empty?
+
+    DashboardAnalyticsCache.invalidate_for_user!(user_id, keys: ANALYTICS_KEYS)
   end
 end

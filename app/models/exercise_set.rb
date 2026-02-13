@@ -48,6 +48,23 @@
 class ExerciseSet < ApplicationRecord
   # Set types for advanced training methods
   SET_TYPES = %w[normal drop_set rest_pause cluster myo_rep backoff].freeze
+  ANALYTICS_KEYS = %w[
+    pr_timeline
+    rep_range_distribution
+    week_comparison
+    tonnage
+    plateaus
+    training_density
+    muscle_group_volume
+    muscle_balance
+  ].freeze
+  ANALYTICS_UPDATE_COLUMNS = %w[
+    weight_kg
+    reps
+    is_warmup
+    workout_exercise_id
+    completed_at
+  ].freeze
 
   belongs_to :workout_exercise
 
@@ -84,6 +101,9 @@ class ExerciseSet < ApplicationRecord
   scope :bfr, -> { where(is_bfr: true) }
 
   before_validation :set_position, on: :create
+  before_destroy :remember_user_id_for_cache_invalidation
+  after_commit :invalidate_dashboard_analytics_cache_after_create_destroy, on: %i[create destroy]
+  after_commit :invalidate_dashboard_analytics_cache_after_update, on: :update
 
   # Set type checks
   def warmup?
@@ -272,6 +292,23 @@ class ExerciseSet < ApplicationRecord
   end
 
   private
+
+  def remember_user_id_for_cache_invalidation
+    @cache_invalidation_user_id = workout&.user_id
+  end
+
+  def invalidate_dashboard_analytics_cache_after_create_destroy
+    user_id_for_cache = workout&.user_id || @cache_invalidation_user_id
+    DashboardAnalyticsCache.invalidate_for_user!(user_id_for_cache, keys: ANALYTICS_KEYS)
+  end
+
+  def invalidate_dashboard_analytics_cache_after_update
+    changed_columns = previous_changes.keys
+    return if (changed_columns & ANALYTICS_UPDATE_COLUMNS).empty?
+
+    user_id_for_cache = workout&.user_id || @cache_invalidation_user_id
+    DashboardAnalyticsCache.invalidate_for_user!(user_id_for_cache, keys: ANALYTICS_KEYS)
+  end
 
   # AMRAP sets cannot be warmup sets and vice versa
   def warmup_and_amrap_mutually_exclusive

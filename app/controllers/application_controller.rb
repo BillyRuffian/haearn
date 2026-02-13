@@ -5,6 +5,7 @@ class ApplicationController < ActionController::Base
   allow_browser versions: :modern
   stale_when_importmap_changes
 
+  around_action :with_dashboard_cache_invalidation_tracking
   after_action :verify_authorized, unless: :skip_pundit?
   after_action :verify_policy_scoped, if: :admin_index_action?
 
@@ -46,5 +47,12 @@ class ApplicationController < ActionController::Base
     uri.to_s
   rescue URI::InvalidURIError
     fallback
+  end
+
+  def with_dashboard_cache_invalidation_tracking
+    DashboardAnalyticsCache.reset_invalidation_tracking!
+    yield
+  ensure
+    DashboardAnalyticsCache.reset_invalidation_tracking!
   end
 end

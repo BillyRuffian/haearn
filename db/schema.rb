@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_13_202000) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_13_225500) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -226,8 +226,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_202000) do
     t.datetime "updated_at", null: false
     t.boolean "weekly_summary_email", default: false, null: false
     t.index ["admin"], name: "index_users_on_admin"
+    t.index ["created_at"], name: "index_users_on_created_at"
     t.index ["default_gym_id"], name: "index_users_on_default_gym_id"
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
+    t.index ["updated_at"], name: "index_users_on_updated_at"
   end
 
   create_table "workout_blocks", force: :cascade do |t|
@@ -275,7 +277,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_13_202000) do
     t.datetime "started_at"
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
+    t.index ["created_at"], name: "index_workouts_on_created_at"
     t.index ["gym_id"], name: "index_workouts_on_gym_id"
+    t.index ["user_id", "finished_at"], name: "index_workouts_on_user_id_and_finished_at"
     t.index ["user_id"], name: "index_workouts_on_user_id"
   end
 

@@ -46,7 +46,26 @@ require 'test_helper'
 
 class ExerciseSetTest < ActiveSupport::TestCase
   setup do
+    DashboardAnalyticsCache.reset_invalidation_tracking!
     @set = exercise_sets(:one)
+  end
+
+  teardown do
+    DashboardAnalyticsCache.reset_invalidation_tracking!
+  end
+
+  test 'invalidates dashboard analytics cache after commit' do
+    @set.update!(reps: @set.reps + 1)
+
+    tokens = DashboardAnalyticsCache.invalidation_tokens
+    assert_includes tokens, DashboardAnalyticsCache.invalidation_token(user_id: @set.workout.user_id, key: 'plateaus')
+  end
+
+  test 'does not invalidate dashboard analytics cache for non-analytics update' do
+    @set.update!(pain_note: 'minor discomfort')
+
+    tokens = DashboardAnalyticsCache.invalidation_tokens
+    assert_not_includes tokens, DashboardAnalyticsCache.invalidation_token(user_id: @set.workout.user_id, key: 'plateaus')
   end
 
   def create_pr_scope_candidate(previous_weight:, current_weight:, equipped: false)

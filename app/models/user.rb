@@ -25,8 +25,10 @@
 # Indexes
 #
 #  index_users_on_admin           (admin)
+#  index_users_on_created_at      (created_at)
 #  index_users_on_default_gym_id  (default_gym_id)
 #  index_users_on_email_address   (email_address) UNIQUE
+#  index_users_on_updated_at      (updated_at)
 #
 # Foreign Keys
 #

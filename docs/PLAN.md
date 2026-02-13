@@ -746,10 +746,10 @@ $text-muted: #6c757d;
 
 ### 15.1 Analytics Query Hardening
 - [ ] Add profiling pass for dashboard/history queries on large datasets
-- [ ] Add/adjust DB indexes for heavy filters/grouping paths (dates, user_id, exercise_id, machine_id)
-- [ ] Reduce N+1 and high-memory loops in analytics aggregations
-- [ ] Introduce caching strategy for expensive aggregates/charts
-- [ ] Add performance regression checks (baseline timings for key pages)
+- [x] Add/adjust DB indexes for heavy filters/grouping paths (dates, user_id, exercise_id, machine_id) _(Added composite index `workouts(user_id, finished_at)` to accelerate per-user time range analytics queries.)_
+- [x] Reduce N+1 and high-memory loops in analytics aggregations _(Removed exercise/machine lookup N+1 in dashboard readiness alerts and `PerformanceNotificationService#readiness_candidates`; consolidated weekly workout/tonnage/consistency loops into grouped weekly SQL buckets.)_
+- [x] Introduce caching strategy for expensive aggregates/charts _(Added user-scoped short-TTL caching (`Rails.cache`) for expensive dashboard analytics datasets while keeping active-workout/readiness paths uncached. Added invalidation hooks on workout/workout_exercise/exercise_set commits, scoped key invalidation (only affected analytics keys), and per-request invalidation dedupe to avoid repeated cache deletes during multi-record updates.)_
+- [x] Add performance regression checks (baseline timings for key pages) _(Added `performance:benchmark_dashboard` rake task with warmup/measured runs and avg/min/max timings for dashboard and notification hot paths.)_
 
 ---
 
@@ -783,6 +783,36 @@ $text-muted: #6c757d;
 - [ ] Add documented restore drill process with recovery time targets
 - [ ] Add attachment consistency checks (orphan blobs/records)
 - [ ] Add admin-facing backup/restore status dashboard
+
+---
+
+## Phase 19: Database Access Optimization
+
+### 19.1 Query Shape Improvements
+- [x] Replace query-per-week dashboard loops with grouped weekly aggregation helpers
+- [x] Remove `Exercise` / `Machine` lookup N+1 patterns in readiness pipelines
+- [x] Remove unnecessary readiness joins _(Switched readiness combo queries to join only `workout_exercises` and pluck `exercise_id/machine_id` directly.)_
+- [x] Batch historical PR/plateau calculations to avoid per-exercise history queries _(Refactored dashboard PR timeline + plateau detector and notification plateau candidates to prefetch/group sets once, eliminating per-exercise history queries.)_
+- [x] Review and optimize template-building aggregate queries _(Refactored `WorkoutTemplatesController#create_from_workout` to preload nested associations and compute set targets in memory, removing per-exercise `average/count` queries.)_
+- [x] Consolidate week-over-week comparison queries _(Reduced repeated count/sum queries by grouping workouts, sets, and volume once across both weeks and reusing bucketed results.)_
+- [x] Batch muscle analytics aggregation _(Replaced per-exercise `exercise_sets.where(...)` loops with single-pass set plucks for 7-day recovery and 30-day balance analytics.)_
+- [x] Optimize training density calculation _(Precomputed per-workout volume via grouped query and preloaded gyms, removing per-workout volume query pattern.)_
+- [x] Optimize admin registration chart aggregation _(Replaced one query per week with grouped weekly user-registration counts.)_
+- [x] Optimize exercise frequency aggregation _(Grouped by `exercise_id` first and resolved names in one lookup instead of grouping directly on joined exercise names.)_
+- [x] Optimize notification refresh query shape _(Replaced dual week-volume queries with one grouped lookup and preloaded existing notifications by `dedupe_key` to avoid per-candidate find-or-initialize queries.)_
+
+### 19.2 Indexing & Verification
+- [x] Add composite index for user scoped workout date queries (`workouts(user_id, finished_at)`)
+- [x] Add supporting admin-metrics indexes (`users.created_at`, `users.updated_at`, `workouts.created_at`) to speed registration/activity/workout trend counters
+- [x] Run `EXPLAIN QUERY PLAN` on dashboard and notification hot paths _(Verified weekly counts/volume and readiness/plateau paths use indexed lookups, especially `index_workouts_on_user_id_and_finished_at`; remaining temp B-tree usage is expected for grouped/distinct aggregations.)_
+- [x] Add performance notes + benchmark snapshots to docs _(Captured query plans and added repeatable timing baseline task: `bin/rails performance:benchmark_dashboard RUNS=10 WARMUP=2`.)_
+
+### 19.3 Further Optimizations (Next)
+- [ ] Add instrumentation for dashboard analytics cache hit/miss rates and invalidation counts (user-scoped metrics)
+- [ ] Add chart-level cache key versioning so invalidation can target smaller subsets without clearing full analytics bundles
+- [ ] Add optional async pre-warm job for expensive analytics datasets after workout completion
+- [ ] Add seeded large-data benchmark profile and track timing trends in CI artifacts
+- [ ] Evaluate pre-aggregated daily/weekly rollups for very large histories (opt-in path once dataset thresholds are exceeded)
 
 ---
 
