@@ -1,0 +1,22 @@
+<div class="container py-4">
+  <% if Current.user %>
+    <div class="row mb-4">
+      <div class="col">
+        <h1 class="display-heading mb-0">
+          <i class="bi bi-graph-up-arrow me-2"></i>Analytics
+        </h1>
+        <p class="text-muted mt-1 mb-0">Performance trends, distribution charts, and training insights.</p>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-12">
+        <%= link_to root_path, class: "btn btn-outline-secondary" do %>
+          <i class="bi bi-arrow-left me-1"></i>Back to Overview
+        <% end %>
+      </div>
+    </div>
+
+    <%= render "analytics_panels" %>
+  <% end %>
+</div>
