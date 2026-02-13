@@ -26,11 +26,14 @@
       font-size: clamp(6rem, 20vw, 14rem);
       font-weight: 900;
       letter-spacing: -0.04em;
+      background: linear-gradient(180deg, #a33a0c 0%, #e67e22 40%, #a33a0c 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      color: transparent;
       line-height: 1;
       position: relative; z-index: 1;
+      font-family: 'Segoe UI', 'Arial Black', Impact, 'Arial', sans-serif;
     }
     h1 {
       font-size: clamp(1.2rem, 3vw, 1.8rem);
@@ -78,7 +81,7 @@
       transform: translate(-50%, -55%);
       pointer-events: none;
     }
-    .error-code { background: linear-gradient(180deg, #a33a0c 0%, #e67e22 40%, #a33a0c 100%); }
+    /* gradient text colors set in main .error-code rule above */
     .plate-stack {
       display: flex; align-items: center; gap: 2px;
       margin: 0.75rem 0 1.5rem;
@@ -113,9 +116,9 @@
     <div class="plate p4 plate-yellow"></div>
   </div>
   <p class="subtitle">
-    That request didn&rsquo;t make sense &mdash; like loading 3 plates on one side
-    and 1 on the other. Double-check what you sent and try again before
-    someone tips over.
+    That request made about as much sense as loading 3 plates on one side
+    and a 2.5 on the other. The bar is literally tipping over.
+    Fix your form and try again.
   </p>
   <div class="dumbbell">&#9608;&#9617;&#9617;&#9608;&#9473;&#9473;&#9473;&#9473;&#9473;&#9473;&#9473;&#9473;&#9473;&#9608;&#9617;&#9617;&#9608;</div>
   <a href="/" class="home-link">

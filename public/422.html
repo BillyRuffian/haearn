@@ -26,11 +26,14 @@
       font-size: clamp(6rem, 20vw, 14rem);
       font-weight: 900;
       letter-spacing: -0.04em;
+      background: linear-gradient(180deg, #b8860b 0%, #ffd700 40%, #b8860b 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      color: transparent;
       line-height: 1;
       position: relative; z-index: 1;
+      font-family: 'Segoe UI', 'Arial Black', Impact, 'Arial', sans-serif;
     }
     h1 {
       font-size: clamp(1.2rem, 3vw, 1.8rem);
@@ -78,7 +81,7 @@
       transform: translate(-50%, -55%);
       pointer-events: none;
     }
-    .error-code { background: linear-gradient(180deg, #b8860b 0%, #ffd700 40%, #b8860b 100%); }
+    /* gradient text colors set in main .error-code rule above */
     .form-check {
       display: flex; flex-direction: column; gap: 0.5rem;
       margin: 0.5rem 0 1.5rem;
@@ -101,9 +104,9 @@
     <div><span class="ok">&#10003;</span> Ego intact</div>
   </div>
   <p class="subtitle">
-    The server understood what you were trying to do, but your request had
-    terrible form. Even the gym bro filming himself is judging you.
-    Check your inputs and try again.
+    The server understood what you were going for, but your request had
+    terrible form. Half reps don&rsquo;t count here.
+    Even the guy doing bicep curls in the squat rack is judging you.
   </p>
   <div class="dumbbell">&#9608;&#9617;&#9617;&#9608;&#9473;&#9473;&#9473;&#9473;&#9473;&#9473;&#9473;&#9473;&#9473;&#9608;&#9617;&#9617;&#9608;</div>
   <a href="/" class="home-link">

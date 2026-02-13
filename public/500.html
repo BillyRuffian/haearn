@@ -83,10 +83,7 @@
       transform: translate(-50%, -55%);
       pointer-events: none;
     }
-    .error-code {
-      background: linear-gradient(180deg, #c81e1e 0%, #ff4444 40%, #c81e1e 100%);
-      animation: shake 0.6s ease-in-out;
-    }
+    /* gradient + animation set in main .error-code rule above */
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
       15% { transform: translateX(-8px) rotate(-1deg); }
@@ -119,14 +116,14 @@
 </head>
 <body>
   <div class="error-code">500</div>
-  <h1>Failed the lift</h1>
+  <h1>Catastrophic failure mid-rep</h1>
   <div class="status-bar">
     <span></span><span></span><span></span><span></span><span></span>
   </div>
   <p class="subtitle">
-    The server tried to go for a new PR and got pinned under the bar.
-    We&rsquo;re spotting it now. Try again in a moment &mdash;
-    no need to call the gym staff.
+    The server tried to max out without a spotter and got pinned under the bar.
+    Paramedics have been dispatched. Try again in a moment &mdash;
+    and maybe don&rsquo;t tell anyone you saw this.
   </p>
   <div class="dumbbell">&#9608;&#9617;&#9617;&#9608;&#9473;&#9473;&#9473;&#9473;&#9473;&#9473;&#9473;&#9473;&#9608;&#9617;&#9617;&#9608;</div>
   <a href="/" class="home-link">

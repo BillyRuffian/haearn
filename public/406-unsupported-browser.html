@@ -26,11 +26,14 @@
       font-size: clamp(6rem, 20vw, 14rem);
       font-weight: 900;
       letter-spacing: -0.04em;
+      background: linear-gradient(180deg, #555 0%, #888 40%, #555 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      color: transparent;
       line-height: 1;
       position: relative; z-index: 1;
+      font-family: 'Segoe UI', 'Arial Black', Impact, 'Arial', sans-serif;
     }
     h1 {
       font-size: clamp(1.2rem, 3vw, 1.8rem);
@@ -78,7 +81,7 @@
       transform: translate(-50%, -55%);
       pointer-events: none;
     }
-    .error-code { background: linear-gradient(180deg, #555 0%, #888 40%, #555 100%); }
+    /* gradient text colors set in main .error-code rule above */
     .upgrade-list {
       display: flex; gap: 1rem; flex-wrap: wrap;
       justify-content: center;
@@ -101,9 +104,10 @@
 </head>
 <body>
   <div class="error-code">406</div>
-  <h1>Your browser never left the machine era</h1>
+  <h1>Your browser skipped every update day</h1>
   <p class="subtitle">
     You&rsquo;re trying to lift with equipment from 1997.
+    This is like showing up to a powerlifting meet in Crocs.
     Time to upgrade &mdash; you wouldn&rsquo;t bench with a rusty bar, would you?
   </p>
   <div class="upgrade-list">
