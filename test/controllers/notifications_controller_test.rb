@@ -31,6 +31,24 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
     assert payload['notifications'].any? { |n| n['title'] == 'Test Notification' }
   end
 
+  test 'feed should exclude rest timer notifications from center payload and unread count' do
+    @user.notifications.create!(
+      kind: 'rest_timer',
+      severity: 'info',
+      title: 'Rest Complete',
+      message: 'Time to lift.',
+      dedupe_key: "rest-test:#{SecureRandom.hex(4)}",
+      metadata: {}
+    )
+
+    get feed_notifications_path, as: :json
+    assert_response :success
+
+    payload = JSON.parse(response.body)
+    assert payload['notifications'].none? { |n| n['kind'] == 'rest_timer' }
+    assert_equal payload['notifications'].size, payload['unread_count']
+  end
+
   test 'should mark a notification as read' do
     patch read_notification_path(@notification), as: :json
     assert_response :success

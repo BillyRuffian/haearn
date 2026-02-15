@@ -3,15 +3,16 @@ class NotificationsController < ApplicationController
 
   def index
     PerformanceNotificationService.new(user: Current.user).refresh!
-    @notifications = Current.user.notifications.recent.limit(50)
+    @notifications = center_notifications_scope.recent.limit(50)
   end
 
   def feed
     notifications = PerformanceNotificationService.new(user: Current.user).refresh!
+    center_notifications = notifications.reject { |notification| notification.kind == 'rest_timer' }
 
     render json: {
-      unread_count: Current.user.notifications.unread.count,
-      notifications: notifications.map { |notification| serialize_notification(notification) }
+      unread_count: center_notifications_scope.unread.count,
+      notifications: center_notifications.map { |notification| serialize_notification(notification) }
     }
   end
 
@@ -21,7 +22,7 @@ class NotificationsController < ApplicationController
   end
 
   def mark_all_read
-    Current.user.notifications.unread.update_all(read_at: Time.current, updated_at: Time.current)
+    center_notifications_scope.unread.update_all(read_at: Time.current, updated_at: Time.current)
     head :ok
   end
 
@@ -67,6 +68,10 @@ class NotificationsController < ApplicationController
       action_url: action_url_for(notification),
       read_url: read_notification_path(notification)
     }
+  end
+
+  def center_notifications_scope
+    Current.user.notifications.where.not(kind: 'rest_timer')
   end
 
   def action_url_for(notification)
