@@ -13,7 +13,7 @@
               <i class="bi bi-plus-circle me-2"></i>Add Exercise
             <% end %>
           </h5>
-          <%= link_to workout_path(@workout), class: "btn-close", data: { turbo_frame: "modal" } %>
+          <%= link_to "", workout_path(@workout), class: "btn-close ms-auto", aria: { label: "Close" }, data: { turbo_frame: "modal" } %>
         </div>
         
         <% if @target_block %>
@@ -147,6 +147,7 @@
                 <% end %>
               </div>
             <% end %>
+
           <% end %>
         </div>
       </div>

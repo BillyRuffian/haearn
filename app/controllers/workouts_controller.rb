@@ -279,7 +279,7 @@ class WorkoutsController < ApplicationController
       # Create a new block for this exercise
       block = @workout.workout_blocks.create!(
         position: @workout.workout_blocks.count + 1,
-        rest_seconds: 90
+        rest_seconds: Current.user.default_rest_seconds
       )
       position = 1
     end

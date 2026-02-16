@@ -841,12 +841,21 @@ select option:checked {
   }
 }
 
+body.add-set-form-open .workout-fab {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.95);
+}
+
 // Rest Timer Footer Bar UI
 .rest-timer-footer {
   position: fixed;
   bottom: calc(70px + env(safe-area-inset-bottom)); // Position above the bottom nav bar on mobile
   left: 0;
   right: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
   z-index: 1040;
   background: linear-gradient(180deg, rgba(20, 20, 22, 0.98) 0%, rgba(10, 10, 12, 0.98) 100%);
   border-top: 1px solid rgba($rust, 0.3);
@@ -858,6 +867,22 @@ select option:checked {
   @media (min-width: 992px) {
     bottom: 0;
   }
+}
+
+// Workout show page overflow guard:
+// swipe/transform interactions and fixed footer elements can occasionally
+// push painted width beyond viewport on mobile, causing horizontal scroll.
+.workout-page-root {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.workout-page-root #workout_blocks,
+.workout-page-root .workout-block,
+.workout-page-root .sets-list,
+.workout-page-root .swipeable-container {
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .rest-timer-spacer {

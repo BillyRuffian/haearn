@@ -23,11 +23,13 @@ export default class extends Controller {
 
   disconnect() {
     window.removeEventListener("set-logged", this.boundHide)
+    this.setFabVisibility(false)
   }
 
   show() {
     this.buttonTarget.classList.add("d-none")
     this.formTarget.classList.remove("d-none")
+    this.setFabVisibility(true)
 
     // Focus the first visible input
     const firstInput = this.formTarget.querySelector("input[type='number']:not([type='hidden'])")
@@ -40,5 +42,10 @@ export default class extends Controller {
     if (!this.hasFormTarget || !this.hasButtonTarget) return
     this.formTarget.classList.add("d-none")
     this.buttonTarget.classList.remove("d-none")
+    this.setFabVisibility(false)
+  }
+
+  setFabVisibility(hidden) {
+    document.body.classList.toggle("add-set-form-open", hidden)
   }
 }
