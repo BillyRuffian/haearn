@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: February 13, 2026
+> Last Updated: February 17, 2026
 
 ## Overview
 
@@ -648,6 +648,8 @@ $text-muted: #6c757d;
 - [x] Monthly calendar grid with colored dots on training days
 - [x] Clickable days to filter/view that day's workout(s)
 - [x] Complements existing streak and frequency charts for spotting consistency gaps
+- [x] Mobile calendar simplified to activity-colored cells + workout-count indicator (hide per-day volume/set details on small screens)
+- [x] Added stronger activity heat tiers (1/2/3/4+ workouts) with higher-contrast count badges for faster mobile scanning
 
 ### 11.5 Per-Block Rest Timer Configuration
 - [x] Expose rest time adjuster on each block header during active workout
@@ -760,6 +762,7 @@ $text-muted: #6c757d;
 - [x] Implement in-app notification center (recent alerts, read/unread state) _(Dynamic bell dropdown + dashboard panel powered by `notifications_center_controller`, polling JSON feed with mark-read/mark-all-read actions; rest timer expiry now enters the same in-app feed for consistency)_
 - [ ] Add Web Push subscription + delivery pipeline for PWA users
 - [x] Trigger notifications from progression/readiness/streak events _(PerformanceNotificationService generates plateau/readiness/streak risk/volume drop alerts and stores deduped notifications per user)_
+- [x] Calibrate notification sensitivity (week-to-date volume drop guardrails; machine-scoped fatigue baseline comparisons)
 - [ ] Add delivery audit + retry logic for failed notification sends
 
 ---

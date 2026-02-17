@@ -48,14 +48,25 @@
             <% is_current_month = date.month == @month.month %>
             <% is_today = date == Date.current %>
             <% day_workouts = @workout_days[date] || [] %>
+            <% workout_count = day_workouts.count %>
+            <% activity_level =
+              if workout_count >= 4
+                "activity-very-high"
+              elsif workout_count >= 3
+                "activity-high"
+              elsif workout_count >= 2
+                "activity-medium"
+              elsif workout_count >= 1
+                "activity-low"
+              end %>
             <% day_volume_kg = day_workouts.sum(&:total_volume_kg) %>
             <% day_volume = day_workouts.any? ? Current.user.display_weight(day_volume_kg).round : nil %>
             <% day_set_count = day_workouts.sum { |workout| workout.exercise_sets.count } %>
-            <div class="calendar-day <%= 'other-month' unless is_current_month %> <%= 'today' if is_today %> <%= 'has-workout' if day_workouts.any? %>">
+            <div class="calendar-day <%= 'other-month' unless is_current_month %> <%= 'today' if is_today %> <%= 'has-workout' if day_workouts.any? %> <%= activity_level %>">
               <div class="calendar-day-top">
                 <div class="calendar-date"><%= date.day %></div>
                 <% if day_workouts.any? %>
-                  <span class="calendar-day-count"><%= day_workouts.count %></span>
+                  <span class="calendar-day-count"><%= workout_count %></span>
                 <% end %>
               </div>
               <% if day_workouts.any? %>

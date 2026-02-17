@@ -2562,6 +2562,22 @@ html {
       font-weight: 600;
     }
   }
+
+  &.activity-low {
+    background: linear-gradient(180deg, rgba($forge-orange, 0.14) 0%, rgba($forge-orange, 0.06) 100%);
+  }
+
+  &.activity-medium {
+    background: linear-gradient(180deg, rgba($forge-orange, 0.24) 0%, rgba($forge-orange, 0.1) 100%);
+  }
+
+  &.activity-high {
+    background: linear-gradient(180deg, rgba($forge-orange, 0.34) 0%, rgba($forge-orange, 0.16) 100%);
+  }
+
+  &.activity-very-high {
+    background: linear-gradient(180deg, rgba($forge-orange, 0.44) 0%, rgba($forge-orange, 0.24) 100%);
+  }
 }
 
 .calendar-day > *:not(.calendar-day-link) {
@@ -2602,6 +2618,19 @@ html {
   font-weight: 700;
   color: $white;
   background: rgba($rust, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+.calendar-day.activity-medium .calendar-day-count {
+  background: rgba($rust, 0.78);
+}
+
+.calendar-day.activity-high .calendar-day-count {
+  background: rgba($rust, 0.88);
+}
+
+.calendar-day.activity-very-high .calendar-day-count {
+  background: rgba($forge-orange, 0.9);
 }
 
 .calendar-day-metrics {
@@ -2683,13 +2712,47 @@ html {
 
 @media (max-width: 767.98px) {
   .calendar-day {
-    min-height: 90px;
-    padding: 0.3rem;
+    min-height: 58px;
+    padding: 0.25rem 0.2rem;
   }
 
-  .calendar-day-volume,
-  .calendar-day-sets {
-    font-size: 0.68rem;
+  .calendar-day-top {
+    min-height: 100%;
+    align-items: flex-start;
+  }
+
+  .calendar-date {
+    font-size: 0.82rem;
+    padding: 0.1rem 0.28rem;
+  }
+
+  .calendar-day-count {
+    min-width: 1.1rem;
+    height: 1.1rem;
+    font-size: 0.64rem;
+    padding: 0 0.28rem;
+    background: rgba($rust, 0.8);
+  }
+
+  .calendar-day-metrics,
+  .calendar-day-workouts {
+    display: none;
+  }
+
+  .calendar-day.activity-low {
+    background: linear-gradient(180deg, rgba($forge-orange, 0.15) 0%, rgba($forge-orange, 0.06) 100%);
+  }
+
+  .calendar-day.activity-medium {
+    background: linear-gradient(180deg, rgba($forge-orange, 0.28) 0%, rgba($forge-orange, 0.12) 100%);
+  }
+
+  .calendar-day.activity-high {
+    background: linear-gradient(180deg, rgba($forge-orange, 0.38) 0%, rgba($forge-orange, 0.18) 100%);
+  }
+
+  .calendar-day.activity-very-high {
+    background: linear-gradient(180deg, rgba($forge-orange, 0.5) 0%, rgba($forge-orange, 0.28) 100%);
   }
 }
 

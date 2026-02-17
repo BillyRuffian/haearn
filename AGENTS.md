@@ -133,6 +133,12 @@ User
     Cache invalidation is deduped per request/context via `Current` tracking to avoid repeated key deletes during bulk set/exercise updates.
     Prefer scoped invalidation keys per model/change type so non-impacting updates (e.g., notes-only edits) do not clear unrelated analytics caches.
 
+12. **Mobile Calendar Density Rule**: On small screens, calendar cells should prioritize glanceability by showing activity color intensity + workout-count badge only; hide per-day volume/set text and workout-dot clusters.
+
+13. **Performance Alert Guardrails**: Volume-drop alerts should compare week-to-date volume against the same elapsed portion of last week and should not fire before any workout is logged in the current week. Fatigue analysis baselines must stay scoped to the exact exercise + machine combination.
+
+14. **Calendar Activity Tiering**: Calendar activity coloring should use explicit tiers by workout count (1/2/3/4+) with progressively stronger cell backgrounds and badge contrast, optimized for quick mobile glanceability.
+
 ## Equipment Types (Enum)
 
 ```ruby

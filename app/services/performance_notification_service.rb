@@ -156,42 +156,58 @@ class PerformanceNotificationService
   end
 
   def weekly_volume_drop_candidate
-    weekly_volumes = weekly_volumes_for_recent_weeks
-    this_week = weekly_volumes[week_key(0)] || 0
-    last_week = weekly_volumes[week_key(1)] || 0
-    return nil unless last_week.positive?
+    stats = week_to_date_volume_stats
+    this_week_volume = stats[:this_week_volume]
+    this_week_workouts = stats[:this_week_workouts]
+    last_week_volume = stats[:last_week_volume]
 
-    ratio = this_week / last_week.to_f
+    # Avoid noisy "volume down" alerts at the start of a new week
+    # before the user has logged any session.
+    return nil if this_week_workouts.zero?
+    return nil unless last_week_volume.positive?
+
+    ratio = this_week_volume / last_week_volume.to_f
     return nil unless ratio < 0.6
 
     {
       kind: 'volume_drop',
       severity: 'warning',
       title: 'Weekly Volume Down',
-      message: "Current week volume is #{(ratio * 100).round}% of last week. Consider a catch-up session.",
+      message: "Week-to-date volume is #{(ratio * 100).round}% of the same point last week. Consider a catch-up session.",
       dedupe_key: "volume-drop:#{Date.current.cwyear}-#{Date.current.cweek}",
       metadata: {
-        this_week_volume_kg: this_week.round,
-        last_week_volume_kg: last_week.round,
+        this_week_volume_kg: this_week_volume.round,
+        this_week_workouts: this_week_workouts,
+        last_week_volume_kg: last_week_volume.round,
         ratio: ratio.round(2)
       }
     }
   end
 
-  def weekly_volumes_for_recent_weeks
-    range_start = 1.week.ago.beginning_of_week
-    range_end = Time.current.end_of_week
+  def week_to_date_volume_stats
+    today = Date.current
+    week_start = today.beginning_of_week
+    day_offset = (today - week_start).to_i
 
-    @user.workouts
+    this_week_start = week_start.beginning_of_day
+    this_week_end = Time.current
+    last_week_start = (week_start - 1.week).beginning_of_day
+    last_week_end = (last_week_start.to_date + day_offset.days).end_of_day
+
+    this_week_scope = @user.workouts
       .joins(workout_exercises: :exercise_sets)
-      .where(finished_at: range_start..range_end)
+      .where(finished_at: this_week_start..this_week_end)
       .where(exercise_sets: { is_warmup: false })
-      .group(Arel.sql("strftime('%Y-%W', workouts.finished_at)"))
-      .sum('COALESCE(exercise_sets.weight_kg, 0) * COALESCE(exercise_sets.reps, 0)')
-  end
+    last_week_scope = @user.workouts
+      .joins(workout_exercises: :exercise_sets)
+      .where(finished_at: last_week_start..last_week_end)
+      .where(exercise_sets: { is_warmup: false })
 
-  def week_key(weeks_ago)
-    weeks_ago.weeks.ago.beginning_of_week.strftime('%Y-%W')
+    {
+      this_week_volume: this_week_scope.sum('COALESCE(exercise_sets.weight_kg, 0) * COALESCE(exercise_sets.reps, 0)'),
+      this_week_workouts: this_week_scope.distinct.count(:id),
+      last_week_volume: last_week_scope.sum('COALESCE(exercise_sets.weight_kg, 0) * COALESCE(exercise_sets.reps, 0)')
+    }
   end
 
   def upsert_notification(candidate, existing_by_key)

@@ -92,19 +92,18 @@ class FatigueAnalyzer
     @baseline_sessions ||= begin
       cutoff_date = LOOKBACK_DAYS.days.ago
 
-      user.workout_exercises
+      scope = user.workout_exercises
         .joins(:exercise_sets, workout_block: :workout)
         .where(exercise_id: workout_exercise.exercise_id)
         .where.not(id: workout_exercise.id) # Exclude current session
         .where('workouts.finished_at IS NOT NULL') # Only completed workouts
         .where('workouts.finished_at >= ?', cutoff_date)
         .where('exercise_sets.is_warmup = ?', false) # Only working sets
-        .tap do |scope|
-          # Filter by machine if specified (same machine only)
-          if workout_exercise.machine_id.present?
-            scope.where(machine_id: workout_exercise.machine_id)
-          end
-        end
+
+      # Compare against the exact same exercise + machine context.
+      scope = scope.where(machine_id: workout_exercise.machine_id)
+
+      scope
         .distinct
         .order(Arel.sql('workouts.finished_at DESC'))
         .limit(BASELINE_SESSIONS)
