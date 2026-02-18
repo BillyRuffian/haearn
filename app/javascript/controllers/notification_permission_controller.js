@@ -10,11 +10,12 @@ export default class extends Controller {
   }
 
   connect() {
-    this.updateStatus()
     this.syncSubscriptionState()
+      .catch(() => {})
+      .finally(() => this.refreshState())
   }
 
-  updateStatus() {
+  async refreshState() {
     if (!("Notification" in window)) {
       this.showNotSupported()
       return
@@ -26,27 +27,34 @@ export default class extends Controller {
     }
 
     const permission = Notification.permission
+    const subscribed = await this.isSubscribed()
 
     if (this.hasStatusTarget) {
-      this.statusTarget.textContent = this.getStatusText(permission)
-      this.statusTarget.className = `badge ${this.getStatusClass(permission)}`
+      this.statusTarget.textContent = this.getStatusText(permission, subscribed)
+      this.statusTarget.className = `badge ${this.getStatusClass(permission, subscribed)}`
     }
 
     if (this.hasButtonTarget) {
       if (permission === "granted") {
-        this.buttonTarget.textContent = "Enabled"
-        this.buttonTarget.disabled = true
-        this.buttonTarget.classList.remove("btn-primary")
-        this.buttonTarget.classList.add("btn-success")
+        this.buttonTarget.disabled = false
+        if (subscribed) {
+          this.buttonTarget.textContent = "Disable Notifications"
+          this.buttonTarget.classList.remove("btn-primary", "btn-success")
+          this.buttonTarget.classList.add("btn-outline-secondary")
+        } else {
+          this.buttonTarget.textContent = "Enable Notifications"
+          this.buttonTarget.classList.remove("btn-outline-secondary")
+          this.buttonTarget.classList.add("btn-primary")
+        }
       } else if (permission === "denied") {
         this.buttonTarget.textContent = "Blocked by Browser"
         this.buttonTarget.disabled = true
-        this.buttonTarget.classList.remove("btn-primary")
+        this.buttonTarget.classList.remove("btn-primary", "btn-success", "btn-outline-secondary")
         this.buttonTarget.classList.add("btn-secondary")
       } else {
         this.buttonTarget.textContent = "Enable Notifications"
         this.buttonTarget.disabled = false
-        this.buttonTarget.classList.remove("btn-success", "btn-secondary")
+        this.buttonTarget.classList.remove("btn-success", "btn-secondary", "btn-outline-secondary")
         this.buttonTarget.classList.add("btn-primary")
       }
     }
@@ -59,13 +67,19 @@ export default class extends Controller {
 
     if (Notification.permission === "default") {
       await Notification.requestPermission()
-      this.updateStatus()
     }
 
     if (Notification.permission === "granted") {
-      await this.subscribe()
-      this.sendTestNotification()
+      const subscribed = await this.isSubscribed()
+      if (subscribed) {
+        await this.unsubscribe()
+      } else {
+        const success = await this.subscribe()
+        if (success) this.sendTestNotification()
+      }
     }
+
+    await this.refreshState()
   }
 
   sendTestNotification() {
@@ -85,9 +99,7 @@ export default class extends Controller {
     if (!registration) return
 
     const existing = await registration.pushManager.getSubscription()
-    if (!existing) {
-      await this.subscribe()
-    }
+    if (!existing) await this.subscribe()
   }
 
   async subscribe() {
@@ -104,11 +116,12 @@ export default class extends Controller {
       })
     }
 
-    await fetch(this.subscribeUrlValue, {
+    const response = await fetch(this.subscribeUrlValue, {
       method: "POST",
       headers: this.requestHeaders(),
       body: JSON.stringify({ subscription: subscription.toJSON() })
     })
+    return response.ok
   }
 
   async unsubscribe() {
@@ -120,12 +133,23 @@ export default class extends Controller {
     const subscription = await registration.pushManager.getSubscription()
     if (!subscription) return
 
-    await fetch(this.unsubscribeUrlValue, {
+    const response = await fetch(this.unsubscribeUrlValue, {
       method: "DELETE",
       headers: this.requestHeaders(),
       body: JSON.stringify({ endpoint: subscription.endpoint })
     })
-    await subscription.unsubscribe()
+    if (response.ok) {
+      await subscription.unsubscribe()
+    }
+    return response.ok
+  }
+
+  async isSubscribed() {
+    const registration = await this.serviceWorkerRegistration()
+    if (!registration) return false
+
+    const subscription = await registration.pushManager.getSubscription()
+    return Boolean(subscription)
   }
 
   async serviceWorkerRegistration() {
@@ -187,17 +211,17 @@ export default class extends Controller {
     }
   }
 
-  getStatusText(permission) {
+  getStatusText(permission, subscribed) {
     switch (permission) {
-      case "granted": return "Enabled"
+      case "granted": return subscribed ? "Enabled" : "Permission Granted"
       case "denied": return "Blocked"
       default: return "Not Set"
     }
   }
 
-  getStatusClass(permission) {
+  getStatusClass(permission, subscribed) {
     switch (permission) {
-      case "granted": return "bg-success"
+      case "granted": return subscribed ? "bg-success" : "bg-warning"
       case "denied": return "bg-danger"
       default: return "bg-secondary"
     }
