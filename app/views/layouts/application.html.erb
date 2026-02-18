@@ -54,50 +54,51 @@
           HAEARN
         <% end %>
 
-        <%# Navbar workout timer - always visible, positioned between brand and settings on mobile %>
-        <% if Current.user && Current.user.active_workout %>
-          <div id="navbar-workout-timer" data-sticky-timer-target="navbar" class="navbar-timer-wrapper ms-auto me-2" style="display: none;">
-            <%= link_to workout_path(Current.user.active_workout), class: "nav-link py-1 px-2" do %>
-              <span class="badge bg-primary fs-6 py-2 px-3">
-                <i class="bi bi-stopwatch me-1"></i>
-                <span data-timer-display><%= Current.user.active_workout.duration_minutes %></span> min
-              </span>
-            <% end %>
-          </div>
-        <% end %>
-
-        <%# Mobile: Settings button instead of hamburger menu (nav items are in bottom bar) %>
+        <%# Mobile right-side controls order: [timer] [bell] [gear] %>
         <% if Current.user %>
-          <div class="dropdown d-lg-none me-2"
-               data-controller="notifications-center"
-               data-notifications-center-feed-url-value="<%= feed_notifications_path %>"
-               data-notifications-center-mark-all-url-value="<%= mark_all_read_notifications_path %>"
-               data-notifications-center-poll-interval-value="20000">
-            <button class="btn btn-link nav-link p-2 position-relative" type="button" data-bs-toggle="dropdown" aria-label="Notifications">
-              <i class="bi bi-bell-fill fs-5"></i>
-              <span data-notifications-center-target="badge"
-                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
-            </button>
-            <div class="dropdown-menu dropdown-menu-end dropdown-menu-dark p-0 notifications-dropdown">
-              <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom border-secondary">
-                <strong class="small">Performance Alerts</strong>
-                <button class="btn btn-sm btn-link text-muted p-0"
-                        data-action="notifications-center#markAllRead">
-                  Mark all read
-                </button>
+          <div class="d-flex d-lg-none align-items-center ms-auto">
+            <% if Current.user.active_workout %>
+              <div id="navbar-workout-timer" data-sticky-timer-target="navbar" class="navbar-timer-wrapper me-2" style="display: none;">
+                <%= link_to workout_path(Current.user.active_workout), class: "nav-link py-1 px-2" do %>
+                  <span class="badge bg-primary fs-6 py-2 px-3">
+                    <i class="bi bi-stopwatch me-1"></i>
+                    <span data-timer-display><%= Current.user.active_workout.duration_minutes %></span> min
+                  </span>
+                <% end %>
               </div>
-              <div data-notifications-center-target="loading" class="small text-muted px-3 py-2 d-none">Loading…</div>
-              <div data-notifications-center-target="empty" class="small text-muted px-3 py-3">No alerts right now.</div>
-              <div data-notifications-center-target="list" class="list-group list-group-flush"></div>
-              <div class="px-3 py-2 border-top border-secondary">
-                <%= link_to "View all", notifications_path, class: "small text-decoration-none" %>
+            <% end %>
+
+            <div class="dropdown me-2"
+                 data-controller="notifications-center"
+                 data-notifications-center-feed-url-value="<%= feed_notifications_path %>"
+                 data-notifications-center-mark-all-url-value="<%= mark_all_read_notifications_path %>"
+                 data-notifications-center-poll-interval-value="20000">
+              <button class="btn btn-link nav-link p-2 position-relative" type="button" data-bs-toggle="dropdown" aria-label="Notifications">
+                <i class="bi bi-bell-fill fs-5"></i>
+                <span data-notifications-center-target="badge"
+                      class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
+              </button>
+              <div class="dropdown-menu dropdown-menu-end dropdown-menu-dark p-0 notifications-dropdown">
+                <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom border-secondary">
+                  <strong class="small">Performance Alerts</strong>
+                  <button class="btn btn-sm btn-link text-muted p-0"
+                          data-action="notifications-center#markAllRead">
+                    Mark all read
+                  </button>
+                </div>
+                <div data-notifications-center-target="loading" class="small text-muted px-3 py-2 d-none">Loading…</div>
+                <div data-notifications-center-target="empty" class="small text-muted px-3 py-3">No alerts right now.</div>
+                <div data-notifications-center-target="list" class="list-group list-group-flush"></div>
+                <div class="px-3 py-2 border-top border-secondary">
+                  <%= link_to "View all", notifications_path, class: "small text-decoration-none" %>
+                </div>
               </div>
             </div>
-          </div>
 
-          <%= link_to settings_path, class: "btn btn-link nav-link d-lg-none p-2 #{'active' if controller_name == 'settings'}" do %>
-            <i class="bi bi-gear-fill fs-5"></i>
-          <% end %>
+            <%= link_to settings_path, class: "btn btn-link nav-link p-2 #{'active' if controller_name == 'settings'}" do %>
+              <i class="bi bi-gear-fill fs-5"></i>
+            <% end %>
+          </div>
         <% end %>
 
         <div class="collapse navbar-collapse" id="navbarNav">
