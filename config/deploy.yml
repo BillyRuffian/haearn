@@ -50,6 +50,9 @@ env:
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
     # When you start using multiple servers, you should split out job processing to a dedicated machine.
     SOLID_QUEUE_IN_PUMA: true
+    SMTP_ADDRESS: mail.smtp2go.com # The SMTP server you'll use to send email
+    SMTP_DOMAIN: fe-fitness.com # The domain for the SMTP server
+    SMTP_PORT: 2525
 
     # Set number of processes dedicated to Solid Queue (default: 1)
     # JOB_CONCURRENCY: 3
