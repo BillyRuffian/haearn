@@ -109,6 +109,8 @@ body {
       #080808 100%);
   background-attachment: fixed;
   min-height: 100vh;
+  max-width: 100%;
+  overflow-x: hidden;
 
   // Subtle noise texture overlay
   &::before {
@@ -1062,14 +1064,14 @@ select option:checked {
 // Workout page can include fixed/animated UI (FAB + timer + swipe actions).
 // Clip horizontal paint overflow so it never creates page-level rightward scroll.
 .workout-show-page {
-  overflow-x: clip;
+  overflow-x: hidden;
 }
 
 .workout-show-page main,
 .workout-show-page #workout_blocks,
 .workout-show-page .workout-block,
 .workout-show-page .rest-timer-footer {
-  overflow-x: clip;
+  overflow-x: hidden;
 }
 
 // =====================================================
@@ -1395,7 +1397,7 @@ select option:checked {
 // =====================================================
 .swipeable-container {
   position: relative;
-  overflow-x: clip;
+  overflow: hidden;
 
   // Ensure the container with an open dropdown renders above sibling elements
   &:has(.dropdown-menu.show) {
@@ -1914,6 +1916,8 @@ html.turbo-loading {
 // Smooth scrolling
 html {
   scroll-behavior: smooth;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 // Reduce motion for accessibility
