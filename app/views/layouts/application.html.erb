@@ -26,7 +26,8 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body data-controller="offline"
+  <body class="<%= content_for?(:body_class) ? yield(:body_class) : nil %>"
+        data-controller="offline"
         data-offline-show-class="d-block"
         data-rest-timer-push-enabled="<%= Current.user&.notify_rest_timer_push? ? 'true' : 'false' %>">
     <% if session[:admin_session_id] %>

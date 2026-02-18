@@ -1,4 +1,5 @@
 <% content_for(:title) { "Workout | Haearn" } %>
+<% content_for(:body_class, "workout-show-page") %>
 
 <%# Keep screen awake during active workout %>
 <% if @workout.in_progress? %>

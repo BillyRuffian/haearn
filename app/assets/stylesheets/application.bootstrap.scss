@@ -909,8 +909,10 @@ select option:checked {
   align-items: center;
   justify-content: center;
   gap: 1rem;
+  width: 100%;
   max-width: 500px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .rest-timer-center {
@@ -1042,10 +1044,25 @@ select option:checked {
     gap: 0.5rem;
   }
 
+  .rest-timer-bar {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .rest-timer-center {
+    min-width: 0;
+  }
+
   .rest-timer-adjust-btn {
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
   }
+}
+
+// Workout page can include fixed/animated UI (FAB + timer + swipe actions).
+// Clip horizontal paint overflow so it never creates page-level rightward scroll.
+.workout-show-page {
+  overflow-x: hidden;
 }
 
 // =====================================================
