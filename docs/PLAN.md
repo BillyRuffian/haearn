@@ -820,6 +820,31 @@ $text-muted: #6c757d;
 
 ---
 
+## Phase 20: Push Reliability & Operations
+
+### 20.1 Delivery Reliability
+- [ ] Add push delivery observability (attempt/success/failure counters by error class and endpoint host)
+- [ ] Add retry pipeline with backoff for transient push delivery failures
+- [ ] Add subscription health indicators (subscribed device count + last successful push timestamp)
+
+### 20.2 Runtime Safety
+- [ ] Add service worker versioning + cache invalidation rollout checklist
+- [ ] Add environment parity smoke check for push (config present, subscribe/unsubscribe, test delivery)
+- [ ] Add structured Web Push error logging (user_id, subscription_id, endpoint host, sanitized backtrace)
+
+---
+
+## Phase 21: Gym User Experience
+
+### 21.1 In-Gym Flow Optimization
+- [ ] Add backup exercise autosuggest with available-equipment filtering when stations are occupied
+- [ ] Add offline confidence mode showing queued action count and sync status at a glance
+- [ ] Add locker-room quick log flow (voice/one-thumb fast entry between stations)
+- [ ] Add personal equipment setup memory surfaced by gym + machine (seat/pin/handle defaults)
+- [ ] Add plate-load sanity checks for impossible combinations by selected bar/machine
+
+---
+
 ## Notes for Future Development
 
 - Barcode scanning for gym machines?
