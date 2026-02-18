@@ -44,6 +44,31 @@ begin
         @curve = OpenSSL::PKey::EC.generate('prime256v1')
       end
     end
+
+    # Build VAPID authorization header without instantiating/mutating EC keys
+    # through Webpush::VapidKey internals (which can fail on OpenSSL 3).
+    class Request
+      def build_vapid_header
+        pub = Webpush.decode64(vapid_public_key)
+        x = Webpush.encode64(pub.byteslice(1, 32))
+        y = Webpush.encode64(pub.byteslice(33, 32))
+
+        jwk = JWT::JWK.import(
+          {
+            kty: 'EC',
+            crv: 'P-256',
+            x: x,
+            y: y,
+            d: vapid_private_key
+          }
+        )
+
+        jwt = JWT.encode(jwt_payload, jwk.signing_key, 'ES256', jwt_header_fields)
+        p256ecdsa = vapid_public_key.delete('=')
+
+        "vapid t=#{jwt},k=#{p256ecdsa}"
+      end
+    end
   end
 rescue LoadError
   # webpush/jwt gems unavailable in this environment
