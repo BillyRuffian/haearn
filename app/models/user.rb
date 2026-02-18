@@ -41,6 +41,8 @@ class User < ApplicationRecord
   has_many :exercise_sets, through: :workout_exercises
   has_many :workout_templates, dependent: :destroy
   has_many :body_metrics, dependent: :destroy
+  has_many :notifications, dependent: :destroy
+  has_many :progress_photos, dependent: :destroy
   has_many :admin_audit_logs, foreign_key: :admin_user_id, dependent: :nullify, inverse_of: :admin_user
   belongs_to :default_gym, class_name: 'Gym', optional: true
 
@@ -157,5 +159,13 @@ class User < ApplicationRecord
   # @return [Workout, nil]
   def active_workout
     workouts.in_progress.first
+  end
+
+  # Check if user has enabled in-app notifications for a given kind
+  # @param kind [String] notification kind (e.g., 'readiness', 'plateau', 'streak_risk', 'volume_drop')
+  # @return [Boolean]
+  def notification_enabled_for?(kind)
+    column = "notify_#{kind}"
+    respond_to?(column) ? public_send(column) : true
   end
 end

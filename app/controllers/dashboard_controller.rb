@@ -146,6 +146,48 @@ class DashboardController < ApplicationController
     @muscle_balance_data = calculate_muscle_balance
   end
 
+  # GET /analytics
+  # Dedicated analytics page with all charts and trends
+  def analytics
+    return unless Current.user
+
+    @pr_timeline_data = calculate_pr_timeline
+
+    @workout_frequency = (0..7).map do |weeks_ago|
+      week_start = weeks_ago.weeks.ago.beginning_of_week
+      week_end = weeks_ago.weeks.ago.end_of_week
+      {
+        label: week_start.strftime('%b %d'),
+        count: Current.user.workouts.where(finished_at: week_start..week_end).count
+      }
+    end.reverse
+
+    @consistency_data = calculate_consistency_data
+    @rep_range_data = calculate_rep_range_distribution
+
+    @session_duration_data = Current.user.workouts
+      .where.not(finished_at: nil)
+      .where.not(started_at: nil)
+      .order(finished_at: :desc)
+      .limit(20)
+      .map do |w|
+        {
+          date: w.finished_at.to_date.to_s,
+          duration: w.duration_minutes || 0,
+          gym: w.gym&.name || 'Unknown'
+        }
+      end.reverse
+
+    @exercise_frequency_data = calculate_exercise_frequency
+    @streak_data = calculate_streaks
+    @week_comparison_data = calculate_week_comparison
+    @tonnage_data = calculate_tonnage_tracker
+    @plateau_data = calculate_plateaus
+    @training_density_data = calculate_training_density
+    @muscle_group_data = calculate_muscle_group_volume
+    @muscle_balance_data = calculate_muscle_balance
+  end
+
   private
 
   # Calculate distribution of rep ranges (1-5, 6-10, 11-15, 16+) from last 30 days
