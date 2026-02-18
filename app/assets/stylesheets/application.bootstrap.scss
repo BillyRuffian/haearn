@@ -853,10 +853,15 @@ body.add-set-form-open .workout-fab {
   bottom: calc(70px + env(safe-area-inset-bottom)); // Position above the bottom nav bar on mobile
   left: 0;
   right: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: clip;
   z-index: 1040;
   background: linear-gradient(180deg, rgba(20, 20, 22, 0.98) 0%, rgba(10, 10, 12, 0.98) 100%);
   border-top: 1px solid rgba($rust, 0.3);
   backdrop-filter: blur(10px);
+  // Keep glow/shadow inside the viewport to prevent horizontal scroll.
+  clip-path: inset(-60px 0 0 0);
 
   // On large screens, bottom nav is hidden so timer sits at bottom
   @media (min-width: 992px) {
@@ -878,6 +883,14 @@ body.add-set-form-open .workout-fab {
 .workout-page-root .swipeable-container {
   max-width: 100%;
   overflow-x: hidden;
+}
+
+@media (max-width: 991.98px) {
+  .workout-page-root .container,
+  .workout-page-root .row,
+  .workout-page-root [class*="col-"] {
+    min-width: 0;
+  }
 }
 
 .rest-timer-spacer {
