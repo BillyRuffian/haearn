@@ -55,6 +55,7 @@ env:
     SMTP_ADDRESS: mail.smtp2go.com # The SMTP server you'll use to send email
     SMTP_DOMAIN: haearn.com # The domain for the SMTP server
     SMTP_PORT: 2525
+    VAPID_SUBJECT: mailto:notifications@haearn.com # The contact email for your VAPID keys, used for web push notifications
 
     # Set number of processes dedicated to Solid Queue (default: 1)
     # JOB_CONCURRENCY: 3
