@@ -15,11 +15,6 @@
         <% end %>
         <i class="bi bi-graph-up-arrow ms-1 text-muted small"></i>
       <% end %>
-      <% if workout_exercise.has_variations? %>
-        <span class="badge bg-iron-light ms-1 small" title="<%= workout_exercise.variation_summary %>">
-          <i class="bi bi-sliders2-vertical me-1"></i><%= workout_exercise.variation_summary %>
-        </span>
-      <% end %>
       <% if workout_exercise.machine&.photos&.attached? %>
         <span data-controller="photo-preview"
               data-action="click->photo-preview#show:stop"
@@ -34,52 +29,10 @@
         </span>
       <% end %>
     </div>
-    <div class="d-flex align-items-center gap-1 flex-shrink-0">
-      <% if workout.in_progress? %>
-        <div class="dropdown">
-          <button class="btn btn-sm btn-link text-muted p-1" type="button" data-bs-toggle="dropdown" title="Variations">
-            <i class="bi bi-sliders2-vertical"></i>
-          </button>
-          <div class="dropdown-menu dropdown-menu-end p-3" style="min-width: 280px;">
-            <h6 class="dropdown-header px-0">Exercise Variations</h6>
-            <%= form_with model: workout_exercise,
-                url: workout_workout_exercise_path(workout, workout_exercise),
-                method: :patch do |vform| %>
-              <div class="mb-2">
-                <label class="form-label small text-muted mb-0">Grip</label>
-                <%= vform.select :grip_width,
-                    options_for_select([['—', '']] + WorkoutExercise::GRIP_WIDTHS.map { |g| [g.titleize, g] }, workout_exercise.grip_width),
-                    {}, class: "form-select form-select-sm" %>
-              </div>
-              <div class="mb-2">
-                <label class="form-label small text-muted mb-0">Stance</label>
-                <%= vform.select :stance,
-                    options_for_select([['—', '']] + WorkoutExercise::STANCES.map { |s| [s.titleize, s] }, workout_exercise.stance),
-                    {}, class: "form-select form-select-sm" %>
-              </div>
-              <div class="mb-2">
-                <label class="form-label small text-muted mb-0">Angle (°)</label>
-                <%= vform.number_field :incline_angle,
-                    class: "form-control form-control-sm text-center",
-                    placeholder: "—", min: -90, max: 90, inputmode: "numeric" %>
-              </div>
-              <div class="mb-2">
-                <label class="form-label small text-muted mb-0">Bar Type</label>
-                <%= vform.select :bar_type,
-                    options_for_select([['—', '']] + WorkoutExercise::BAR_TYPES.map { |b| [WorkoutExercise.new(bar_type: b).bar_type_label, b] }, workout_exercise.bar_type),
-                    {}, class: "form-select form-select-sm" %>
-              </div>
-              <div class="text-end">
-                <%= vform.submit "Save", class: "btn btn-primary btn-sm" %>
-              </div>
-            <% end %>
-          </div>
-        </div>
-      <% end %>
-      <div class="dropdown">
-        <button class="btn btn-sm btn-link text-muted p-1" type="button" data-bs-toggle="dropdown">
-          <i class="bi bi-three-dots-vertical"></i>
-        </button>
+    <div class="dropdown flex-shrink-0">
+      <button class="btn btn-sm btn-link text-muted p-1" type="button" data-bs-toggle="dropdown">
+        <i class="bi bi-three-dots-vertical"></i>
+      </button>
       <ul class="dropdown-menu dropdown-menu-end">
         <% if workout.in_progress? %>
           <li>
@@ -101,7 +54,6 @@
         </li>
       </ul>
     </div>
-    </div>
   </div>
 
   <div class="card-body py-2">
@@ -119,7 +71,7 @@
 
     <!-- Sets Table -->
     <div class="sets-list" id="sets_<%= workout_exercise.id %>">
-      <div class="row g-0 small text-muted mb-1">
+      <div class="row small text-muted mb-1">
         <div class="col-1 text-center">#</div>
         <div class="col-3 text-center">Weight</div>
         <div class="col-3 text-center">
@@ -183,17 +135,6 @@
           <i class="bi bi-plus-lg me-1"></i> Add Set
         </button>
         <div data-add-set-toggle-target="form" class="d-none">
-
-          <%# Form Cues from exercise %>
-          <% if workout_exercise.exercise.has_cues? %>
-            <div class="form-cues small mt-2 mb-2 px-2 py-1 rounded" style="background: rgba(255, 107, 53, 0.08); border-left: 3px solid var(--bs-warning);">
-              <i class="bi bi-lightbulb text-warning me-1"></i>
-              <% workout_exercise.exercise.cues_list.each_with_index do |cue, i| %>
-                <span class="text-muted"><%= cue %></span><%= '  ·  ' unless i == workout_exercise.exercise.cues_list.length - 1 %>
-              <% end %>
-            </div>
-          <% end %>
-
           <%= turbo_frame_tag "new_set_#{workout_exercise.id}" do %>
             <%= render "exercise_sets/form",
                 workout: workout,

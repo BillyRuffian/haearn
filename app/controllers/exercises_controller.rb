@@ -155,8 +155,6 @@ class ExercisesController < ApplicationController
 
     # Calculate overall PRs for the exercise (max weight, max volume, best E1RM)
     @prs = PrCalculator.calculate_all(@workout_exercises, exercise: @exercise)
-    @raw_prs = PrCalculator.calculate_all(@workout_exercises, exercise: @exercise, equipped: false)
-    @equipped_prs = PrCalculator.calculate_all(@workout_exercises, exercise: @exercise, equipped: true)
 
     # Calculate bodyweight-relative strength if we have current weight and weight PRs
     @relative_strength = nil
@@ -278,6 +276,6 @@ class ExercisesController < ApplicationController
   end
 
   def exercise_params
-    params.require(:exercise).permit(:name, :exercise_type, :has_weight, :description, :primary_muscle_group, :form_cues)
+    params.require(:exercise).permit(:name, :exercise_type, :has_weight, :description, :primary_muscle_group)
   end
 end

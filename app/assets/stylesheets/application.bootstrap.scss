@@ -668,7 +668,7 @@ select option:checked {
 
 // Workout page styles
 .workout-block {
-  overflow: visible;
+  overflow: hidden;
 
   .card-header {
     background: linear-gradient(135deg, $iron-medium 0%, $iron-dark 100%);
@@ -841,48 +841,21 @@ select option:checked {
   }
 }
 
-body.add-set-form-open .workout-fab {
-  opacity: 0;
-  pointer-events: none;
-  transform: scale(0.95);
-}
-
 // Rest Timer Footer Bar UI
 .rest-timer-footer {
   position: fixed;
   bottom: calc(70px + env(safe-area-inset-bottom)); // Position above the bottom nav bar on mobile
   left: 0;
   right: 0;
-  width: 100%;
-  max-width: 100vw;
-  overflow-x: hidden;
   z-index: 1040;
   background: linear-gradient(180deg, rgba(20, 20, 22, 0.98) 0%, rgba(10, 10, 12, 0.98) 100%);
   border-top: 1px solid rgba($rust, 0.3);
   backdrop-filter: blur(10px);
-  // Clip the box-shadow so glow only shows on top
-  clip-path: inset(-60px 0 0 0);
 
   // On large screens, bottom nav is hidden so timer sits at bottom
   @media (min-width: 992px) {
     bottom: 0;
   }
-}
-
-// Workout show page overflow guard:
-// swipe/transform interactions and fixed footer elements can occasionally
-// push painted width beyond viewport on mobile, causing horizontal scroll.
-.workout-page-root {
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
-.workout-page-root #workout_blocks,
-.workout-page-root .workout-block,
-.workout-page-root .sets-list,
-.workout-page-root .swipeable-container {
-  max-width: 100%;
-  overflow-x: hidden;
 }
 
 .rest-timer-spacer {
@@ -917,15 +890,15 @@ body.add-set-form-open .workout-fab {
 }
 
 .rest-timer-bar {
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 1rem;
 
   &.timer-active {
     border-top-color: $rust;
-    box-shadow: 0 -6px 25px rgba($rust, 0.35);
+    box-shadow: 0 -4px 20px rgba($rust, 0.3);
   }
 
   &.timer-complete {
-    animation: timerPulse 1.5s ease-in-out infinite;
+    animation: timerPulse 0.3s ease-in-out infinite;
     border-top-color: $forge-orange;
   }
 }
@@ -941,13 +914,13 @@ body.add-set-form-open .workout-fab {
 
 .rest-timer-center {
   flex: 1;
-  max-width: 240px;
+  max-width: 200px;
   text-align: center;
 }
 
 .rest-timer-display {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 2.5rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: #fff;
   text-shadow: 0 0 20px rgba($forge-orange, 0.5);
@@ -955,11 +928,11 @@ body.add-set-form-open .workout-fab {
 }
 
 .rest-timer-progress {
-  height: 6px;
+  height: 4px;
   background: $iron-light;
-  border-radius: 3px;
+  border-radius: 2px;
   overflow: hidden;
-  margin-top: 0.4rem;
+  margin-top: 0.25rem;
 }
 
 .rest-timer-progress-bar {
@@ -973,9 +946,9 @@ body.add-set-form-open .workout-fab {
   background: transparent;
   border: 1px solid $iron-light;
   color: $text-muted;
-  padding: 0.4rem 0.9rem;
+  padding: 0.25rem 0.75rem;
   border-radius: 0.25rem;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -989,14 +962,13 @@ body.add-set-form-open .workout-fab {
   background: transparent;
   border: 1px solid $rust;
   color: $rust-light;
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 1.1rem;
   transition: all 0.2s ease;
 
   &:hover {
@@ -1021,13 +993,13 @@ body.add-set-form-open .workout-fab {
 
   0%,
   100% {
-    border-top-color: $rust;
-    box-shadow: 0 -8px 30px rgba($rust, 0.4);
+    border-color: $rust;
+    box-shadow: 0 0 20px rgba($rust, 0.3);
   }
 
   50% {
-    border-top-color: $forge-orange;
-    box-shadow: 0 -12px 50px rgba($forge-orange, 0.7);
+    border-color: $forge-orange;
+    box-shadow: 0 0 40px rgba($forge-orange, 0.6);
   }
 }
 
@@ -1062,7 +1034,7 @@ body.add-set-form-open .workout-fab {
   }
 
   .rest-timer-display {
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
 
   .rest-timer-bar-content {
@@ -1070,8 +1042,8 @@ body.add-set-form-open .workout-fab {
   }
 
   .rest-timer-adjust-btn {
-    padding: 0.3rem 0.6rem;
-    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
   }
 }
 
@@ -2490,438 +2462,4 @@ html {
       transform: scale(0.95);
     }
   }
-}
-
-// ==========================================
-// Calendar View
-// ==========================================
-.calendar-shell {
-  border: 1px solid rgba($rust, 0.22);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-}
-
-.calendar-month-header {
-  background: linear-gradient(180deg, rgba($rust, 0.18) 0%, rgba($rust, 0.06) 100%);
-  border-bottom: 1px solid rgba($rust, 0.18);
-}
-
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  border-top: 1px solid $border-color;
-}
-
-.calendar-day-header {
-  text-align: center;
-  padding: 0.5rem 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: $text-muted;
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.calendar-header {
-  border-bottom: 1px solid $border-color;
-}
-
-.calendar-day {
-  min-height: 104px;
-  padding: 0.4rem;
-  border-right: 1px solid $border-color;
-  border-bottom: 1px solid $border-color;
-  position: relative;
-  overflow: hidden;
-  transition: background-color 0.2s ease, transform 0.2s ease;
-
-  &:nth-child(7n) {
-    border-right: none;
-  }
-
-  &:hover {
-    background: rgba($rust, 0.07);
-  }
-
-  &.other-month {
-    opacity: 0.38;
-  }
-
-  &.today {
-    background: linear-gradient(180deg, rgba($rust, 0.2) 0%, rgba($rust, 0.08) 100%);
-
-    .calendar-date {
-      color: $forge-orange;
-      font-weight: 700;
-    }
-  }
-
-  &.has-workout {
-    background: linear-gradient(180deg, rgba($forge-orange, 0.09) 0%, rgba($forge-orange, 0.03) 100%);
-
-    .calendar-date {
-      font-weight: 600;
-    }
-  }
-
-  &.activity-low {
-    background: linear-gradient(180deg, rgba($forge-orange, 0.14) 0%, rgba($forge-orange, 0.06) 100%);
-  }
-
-  &.activity-medium {
-    background: linear-gradient(180deg, rgba($forge-orange, 0.24) 0%, rgba($forge-orange, 0.1) 100%);
-  }
-
-  &.activity-high {
-    background: linear-gradient(180deg, rgba($forge-orange, 0.34) 0%, rgba($forge-orange, 0.16) 100%);
-  }
-
-  &.activity-very-high {
-    background: linear-gradient(180deg, rgba($forge-orange, 0.44) 0%, rgba($forge-orange, 0.24) 100%);
-  }
-}
-
-.calendar-day > *:not(.calendar-day-link) {
-  position: relative;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.calendar-day-link {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  text-decoration: none;
-}
-
-.calendar-day-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.calendar-date {
-  font-size: 0.9rem;
-  color: $text-muted;
-  padding: 0.125rem 0.35rem;
-  border-radius: 999px;
-}
-
-.calendar-day-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.25rem;
-  height: 1.25rem;
-  padding: 0 0.35rem;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: $white;
-  background: rgba($rust, 0.7);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
-}
-
-.calendar-day.activity-medium .calendar-day-count {
-  background: rgba($rust, 0.78);
-}
-
-.calendar-day.activity-high .calendar-day-count {
-  background: rgba($rust, 0.88);
-}
-
-.calendar-day.activity-very-high .calendar-day-count {
-  background: rgba($forge-orange, 0.9);
-}
-
-.calendar-day-metrics {
-  margin-top: 0.25rem;
-  margin-bottom: 0.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.05rem;
-}
-
-.calendar-day-volume,
-.calendar-day-sets {
-  color: $text-muted;
-  font-size: 0.74rem;
-  line-height: 1.2;
-  font-weight: 500;
-}
-
-.calendar-metric-row {
-  display: grid;
-  grid-template-columns: 0.9rem 1fr;
-  align-items: center;
-  column-gap: 0.3rem;
-}
-
-.calendar-metric-icon {
-  width: 0.9rem;
-  text-align: center;
-  color: $text-muted;
-  opacity: 0.9;
-}
-
-.calendar-metric-number {
-  font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  color: $white;
-}
-
-.calendar-metric-unit {
-  font-size: 0.68rem;
-  color: $text-muted;
-}
-
-.calendar-day-workouts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.2rem;
-  margin-top: 0.1rem;
-}
-
-.calendar-workout-dot {
-  display: inline-block;
-  text-decoration: none;
-}
-
-.workout-indicator {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
-
-  &.completed {
-    background: $rust;
-  }
-
-  &.in-progress {
-    background: $forge-orange;
-    animation: pulse 1.5s infinite;
-  }
-}
-
-.calendar-summary-card {
-  border: 1px solid rgba($rust, 0.15);
-  background: linear-gradient(180deg, rgba($iron-medium, 0.85) 0%, rgba($iron-dark, 0.95) 100%);
-}
-
-@media (max-width: 767.98px) {
-  .calendar-day {
-    min-height: 58px;
-    padding: 0.25rem 0.2rem;
-  }
-
-  .calendar-day-top {
-    min-height: 100%;
-    align-items: flex-start;
-  }
-
-  .calendar-date {
-    font-size: 0.82rem;
-    padding: 0.1rem 0.28rem;
-  }
-
-  .calendar-day-count {
-    min-width: 1.1rem;
-    height: 1.1rem;
-    font-size: 0.64rem;
-    padding: 0 0.28rem;
-    background: rgba($rust, 0.8);
-  }
-
-  .calendar-day-metrics,
-  .calendar-day-workouts {
-    display: none;
-  }
-
-  .calendar-day.activity-low {
-    background: linear-gradient(180deg, rgba($forge-orange, 0.15) 0%, rgba($forge-orange, 0.06) 100%);
-  }
-
-  .calendar-day.activity-medium {
-    background: linear-gradient(180deg, rgba($forge-orange, 0.28) 0%, rgba($forge-orange, 0.12) 100%);
-  }
-
-  .calendar-day.activity-high {
-    background: linear-gradient(180deg, rgba($forge-orange, 0.38) 0%, rgba($forge-orange, 0.18) 100%);
-  }
-
-  .calendar-day.activity-very-high {
-    background: linear-gradient(180deg, rgba($forge-orange, 0.5) 0%, rgba($forge-orange, 0.28) 100%);
-  }
-}
-
-// ============================================================
-// Progress Photos
-// ============================================================
-
-.progress-photo-card {
-  position: relative;
-  overflow: hidden;
-  border-radius: 0.5rem;
-  background: $iron-medium;
-  transition: transform 0.2s ease;
-
-  &:hover {
-    transform: scale(1.02);
-  }
-}
-
-.progress-photo-thumb {
-  width: 100%;
-  aspect-ratio: 3/4;
-  object-fit: cover;
-  display: block;
-}
-
-.progress-photo-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 0.5rem;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-}
-
-.progress-photo-date {
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-}
-
-.progress-photo-weight {
-  color: $forge-orange;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-}
-
-// Show page overlay
-.progress-photo-show-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 1rem;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-}
-
-.progress-photo-show-date {
-  color: #fff;
-  font-size: 1.1rem;
-  font-weight: 700;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-}
-
-.progress-photo-show-time {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.85rem;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-}
-
-.progress-photo-show-weight {
-  color: $forge-orange;
-  font-size: 1rem;
-  font-weight: 700;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-}
-
-// Compare page
-.progress-photo-compare-container {
-  position: relative;
-
-  img {
-    width: 100%;
-    aspect-ratio: 3/4;
-    object-fit: cover;
-    border-radius: 0.5rem;
-  }
-}
-
-// Set type badges
-.set-type-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  font-size: 0.6rem;
-  font-weight: 700;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-// Equipment/outcome tracking micro-badges
-.tracking-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1px 4px;
-  border-radius: 3px;
-  font-size: 0.55rem;
-  font-weight: 700;
-  line-height: 1;
-  color: #fff;
-}
-
-.bg-purple {
-  background-color: #7b2d8e !important;
-}
-
-.bg-iron-light {
-  background-color: $iron-light !important;
-}
-
-// Notifications
-.notifications-dropdown {
-  width: min(420px, 92vw);
-  max-height: 420px;
-  overflow-y: auto;
-}
-
-@media (max-width: 991.98px) {
-  .notifications-dropdown {
-    position: fixed !important;
-    top: calc(56px + env(safe-area-inset-top)) !important;
-    left: 0.5rem !important;
-    right: 0.5rem !important;
-    width: auto !important;
-    max-width: none !important;
-    max-height: min(70vh, 420px);
-    transform: none !important;
-    z-index: 1055;
-  }
-}
-
-.notification-item {
-  border-left: 3px solid transparent !important;
-}
-
-.notification-success {
-  border-left-color: $success !important;
-}
-
-.notification-info {
-  border-left-color: $info !important;
-}
-
-.notification-warning {
-  border-left-color: $warning !important;
-}
-
-.notification-danger {
-  border-left-color: $danger !important;
 }

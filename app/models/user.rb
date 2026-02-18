@@ -2,33 +2,25 @@
 #
 # Table name: users
 #
-#  id                       :integer          not null, primary key
-#  admin                    :boolean          default(FALSE), not null
-#  deactivated_at           :datetime
-#  default_rest_seconds     :integer          default(90)
-#  email_address            :string           not null
-#  name                     :string
-#  notify_plateau           :boolean          default(TRUE), not null
-#  notify_readiness         :boolean          default(TRUE), not null
-#  notify_rest_timer_in_app :boolean          default(TRUE), not null
-#  notify_rest_timer_push   :boolean          default(TRUE), not null
-#  notify_streak_risk       :boolean          default(TRUE), not null
-#  notify_volume_drop       :boolean          default(TRUE), not null
-#  password_digest          :string           not null
-#  preferred_unit           :string
-#  progression_rep_target   :integer          default(10), not null
-#  weekly_summary_email     :boolean          default(FALSE), not null
-#  created_at               :datetime         not null
-#  updated_at               :datetime         not null
-#  default_gym_id           :integer
+#  id                     :integer          not null, primary key
+#  admin                  :boolean          default(FALSE), not null
+#  deactivated_at         :datetime
+#  default_rest_seconds   :integer          default(90)
+#  email_address          :string           not null
+#  name                   :string
+#  password_digest        :string           not null
+#  preferred_unit         :string
+#  progression_rep_target :integer          default(10), not null
+#  weekly_summary_email   :boolean          default(FALSE), not null
+#  created_at             :datetime         not null
+#  updated_at             :datetime         not null
+#  default_gym_id         :integer
 #
 # Indexes
 #
 #  index_users_on_admin           (admin)
-#  index_users_on_created_at      (created_at)
 #  index_users_on_default_gym_id  (default_gym_id)
 #  index_users_on_email_address   (email_address) UNIQUE
-#  index_users_on_updated_at      (updated_at)
 #
 # Foreign Keys
 #
@@ -49,8 +41,6 @@ class User < ApplicationRecord
   has_many :exercise_sets, through: :workout_exercises
   has_many :workout_templates, dependent: :destroy
   has_many :body_metrics, dependent: :destroy
-  has_many :progress_photos, dependent: :destroy
-  has_many :notifications, dependent: :destroy
   has_many :admin_audit_logs, foreign_key: :admin_user_id, dependent: :nullify, inverse_of: :admin_user
   belongs_to :default_gym, class_name: 'Gym', optional: true
 
@@ -71,12 +61,6 @@ class User < ApplicationRecord
     greater_than_or_equal_to: 5,
     less_than_or_equal_to: 20
   }
-  validates :notify_readiness, inclusion: { in: [ true, false ] }
-  validates :notify_plateau, inclusion: { in: [ true, false ] }
-  validates :notify_streak_risk, inclusion: { in: [ true, false ] }
-  validates :notify_volume_drop, inclusion: { in: [ true, false ] }
-  validates :notify_rest_timer_in_app, inclusion: { in: [ true, false ] }
-  validates :notify_rest_timer_push, inclusion: { in: [ true, false ] }
 
   # Scopes
   scope :active, -> { where(deactivated_at: nil) }
@@ -173,16 +157,5 @@ class User < ApplicationRecord
   # @return [Workout, nil]
   def active_workout
     workouts.in_progress.first
-  end
-
-  def notification_enabled_for?(kind)
-    case kind.to_s
-    when 'readiness' then notify_readiness?
-    when 'plateau' then notify_plateau?
-    when 'streak_risk' then notify_streak_risk?
-    when 'volume_drop' then notify_volume_drop?
-    when 'rest_timer' then notify_rest_timer_in_app?
-    else true
-    end
   end
 end

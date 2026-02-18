@@ -161,41 +161,6 @@
             </div>
 
             <div class="mb-4">
-              <strong>Notification Preferences</strong>
-              <div class="form-text mb-2">Choose which alerts appear in-app and which can trigger browser push.</div>
-
-              <div class="form-check form-switch mb-2">
-                <%= form.check_box :notify_readiness, class: "form-check-input", id: "user_notify_readiness" %>
-                <%= form.label :notify_readiness, "Ready to Progress alerts", class: "form-check-label", for: "user_notify_readiness" %>
-              </div>
-
-              <div class="form-check form-switch mb-2">
-                <%= form.check_box :notify_plateau, class: "form-check-input", id: "user_notify_plateau" %>
-                <%= form.label :notify_plateau, "Plateau watch alerts", class: "form-check-label", for: "user_notify_plateau" %>
-              </div>
-
-              <div class="form-check form-switch mb-2">
-                <%= form.check_box :notify_streak_risk, class: "form-check-input", id: "user_notify_streak_risk" %>
-                <%= form.label :notify_streak_risk, "Consistency streak risk alerts", class: "form-check-label", for: "user_notify_streak_risk" %>
-              </div>
-
-              <div class="form-check form-switch mb-2">
-                <%= form.check_box :notify_volume_drop, class: "form-check-input", id: "user_notify_volume_drop" %>
-                <%= form.label :notify_volume_drop, "Weekly volume drop alerts", class: "form-check-label", for: "user_notify_volume_drop" %>
-              </div>
-
-              <div class="form-check form-switch mb-2">
-                <%= form.check_box :notify_rest_timer_in_app, class: "form-check-input", id: "user_notify_rest_timer_in_app" %>
-                <%= form.label :notify_rest_timer_in_app, "Rest timer alerts in app feed", class: "form-check-label", for: "user_notify_rest_timer_in_app" %>
-              </div>
-
-              <div class="form-check form-switch">
-                <%= form.check_box :notify_rest_timer_push, class: "form-check-input", id: "user_notify_rest_timer_push" %>
-                <%= form.label :notify_rest_timer_push, "Rest timer browser push alerts", class: "form-check-label", for: "user_notify_rest_timer_push" %>
-              </div>
-            </div>
-
-            <div class="mb-4">
               <div class="form-check form-switch">
                 <%= form.check_box :weekly_summary_email, 
                     class: "form-check-input", 

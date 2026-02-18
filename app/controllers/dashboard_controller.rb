@@ -5,19 +5,7 @@ class DashboardController < ApplicationController
   # Main dashboard view with comprehensive workout analytics
   def index
     return unless Current.user
-    load_dashboard_data
-  end
 
-  # GET /analytics
-  # Dedicated analytics page containing all training charts and trends
-  def analytics
-    return unless Current.user
-    load_dashboard_data
-  end
-
-  private
-
-  def load_dashboard_data
     # Stats for dashboard
     # Quick stats for the top of dashboard
     @workouts_this_week = Current.user.workouts
@@ -39,7 +27,7 @@ class DashboardController < ApplicationController
     end
 
     # PR Timeline data (last 12 months of PRs across all exercises)
-    @pr_timeline_data = cached_analytics('pr_timeline') { calculate_pr_timeline }
+    @pr_timeline_data = calculate_pr_timeline
 
     # PRs this month (count from timeline data)
     start_of_month = Time.current.beginning_of_month.to_date.to_s
@@ -53,11 +41,6 @@ class DashboardController < ApplicationController
       .where.not(finished_at: nil)
       .order(finished_at: :desc)
       .limit(5)
-
-    # Pinned workout templates for quick access
-    @pinned_templates = Current.user.workout_templates
-      .pinned
-      .includes(template_blocks: :template_exercises)
 
     # Fatigue Analysis (active workout only)
     @fatigue_data = []
@@ -83,20 +66,13 @@ class DashboardController < ApplicationController
     recent_exercise_machine_combos = Current.user.workouts
       .where.not(finished_at: nil)
       .where('finished_at >= ?', 30.days.ago)
-      .joins(:workout_exercises)
-      .pluck(Arel.sql('DISTINCT workout_exercises.exercise_id, workout_exercises.machine_id'))
+      .joins(workout_exercises: :exercise)
+      .pluck(Arel.sql('DISTINCT exercises.id, workout_exercises.machine_id'))
       .first(10) # Limit to 10 most recent exercise combinations
 
-    exercise_ids = recent_exercise_machine_combos.map(&:first).compact.uniq
-    machine_ids = recent_exercise_machine_combos.map(&:last).compact.uniq
-    exercises_by_id = Exercise.where(id: exercise_ids).index_by(&:id)
-    machines_by_id = Machine.where(id: machine_ids).index_by(&:id)
-
     recent_exercise_machine_combos.each do |exercise_id, machine_id|
-      exercise = exercises_by_id[exercise_id]
-      next unless exercise
-
-      machine = machine_id ? machines_by_id[machine_id] : nil
+      exercise = Exercise.find(exercise_id)
+      machine = machine_id ? Machine.find(machine_id) : nil
 
       checker = ProgressionReadinessChecker.new(
         exercise: exercise,
@@ -116,19 +92,20 @@ class DashboardController < ApplicationController
     end
 
     # Workout frequency data for chart (last 8 weeks)
-    frequency_counts = weekly_workout_counts(week_count: 8)
-    @workout_frequency = build_weekly_series(week_count: 8) do |week_start|
+    @workout_frequency = (0..7).map do |weeks_ago|
+      week_start = weeks_ago.weeks.ago.beginning_of_week
+      week_end = weeks_ago.weeks.ago.end_of_week
       {
         label: week_start.strftime('%b %d'),
-        count: frequency_counts[week_bucket_key(week_start)] || 0
+        count: Current.user.workouts.where(finished_at: week_start..week_end).count
       }
-    end
+    end.reverse
 
     # Consistency data for compact visualization
-    @consistency_data = cached_analytics('consistency') { calculate_consistency_data }
+    @consistency_data = calculate_consistency_data
 
     # Rep range distribution (last 30 days)
-    @rep_range_data = cached_analytics('rep_range_distribution') { calculate_rep_range_distribution }
+    @rep_range_data = calculate_rep_range_distribution
 
     # Session duration trends (last 20 workouts)
     @session_duration_data = Current.user.workouts
@@ -145,29 +122,31 @@ class DashboardController < ApplicationController
       end.reverse
 
     # Exercise frequency (top 10 most performed exercises in last 90 days)
-    @exercise_frequency_data = cached_analytics('exercise_frequency') { calculate_exercise_frequency }
+    @exercise_frequency_data = calculate_exercise_frequency
 
     # Consistency streaks
-    @streak_data = cached_analytics('streaks') { calculate_streaks }
+    @streak_data = calculate_streaks
 
     # Week-over-Week comparison
-    @week_comparison_data = cached_analytics('week_comparison') { calculate_week_comparison }
+    @week_comparison_data = calculate_week_comparison
 
     # Tonnage tracker (weekly volume over last 12 weeks)
-    @tonnage_data = cached_analytics('tonnage') { calculate_tonnage_tracker }
+    @tonnage_data = calculate_tonnage_tracker
 
     # Plateau detector (exercises with no PR in 4+ weeks)
-    @plateau_data = cached_analytics('plateaus') { calculate_plateaus }
+    @plateau_data = calculate_plateaus
 
     # Training density (volume per minute over last 20 workouts)
-    @training_density_data = cached_analytics('training_density') { calculate_training_density }
+    @training_density_data = calculate_training_density
 
     # Muscle group volume distribution (last 7 days for recovery indicator)
-    @muscle_group_data = cached_analytics('muscle_group_volume') { calculate_muscle_group_volume }
+    @muscle_group_data = calculate_muscle_group_volume
 
     # Muscle group spider chart data (last 30 days for balance)
-    @muscle_balance_data = cached_analytics('muscle_balance') { calculate_muscle_balance }
+    @muscle_balance_data = calculate_muscle_balance
   end
+
+  private
 
   # Calculate distribution of rep ranges (1-5, 6-10, 11-15, 16+) from last 30 days
   # Helps identify training bias toward strength vs hypertrophy vs endurance
@@ -193,23 +172,16 @@ class DashboardController < ApplicationController
   # Returns top 10 most frequently performed exercises in last 90 days
   # Useful for identifying training patterns and favorites
   def calculate_exercise_frequency
-    exercise_counts = Current.user.workout_exercises
-      .joins(workout_block: :workout)
+    # Count how many times each exercise appeared in workouts
+    Current.user.workout_exercises
+      .joins(:exercise, workout_block: :workout)
       .where('workouts.finished_at >= ?', 90.days.ago)
       .where.not(workouts: { finished_at: nil })
-      .group(:exercise_id)
+      .group(Arel.sql('exercises.name'))
       .count
-      .sort_by { |(_, count)| -count }
+      .sort_by { |_, count| -count }
       .first(10)
-
-    exercise_names = Exercise.where(id: exercise_counts.map(&:first)).pluck(:id, :name).to_h
-
-    exercise_counts.map do |exercise_id, count|
-      {
-        exercise: exercise_names[exercise_id] || 'Unknown',
-        count: count
-      }
-    end
+      .map { |name, count| { exercise: name, count: count } }
   end
 
   # Build chronological timeline of PRs (weight and volume) over last 12 months
@@ -219,72 +191,70 @@ class DashboardController < ApplicationController
     prs = []
     since = 12.months.ago
 
-    historical_scope = Current.user.exercise_sets
-      .joins(workout_exercise: { workout_block: :workout })
-      .where('workouts.finished_at < ?', since)
-      .where.not(workouts: { finished_at: nil })
-      .where(is_warmup: false)
-      .where.not(weight_kg: nil)
-
-    historical_best_weights = historical_scope
-      .group('workout_exercises.exercise_id', 'workout_exercises.machine_id')
-      .maximum(:weight_kg)
-
-    historical_volume_by_workout_exercise = historical_scope
-      .where('exercise_sets.reps > 0')
-      .group('workout_exercises.id', 'workout_exercises.exercise_id', 'workout_exercises.machine_id')
-      .sum('COALESCE(exercise_sets.weight_kg, 0) * COALESCE(exercise_sets.reps, 0)')
-
-    historical_best_volumes = Hash.new(0)
-    historical_volume_by_workout_exercise.each do |(workout_exercise_id, exercise_id, machine_id), volume|
-      _ = workout_exercise_id
-      combo_key = [ exercise_id, machine_id ]
-      historical_best_volumes[combo_key] = [ historical_best_volumes[combo_key], volume ].max
-    end
-
-    recent_sets = Current.user.exercise_sets
-      .joins(workout_exercise: [ :exercise, { workout_block: :workout } ])
+    # Load 12 months of workout data with sets
+    workout_exercises = Current.user.workout_exercises
+      .joins(workout_block: :workout)
+      .includes(:exercise, :machine, :exercise_sets)
       .where('workouts.finished_at >= ?', since)
       .where.not(workouts: { finished_at: nil })
-      .where(is_warmup: false)
-      .where.not(weight_kg: nil)
-      .where('exercise_sets.reps > 0')
-      .where(exercises: { has_weight: true })
-      .pluck(
-        Arel.sql('workout_exercises.exercise_id'),
-        Arel.sql('workout_exercises.machine_id'),
-        Arel.sql('exercises.name'),
-        :weight_kg,
-        :reps,
-        Arel.sql('COALESCE(exercise_sets.completed_at, exercise_sets.created_at)')
-      )
 
-    grouped_sets = recent_sets.group_by { |exercise_id, machine_id, *_| [ exercise_id, machine_id ] }
+    # Group by exercise+machine for proper scoping
+    exercises_data = workout_exercises.group_by { |we| [ we.exercise_id, we.machine_id ] }
 
-    grouped_sets.each do |(exercise_id, machine_id), sets_for_combo|
-      exercise_name = sets_for_combo.first[2]
-      next if exercise_name.blank?
+    exercises_data.each do |(exercise_id, machine_id), wes|
+      exercise = wes.first.exercise
+      next unless exercise&.has_weight?
+
+      # Get historical best BEFORE the time period to establish baseline
+      historical_best_weight = Current.user.exercise_sets
+        .joins(workout_exercise: { workout_block: :workout })
+        .where(workout_exercises: { exercise_id: exercise_id, machine_id: machine_id })
+        .where('workouts.finished_at < ?', since)
+        .where.not(workouts: { finished_at: nil })
+        .where(is_warmup: false)
+        .where.not(weight_kg: nil)
+        .maximum(:weight_kg) || 0
+
+      historical_best_volume = 0
+      Current.user.workout_exercises
+        .joins(workout_block: :workout)
+        .includes(:exercise_sets)
+        .where(exercise_id: exercise_id, machine_id: machine_id)
+        .where('workouts.finished_at < ?', since)
+        .where.not(workouts: { finished_at: nil })
+        .each do |we|
+          vol = we.exercise_sets
+            .select { |s| !s.is_warmup && s.weight_kg.present? && s.reps&.positive? }
+            .sum { |s| (s.weight_kg || 0) * (s.reps || 0) }
+          historical_best_volume = vol if vol > historical_best_volume
+        end
+
+      # Get all working sets in chronological order within the time period
+      all_sets = wes.flat_map { |we|
+        we.exercise_sets.select { |s| !s.is_warmup && s.weight_kg.present? && s.reps&.positive? }
+      }.sort_by { |s| s.completed_at || s.created_at }
+
+      next if all_sets.empty?
 
       # Track running PRs starting from historical baseline
-      best_weight = historical_best_weights[[ exercise_id, machine_id ]] || 0
-      best_volume = historical_best_volumes[[ exercise_id, machine_id ]] || 0
+      best_weight = historical_best_weight
+      best_volume = historical_best_volume
 
       # Track if we've seen at least one set (first set is never a PR unless beating history)
-      has_previous_set = best_weight > 0 || best_volume > 0
+      has_previous_set = historical_best_weight > 0 || historical_best_volume > 0
 
-      sets_for_combo
-        .sort_by { |(_, _, _, _, _, completed_at)| completed_at }
-        .each do |(_, _, _, weight, reps, completed_at)|
-        date = completed_at.to_date
-        volume = (weight || 0) * (reps || 0)
+      all_sets.each do |set|
+        date = (set.completed_at || set.created_at).to_date
+        weight = set.weight_kg
+        volume = (set.weight_kg || 0) * (set.reps || 0)
 
         # Check for weight PR (must beat previous best AND have previous data)
         if weight > best_weight && has_previous_set
           prs << {
-            exercise: exercise_name,
+            exercise: exercise.name,
             date: date.to_s,
             weight: Current.user.display_weight(weight).round,
-            reps: reps || 0,
+            reps: set.reps || 0,
             type: 'weight'
           }
         end
@@ -293,10 +263,10 @@ class DashboardController < ApplicationController
         # Check for volume PR (must beat previous best AND have previous data)
         if volume > best_volume && has_previous_set
           prs << {
-            exercise: exercise_name,
+            exercise: exercise.name,
             date: date.to_s,
-            weight: Current.user.display_weight(weight).round,
-            reps: reps || 0,
+            weight: Current.user.display_weight(set.weight_kg).round,
+            reps: set.reps || 0,
             type: 'volume'
           }
         end
@@ -379,40 +349,53 @@ class DashboardController < ApplicationController
   def calculate_week_comparison
     this_week_start = Date.current.beginning_of_week
     last_week_start = (Date.current - 1.week).beginning_of_week
-    range_start = last_week_start.beginning_of_day
-    range_end = this_week_start.end_of_week
-    this_week_key = week_bucket_key(this_week_start)
-    last_week_key = week_bucket_key(last_week_start)
 
-    volume_totals = Current.user.workouts
+    # This week's volume
+    this_week_volume = Current.user.workouts
       .joins(workout_exercises: :exercise_sets)
-      .where(finished_at: range_start..range_end)
+      .where(finished_at: this_week_start..this_week_start.end_of_week)
       .where(exercise_sets: { is_warmup: false })
-      .group(Arel.sql("strftime('%Y-%W', workouts.finished_at)"))
-      .sum('COALESCE(exercise_sets.weight_kg, 0) * COALESCE(exercise_sets.reps, 0)')
+      .sum('exercise_sets.weight_kg * exercise_sets.reps')
 
-    workout_counts = Current.user.workouts
-      .where(finished_at: range_start..range_end)
-      .group(Arel.sql("strftime('%Y-%W', finished_at)"))
+    # Last week's volume
+    last_week_volume = Current.user.workouts
+      .joins(workout_exercises: :exercise_sets)
+      .where(finished_at: last_week_start..last_week_start.end_of_week)
+      .where(exercise_sets: { is_warmup: false })
+      .sum('exercise_sets.weight_kg * exercise_sets.reps')
+
+    # This week's workouts count
+    this_week_workouts = Current.user.workouts
+      .where(finished_at: this_week_start..this_week_start.end_of_week)
       .count
 
-    set_counts = Current.user.exercise_sets
+    # Last week's workouts count
+    last_week_workouts = Current.user.workouts
+      .where(finished_at: last_week_start..last_week_start.end_of_week)
+      .count
+
+    # This week's total sets
+    this_week_sets = Current.user.exercise_sets
       .joins(workout_exercise: { workout_block: :workout })
-      .where(workouts: { finished_at: range_start..range_end })
+      .where(workouts: { finished_at: this_week_start..this_week_start.end_of_week })
       .where(is_warmup: false)
-      .group(Arel.sql("strftime('%Y-%W', workouts.finished_at)"))
       .count
 
-    this_week_volume = volume_totals[this_week_key] || 0
-    last_week_volume = volume_totals[last_week_key] || 0
-    this_week_workouts = workout_counts[this_week_key] || 0
-    last_week_workouts = workout_counts[last_week_key] || 0
-    this_week_sets = set_counts[this_week_key] || 0
-    last_week_sets = set_counts[last_week_key] || 0
+    # Last week's total sets
+    last_week_sets = Current.user.exercise_sets
+      .joins(workout_exercise: { workout_block: :workout })
+      .where(workouts: { finished_at: last_week_start..last_week_start.end_of_week })
+      .where(is_warmup: false)
+      .count
 
     # Convert to user's unit
-    this_week_volume = convert_volume_for_display(this_week_volume)
-    last_week_volume = convert_volume_for_display(last_week_volume)
+    if Current.user.preferred_unit == 'lbs'
+      this_week_volume = (this_week_volume * 2.20462).round
+      last_week_volume = (last_week_volume * 2.20462).round
+    else
+      this_week_volume = this_week_volume.round
+      last_week_volume = last_week_volume.round
+    end
 
     {
       this_week: {
@@ -431,15 +414,29 @@ class DashboardController < ApplicationController
   # Track total weekly volume (tonnage) over last 12 weeks
   # Shows training load trends over time
   def calculate_tonnage_tracker
-    weekly_volumes = weekly_volume_totals(week_count: 12)
+    # Sum volume for each week
+    (0..11).map do |weeks_ago|
+      week_start = weeks_ago.weeks.ago.beginning_of_week
+      week_end = weeks_ago.weeks.ago.end_of_week
 
-    build_weekly_series(week_count: 12) do |week_start|
-      volume = weekly_volumes[week_bucket_key(week_start)] || 0
+      volume = Current.user.workouts
+        .joins(workout_exercises: :exercise_sets)
+        .where(finished_at: week_start..week_end)
+        .where(exercise_sets: { is_warmup: false })
+        .sum('exercise_sets.weight_kg * exercise_sets.reps')
+
+      # Convert to user's unit
+      if Current.user.preferred_unit == 'lbs'
+        volume = (volume * 2.20462).round
+      else
+        volume = volume.round
+      end
+
       {
         label: week_start.strftime('%b %d'),
-        volume: convert_volume_for_display(volume)
+        volume: volume
       }
-    end
+    end.reverse
   end
 
   # Identify exercises where user hasn't hit a PR in 4+ weeks (potential plateaus)
@@ -459,19 +456,16 @@ class DashboardController < ApplicationController
       .distinct
       .pluck(Arel.sql('exercises.id'), Arel.sql('exercises.name'))
 
-    exercise_ids = active_exercises.map(&:first)
-    sets_by_exercise = Current.user.exercise_sets
-      .joins(workout_exercise: { workout_block: :workout })
-      .where(workout_exercises: { exercise_id: exercise_ids })
-      .where.not(workouts: { finished_at: nil })
-      .where(is_warmup: false)
-      .where.not(weight_kg: nil)
-      .order(Arel.sql('workout_exercises.exercise_id ASC, workouts.finished_at ASC'))
-      .pluck(Arel.sql('workout_exercises.exercise_id'), :weight_kg, :reps, Arel.sql('workouts.finished_at'))
-      .group_by(&:first)
-
     active_exercises.each do |exercise_id, exercise_name|
-      all_sets = sets_by_exercise[exercise_id]&.map { |(_, weight, reps, finished_at)| [ weight, reps, finished_at ] } || []
+      # Get all working sets for this exercise, chronologically
+      all_sets = Current.user.exercise_sets
+        .joins(workout_exercise: { workout_block: :workout })
+        .where(workout_exercises: { exercise_id: exercise_id })
+        .where.not(workouts: { finished_at: nil })
+        .where(is_warmup: false)
+        .where.not(weight_kg: nil)
+        .order(Arel.sql('workouts.finished_at ASC'))
+        .pluck(:weight_kg, :reps, Arel.sql('workouts.finished_at'))
 
       next if all_sets.length < 3  # Need history to detect plateau
 
@@ -516,22 +510,23 @@ class DashboardController < ApplicationController
     workouts = Current.user.workouts
       .where.not(finished_at: nil)
       .where.not(started_at: nil)
-      .includes(:gym)
       .order(finished_at: :desc)
       .limit(20)
-
-    volumes_by_workout_id = Current.user.exercise_sets
-      .joins(workout_exercise: { workout_block: :workout })
-      .where(workouts: { id: workouts.map(&:id) })
-      .where(is_warmup: false)
-      .group(Arel.sql('workouts.id'))
-      .sum('COALESCE(exercise_sets.weight_kg, 0) * COALESCE(exercise_sets.reps, 0)')
 
     workouts.map do |workout|
       duration_minutes = workout.duration_minutes || 0
       next nil if duration_minutes < 5  # Skip very short workouts
 
-      volume = convert_volume_for_display(volumes_by_workout_id[workout.id] || 0)
+      volume = workout.exercise_sets
+        .where(is_warmup: false)
+        .sum('COALESCE(weight_kg, 0) * COALESCE(reps, 0)')
+
+      # Convert to user's unit
+      if Current.user.preferred_unit == 'lbs'
+        volume = (volume * 2.20462).round
+      else
+        volume = volume.round
+      end
 
       density = (volume / duration_minutes.to_f).round
 
@@ -549,7 +544,38 @@ class DashboardController < ApplicationController
   # Returns hash with muscle group as key and {volume, sets, last_trained} as value
   # Used for recovery indicator (how long since each muscle was trained)
   def calculate_muscle_group_volume
-    muscle_stats = muscle_stats_for_window(since: 7.days.ago.beginning_of_day)
+    seven_days_ago = 7.days.ago.beginning_of_day
+
+    # Get all workout exercises from last 7 days with their exercise's muscle group
+    workout_exercises = Current.user.workout_exercises
+      .joins(:exercise, workout_block: :workout)
+      .includes(:exercise_sets)
+      .where('workouts.finished_at >= ?', seven_days_ago)
+      .where.not(workouts: { finished_at: nil })
+      .where.not(exercises: { primary_muscle_group: nil })
+
+    # Group by muscle and calculate stats
+    muscle_stats = {}
+
+    workout_exercises.each do |we|
+      muscle = we.exercise.primary_muscle_group
+      next unless muscle
+
+      muscle_stats[muscle] ||= { volume: 0, sets: 0, last_trained: nil }
+
+      # Calculate volume for this exercise
+      volume = we.exercise_sets.where(is_warmup: false).sum do |set|
+        (set.weight_kg || 0) * (set.reps || 0)
+      end
+
+      muscle_stats[muscle][:volume] += volume
+      muscle_stats[muscle][:sets] += we.exercise_sets.where(is_warmup: false).count
+
+      workout_date = we.workout_block.workout.finished_at
+      if muscle_stats[muscle][:last_trained].nil? || workout_date > muscle_stats[muscle][:last_trained]
+        muscle_stats[muscle][:last_trained] = workout_date
+      end
+    end
 
     # Convert volumes to user's preferred unit and calculate days since last trained
     muscle_stats.each_with_object({}) do |(muscle, stats), result|
@@ -578,13 +604,15 @@ class DashboardController < ApplicationController
   # Calculate consistency data: last 12 weeks + day-of-week pattern + current month
   def calculate_consistency_data
     # Last 12 weeks workout count
-    weekly_counts = weekly_workout_counts(week_count: 12)
-    twelve_weeks = build_weekly_series(week_count: 12) do |week_start|
+    twelve_weeks = (0..11).map do |weeks_ago|
+      week_start = weeks_ago.weeks.ago.beginning_of_week
+      week_end = weeks_ago.weeks.ago.end_of_week
+      count = Current.user.workouts.where(finished_at: week_start..week_end).count
       {
         week_start: week_start.strftime('%b %d'),
-        count: weekly_counts[week_bucket_key(week_start)] || 0
+        count: count
       }
-    end
+    end.reverse
 
     # Day of week pattern (last 90 days)
     day_pattern = Current.user.workouts
@@ -622,8 +650,31 @@ class DashboardController < ApplicationController
   # Calculate muscle group balance for spider/radar chart (last 30 days)
   # Returns normalized volume per muscle group (0-100 scale)
   def calculate_muscle_balance
-    muscle_volumes = muscle_stats_for_window(since: 30.days.ago.beginning_of_day)
-      .transform_values { |stats| stats[:volume] }
+    thirty_days_ago = 30.days.ago.beginning_of_day
+
+    # Get all workout exercises from last 30 days
+    workout_exercises = Current.user.workout_exercises
+      .joins(:exercise, workout_block: :workout)
+      .includes(:exercise_sets)
+      .where('workouts.finished_at >= ?', thirty_days_ago)
+      .where.not(workouts: { finished_at: nil })
+      .where.not(exercises: { primary_muscle_group: nil })
+
+    # Calculate volume per muscle group
+    muscle_volumes = {}
+
+    workout_exercises.each do |we|
+      muscle = we.exercise.primary_muscle_group
+      next unless muscle
+
+      muscle_volumes[muscle] ||= 0
+
+      volume = we.exercise_sets.where(is_warmup: false).sum do |set|
+        (set.weight_kg || 0) * (set.reps || 0)
+      end
+
+      muscle_volumes[muscle] += volume
+    end
 
     # Find max volume for normalization
     max_volume = muscle_volumes.values.max || 1
@@ -640,78 +691,5 @@ class DashboardController < ApplicationController
         color: Exercise::MUSCLE_GROUP_COLORS[muscle]
       }
     end
-  end
-
-  def build_weekly_series(week_count:)
-    (0...week_count).map do |weeks_ago|
-      week_start = weeks_ago.weeks.ago.beginning_of_week
-      yield week_start
-    end.reverse
-  end
-
-  def week_bucket_key(week_start)
-    week_start.strftime('%Y-%W')
-  end
-
-  def weekly_workout_counts(week_count:)
-    range_start = (week_count - 1).weeks.ago.beginning_of_week
-    range_end = Time.current.end_of_week
-
-    Current.user.workouts
-      .where(finished_at: range_start..range_end)
-      .group(Arel.sql("strftime('%Y-%W', finished_at)"))
-      .count
-  end
-
-  def weekly_volume_totals(week_count:)
-    range_start = (week_count - 1).weeks.ago.beginning_of_week
-    range_end = Time.current.end_of_week
-
-    Current.user.workouts
-      .joins(workout_exercises: :exercise_sets)
-      .where(finished_at: range_start..range_end)
-      .where(exercise_sets: { is_warmup: false })
-      .group(Arel.sql("strftime('%Y-%W', workouts.finished_at)"))
-      .sum('COALESCE(exercise_sets.weight_kg, 0) * COALESCE(exercise_sets.reps, 0)')
-  end
-
-  def convert_volume_for_display(volume)
-    if Current.user.preferred_unit == 'lbs'
-      (volume * 2.20462).round
-    else
-      volume.round
-    end
-  end
-
-  def cached_analytics(key, expires_in: 3.minutes, &block)
-    DashboardAnalyticsCache.fetch(user_id: Current.user.id, key:, expires_in:, &block)
-  end
-
-  def muscle_stats_for_window(since:)
-    stats_by_muscle = Hash.new { |hash, key| hash[key] = { volume: 0, sets: 0, last_trained: nil } }
-
-    Current.user.exercise_sets
-      .joins(workout_exercise: [ :exercise, { workout_block: :workout } ])
-      .where('workouts.finished_at >= ?', since)
-      .where.not(workouts: { finished_at: nil })
-      .where(is_warmup: false)
-      .where.not(exercises: { primary_muscle_group: nil })
-      .pluck(
-        Arel.sql('exercises.primary_muscle_group'),
-        :weight_kg,
-        :reps,
-        Arel.sql('workouts.finished_at')
-      )
-      .each do |muscle, weight_kg, reps, finished_at|
-      entry = stats_by_muscle[muscle]
-      entry[:volume] += (weight_kg || 0) * (reps || 0)
-      entry[:sets] += 1
-
-      if entry[:last_trained].nil? || finished_at > entry[:last_trained]
-        entry[:last_trained] = finished_at
-      end
-    end
-
-    stats_by_muscle
   end
 end

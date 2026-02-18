@@ -68,6 +68,20 @@ Rails.application.configure do
   #   port: 587,
   #   authentication: :plain
   # }
+  if smtp_address = ENV['SMTP_ADDRESS'].presence
+    config.action_mailer.delivery_method = :smtp
+    config.action_mailer.smtp_settings = {
+      address: smtp_address,
+      port: ENV.fetch('SMTP_PORT', ENV['SMTP_TLS'] == 'true' ? '465' : '587').to_i,
+      domain: ENV.fetch('SMTP_DOMAIN', nil),
+      user_name: ENV.fetch('SMTP_USERNAME', nil),
+      password: ENV.fetch('SMTP_PASSWORD', nil),
+      authentication: ENV.fetch('SMTP_AUTHENTICATION', 'plain'),
+      # tls: ENV["SMTP_TLS"] == "true",
+      enable_starttls_auto: true
+      # openssl_verify_mode: ENV["SMTP_SSL_VERIFY_MODE"]
+    }
+  end
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
