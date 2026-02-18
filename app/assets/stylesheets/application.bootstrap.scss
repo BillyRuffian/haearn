@@ -1062,7 +1062,14 @@ select option:checked {
 // Workout page can include fixed/animated UI (FAB + timer + swipe actions).
 // Clip horizontal paint overflow so it never creates page-level rightward scroll.
 .workout-show-page {
-  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+.workout-show-page main,
+.workout-show-page #workout_blocks,
+.workout-show-page .workout-block,
+.workout-show-page .rest-timer-footer {
+  overflow-x: clip;
 }
 
 // =====================================================
@@ -1388,6 +1395,7 @@ select option:checked {
 // =====================================================
 .swipeable-container {
   position: relative;
+  overflow-x: clip;
 
   // Ensure the container with an open dropdown renders above sibling elements
   &:has(.dropdown-menu.show) {
