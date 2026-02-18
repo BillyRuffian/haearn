@@ -844,6 +844,14 @@ select option:checked {
   }
 }
 
+// Hide floating add-exercise button while inline add-set form is open.
+// This prevents overlapping actions and accidental taps.
+body.add-set-form-open .workout-fab {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.9);
+}
+
 // Rest Timer Footer Bar UI
 .rest-timer-footer {
   position: fixed;
