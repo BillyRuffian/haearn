@@ -139,6 +139,10 @@ User
 
 14. **Calendar Activity Tiering**: Calendar activity coloring should use explicit tiers by workout count (1/2/3/4+) with progressively stronger cell backgrounds and badge contrast, optimized for quick mobile glanceability.
 
+15. **Web Push Delivery Pipeline**: Browser push uses persisted `PushSubscription` records per user and VAPID configuration (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` or `credentials.web_push.*`). Deliver pushes from persisted `Notification` records via `WebPushNotificationService`, and auto-prune expired/invalid subscriptions on push errors.
+
+16. **Analytics Cache Observability**: Dashboard analytics cache must emit per-user daily counters (`cache_hit`, `cache_miss`, `invalidation`) and `ActiveSupport::Notifications` events (`dashboard_analytics_cache.fetch`, `dashboard_analytics_cache.invalidate`) so hit-rate regressions are visible.
+
 ## Equipment Types (Enum)
 
 ```ruby
@@ -223,6 +227,13 @@ bundle exec rubocop -A
 ```bash
 # Dashboard/notification timing baseline (supports USER_ID, RUNS, WARMUP)
 bin/rails performance:benchmark_dashboard RUNS=10 WARMUP=2
+```
+
+## Web Push Setup
+
+```bash
+# Generate OpenSSL 3-compatible VAPID keys for web push
+bin/rails web_push:generate_keys
 ```
 
 ## Common Patterns

@@ -45,6 +45,8 @@ env:
     - RAILS_MASTER_KEY
     - SMTP_USERNAME
     - SMTP_PASSWORD
+    - VAPID_PUBLIC_KEY
+    - VAPID_PRIVATE_KEY
 
   clear:
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.

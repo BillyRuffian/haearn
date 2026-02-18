@@ -17,7 +17,7 @@ class DashboardAnalyticsCacheTest < ActiveSupport::TestCase
       @store[key] = yield
     end
 
-    def write(key, value)
+    def write(key, value, _opts = {})
       @store[key] = value
     end
 
@@ -49,6 +49,17 @@ class DashboardAnalyticsCacheTest < ActiveSupport::TestCase
     assert_equal({ current: 3 }, cached)
   end
 
+  test 'fetch records miss then hit metrics for the day' do
+    DashboardAnalyticsCache.reset_metrics_for_user!(user_id: @user.id, cache_store: @store)
+
+    DashboardAnalyticsCache.fetch(user_id: @user.id, key: 'streaks', cache_store: @store) { { current: 3 } }
+    DashboardAnalyticsCache.fetch(user_id: @user.id, key: 'streaks', cache_store: @store) { { current: 9 } }
+
+    metrics = DashboardAnalyticsCache.metrics_for_user(user_id: @user.id, cache_store: @store)
+    assert_equal 1, metrics['cache_miss']
+    assert_equal 1, metrics['cache_hit']
+  end
+
   test 'invalidate_for_user removes all analytics keys for the user' do
     DashboardAnalyticsCache::ANALYTICS_KEYS.each do |key|
       @store.write(DashboardAnalyticsCache.cache_key(user_id: @user.id, key: key), "v:#{key}")
@@ -69,6 +80,16 @@ class DashboardAnalyticsCacheTest < ActiveSupport::TestCase
     DashboardAnalyticsCache.invalidate_for_user!(@user.id, cache_store: spy_store)
 
     assert_equal DashboardAnalyticsCache::ANALYTICS_KEYS.size, spy_store.deleted_keys.size
+  end
+
+  test 'invalidate_for_user records invalidation metric only for non-skipped deletes' do
+    DashboardAnalyticsCache.reset_metrics_for_user!(user_id: @user.id, cache_store: @store)
+
+    DashboardAnalyticsCache.invalidate_for_user!(@user.id, keys: %w[streaks], cache_store: @store)
+    DashboardAnalyticsCache.invalidate_for_user!(@user.id, keys: %w[streaks], cache_store: @store)
+
+    metrics = DashboardAnalyticsCache.metrics_for_user(user_id: @user.id, cache_store: @store)
+    assert_equal 1, metrics['invalidation']
   end
 
   test 'invalidate_for_user only clears requested key subset' do

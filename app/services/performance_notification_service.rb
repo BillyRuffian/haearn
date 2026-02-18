@@ -8,6 +8,7 @@ class PerformanceNotificationService
 
   def initialize(user:)
     @user = user
+    @web_push = WebPushNotificationService.new(user: user)
   end
 
   def refresh!
@@ -222,6 +223,7 @@ class PerformanceNotificationService
     )
     if notification.changed?
       notification.save!
+      @web_push.deliver_notification(notification)
       existing_by_key[candidate[:dedupe_key]] = notification
     end
   end

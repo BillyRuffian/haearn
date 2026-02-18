@@ -2,25 +2,33 @@
 #
 # Table name: users
 #
-#  id                     :integer          not null, primary key
-#  admin                  :boolean          default(FALSE), not null
-#  deactivated_at         :datetime
-#  default_rest_seconds   :integer          default(90)
-#  email_address          :string           not null
-#  name                   :string
-#  password_digest        :string           not null
-#  preferred_unit         :string
-#  progression_rep_target :integer          default(10), not null
-#  weekly_summary_email   :boolean          default(FALSE), not null
-#  created_at             :datetime         not null
-#  updated_at             :datetime         not null
-#  default_gym_id         :integer
+#  id                       :integer          not null, primary key
+#  admin                    :boolean          default(FALSE), not null
+#  deactivated_at           :datetime
+#  default_rest_seconds     :integer          default(90)
+#  email_address            :string           not null
+#  name                     :string
+#  notify_plateau           :boolean          default(TRUE), not null
+#  notify_readiness         :boolean          default(TRUE), not null
+#  notify_rest_timer_in_app :boolean          default(TRUE), not null
+#  notify_rest_timer_push   :boolean          default(TRUE), not null
+#  notify_streak_risk       :boolean          default(TRUE), not null
+#  notify_volume_drop       :boolean          default(TRUE), not null
+#  password_digest          :string           not null
+#  preferred_unit           :string
+#  progression_rep_target   :integer          default(10), not null
+#  weekly_summary_email     :boolean          default(FALSE), not null
+#  created_at               :datetime         not null
+#  updated_at               :datetime         not null
+#  default_gym_id           :integer
 #
 # Indexes
 #
 #  index_users_on_admin           (admin)
+#  index_users_on_created_at      (created_at)
 #  index_users_on_default_gym_id  (default_gym_id)
 #  index_users_on_email_address   (email_address) UNIQUE
+#  index_users_on_updated_at      (updated_at)
 #
 # Foreign Keys
 #
@@ -42,6 +50,7 @@ class User < ApplicationRecord
   has_many :workout_templates, dependent: :destroy
   has_many :body_metrics, dependent: :destroy
   has_many :notifications, dependent: :destroy
+  has_many :push_subscriptions, dependent: :destroy
   has_many :progress_photos, dependent: :destroy
   has_many :admin_audit_logs, foreign_key: :admin_user_id, dependent: :nullify, inverse_of: :admin_user
   belongs_to :default_gym, class_name: 'Gym', optional: true
@@ -167,5 +176,11 @@ class User < ApplicationRecord
   def notification_enabled_for?(kind)
     column = "notify_#{kind}"
     respond_to?(column) ? public_send(column) : true
+  end
+
+  def web_push_enabled_for?(kind)
+    return notify_rest_timer_push? if kind == 'rest_timer'
+
+    notification_enabled_for?(kind)
   end
 end

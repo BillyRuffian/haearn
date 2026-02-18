@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: February 17, 2026
+> Last Updated: February 18, 2026
 
 ## Overview
 
@@ -760,7 +760,8 @@ $text-muted: #6c757d;
 ### 16.1 In-App + Push Notifications
 - [x] Build notification preferences (readiness alerts, streak risk, reminders, PR events) _(User-level toggles added in Settings for readiness/plateau/streak/volume-drop and rest timer in-app/push notifications; services/controllers now honor these preferences)_
 - [x] Implement in-app notification center (recent alerts, read/unread state) _(Dynamic bell dropdown + dashboard panel powered by `notifications_center_controller`, polling JSON feed with mark-read/mark-all-read actions; rest timer expiry now enters the same in-app feed for consistency)_
-- [ ] Add Web Push subscription + delivery pipeline for PWA users
+- [x] Add Web Push subscription + delivery pipeline for PWA users _(Added `PushSubscription` persistence, subscription/unsubscribe endpoints, VAPID-backed `WebPushNotificationService`, and Settings-driven browser subscription flow via `notification_permission_controller`.)_
+  - [x] Added `bin/rails web_push:generate_keys` task for OpenSSL 3-compatible VAPID key generation.
 - [x] Trigger notifications from progression/readiness/streak events _(PerformanceNotificationService generates plateau/readiness/streak risk/volume drop alerts and stores deduped notifications per user)_
 - [x] Calibrate notification sensitivity (week-to-date volume drop guardrails; machine-scoped fatigue baseline comparisons)
 - [ ] Add delivery audit + retry logic for failed notification sends
@@ -811,7 +812,7 @@ $text-muted: #6c757d;
 - [x] Add performance notes + benchmark snapshots to docs _(Captured query plans and added repeatable timing baseline task: `bin/rails performance:benchmark_dashboard RUNS=10 WARMUP=2`.)_
 
 ### 19.3 Further Optimizations (Next)
-- [ ] Add instrumentation for dashboard analytics cache hit/miss rates and invalidation counts (user-scoped metrics)
+- [x] Add instrumentation for dashboard analytics cache hit/miss rates and invalidation counts (user-scoped metrics) _(Dashboard analytics now fetch through `DashboardAnalyticsCache.fetch` with per-user daily counters for `cache_hit`, `cache_miss`, and `invalidation`, plus `ActiveSupport::Notifications` instrumentation for fetch/invalidation events.)_
 - [ ] Add chart-level cache key versioning so invalidation can target smaller subsets without clearing full analytics bundles
 - [ ] Add optional async pre-warm job for expensive analytics datasets after workout completion
 - [ ] Add seeded large-data benchmark profile and track timing trends in CI artifacts
@@ -825,4 +826,4 @@ $text-muted: #6c757d;
 - Integration with fitness trackers / Apple Health?
 - Heart rate zone tracking for conditioning work?
 - Video form check with rep counter (ML)?
-- **Push notifications for PRs** - Would require server-side infrastructure (web push subscription management, background sync). Local notifications for rest timer already implemented.
+- Push notification foundation is now in place (subscription storage + VAPID delivery). Remaining work is delivery auditing/retry policy and expanding trigger coverage.

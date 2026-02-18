@@ -105,8 +105,20 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test 'should skip rest timer in-app notification when user preference is disabled' do
+  test 'should still persist rest timer notification when in-app is disabled but push is enabled' do
     @user.update!(notify_rest_timer_in_app: false)
+
+    assert_difference -> { @user.notifications.count }, 1 do
+      post rest_timer_expired_notifications_path,
+           params: { completed_at_ms: 1_739_472_000_000 },
+           as: :json
+    end
+
+    assert_response :success
+  end
+
+  test 'should skip rest timer notification when both in-app and push preferences are disabled' do
+    @user.update!(notify_rest_timer_in_app: false, notify_rest_timer_push: false)
 
     assert_no_difference -> { @user.notifications.count } do
       post rest_timer_expired_notifications_path,

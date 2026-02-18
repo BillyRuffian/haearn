@@ -129,6 +129,8 @@ Rails.application.routes.draw do
       patch :read
     end
   end
+  resources :push_subscriptions, only: [ :create ]
+  delete 'push_subscriptions', to: 'push_subscriptions#destroy'
 
   # Dashboard
   root 'dashboard#index'

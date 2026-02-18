@@ -3,14 +3,25 @@ import { Controller } from "@hotwired/stimulus"
 // Manages notification permission requests and displays current status
 export default class extends Controller {
   static targets = ["status", "button", "container"]
+  static values = {
+    publicKey: String,
+    subscribeUrl: String,
+    unsubscribeUrl: String
+  }
 
   connect() {
     this.updateStatus()
+    this.syncSubscriptionState()
   }
 
   updateStatus() {
     if (!("Notification" in window)) {
       this.showNotSupported()
+      return
+    }
+
+    if (!this.hasPublicKeyValue) {
+      this.showUnavailable()
       return
     }
 
@@ -47,13 +58,13 @@ export default class extends Controller {
     }
 
     if (Notification.permission === "default") {
-      const result = await Notification.requestPermission()
+      await Notification.requestPermission()
       this.updateStatus()
+    }
 
-      // If granted, send a test notification
-      if (result === "granted") {
-        this.sendTestNotification()
-      }
+    if (Notification.permission === "granted") {
+      await this.subscribe()
+      this.sendTestNotification()
     }
   }
 
@@ -65,6 +76,92 @@ export default class extends Controller {
     })
   }
 
+  async syncSubscriptionState() {
+    if (!("serviceWorker" in navigator) || !this.hasPublicKeyValue) return
+
+    if (Notification.permission !== "granted") return
+
+    const registration = await this.serviceWorkerRegistration()
+    if (!registration) return
+
+    const existing = await registration.pushManager.getSubscription()
+    if (!existing) {
+      await this.subscribe()
+    }
+  }
+
+  async subscribe() {
+    if (!this.hasSubscribeUrlValue || !this.hasPublicKeyValue) return
+
+    const registration = await this.serviceWorkerRegistration()
+    if (!registration) return
+
+    let subscription = await registration.pushManager.getSubscription()
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: this.urlBase64ToUint8Array(this.publicKeyValue)
+      })
+    }
+
+    await fetch(this.subscribeUrlValue, {
+      method: "POST",
+      headers: this.requestHeaders(),
+      body: JSON.stringify({ subscription: subscription.toJSON() })
+    })
+  }
+
+  async unsubscribe() {
+    if (!this.hasUnsubscribeUrlValue) return
+
+    const registration = await this.serviceWorkerRegistration()
+    if (!registration) return
+
+    const subscription = await registration.pushManager.getSubscription()
+    if (!subscription) return
+
+    await fetch(this.unsubscribeUrlValue, {
+      method: "DELETE",
+      headers: this.requestHeaders(),
+      body: JSON.stringify({ endpoint: subscription.endpoint })
+    })
+    await subscription.unsubscribe()
+  }
+
+  async serviceWorkerRegistration() {
+    try {
+      if (!("serviceWorker" in navigator)) return null
+
+      const existing = await navigator.serviceWorker.getRegistration()
+      if (existing) return existing
+
+      return await navigator.serviceWorker.register("/service-worker")
+    } catch (e) {
+      console.log("Service worker registration failed:", e)
+      return null
+    }
+  }
+
+  requestHeaders() {
+    return {
+      "Content-Type": "application/json",
+      "X-CSRF-Token": this.csrfToken(),
+      "X-Requested-With": "XMLHttpRequest",
+      "Accept": "application/json"
+    }
+  }
+
+  csrfToken() {
+    return document.querySelector("meta[name='csrf-token']")?.getAttribute("content")
+  }
+
+  urlBase64ToUint8Array(base64String) {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4)
+    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/")
+    const rawData = window.atob(base64)
+    return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)))
+  }
+
   showNotSupported() {
     if (this.hasContainerTarget) {
       this.containerTarget.innerHTML = `
@@ -73,6 +170,20 @@ export default class extends Controller {
           Notifications are not supported in this browser
         </div>
       `
+    }
+  }
+
+  showUnavailable() {
+    if (this.hasStatusTarget) {
+      this.statusTarget.textContent = "Unavailable"
+      this.statusTarget.className = "badge bg-secondary"
+    }
+
+    if (this.hasButtonTarget) {
+      this.buttonTarget.textContent = "Not Configured"
+      this.buttonTarget.disabled = true
+      this.buttonTarget.classList.remove("btn-primary", "btn-success")
+      this.buttonTarget.classList.add("btn-secondary")
     }
   }
 

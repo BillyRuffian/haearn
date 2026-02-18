@@ -5,7 +5,7 @@
   <div data-controller="wake-lock"></div>
 <% end %>
 
-<div class="container py-4 workout-page-root" <% if @workout.in_progress? %>data-controller="sticky-timer" data-sticky-timer-started-at-value="<%= @workout.started_at.iso8601 %>"<% end %>>
+<div class="container py-4" <% if @workout.in_progress? %>data-controller="sticky-timer" data-sticky-timer-started-at-value="<%= @workout.started_at.iso8601 %>"<% end %>>
   <!-- Workout Header -->
   <div class="mb-4">
     <div class="d-flex justify-content-between align-items-start">

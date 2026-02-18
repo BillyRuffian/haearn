@@ -27,7 +27,7 @@ class DashboardController < ApplicationController
     end
 
     # PR Timeline data (last 12 months of PRs across all exercises)
-    @pr_timeline_data = calculate_pr_timeline
+    @pr_timeline_data = fetch_cached_analytics('pr_timeline') { calculate_pr_timeline }
 
     # PRs this month (count from timeline data)
     start_of_month = Time.current.beginning_of_month.to_date.to_s
@@ -102,10 +102,10 @@ class DashboardController < ApplicationController
     end.reverse
 
     # Consistency data for compact visualization
-    @consistency_data = calculate_consistency_data
+    @consistency_data = fetch_cached_analytics('consistency') { calculate_consistency_data }
 
     # Rep range distribution (last 30 days)
-    @rep_range_data = calculate_rep_range_distribution
+    @rep_range_data = fetch_cached_analytics('rep_range_distribution') { calculate_rep_range_distribution }
 
     # Session duration trends (last 20 workouts)
     @session_duration_data = Current.user.workouts
@@ -122,28 +122,28 @@ class DashboardController < ApplicationController
       end.reverse
 
     # Exercise frequency (top 10 most performed exercises in last 90 days)
-    @exercise_frequency_data = calculate_exercise_frequency
+    @exercise_frequency_data = fetch_cached_analytics('exercise_frequency') { calculate_exercise_frequency }
 
     # Consistency streaks
-    @streak_data = calculate_streaks
+    @streak_data = fetch_cached_analytics('streaks') { calculate_streaks }
 
     # Week-over-Week comparison
-    @week_comparison_data = calculate_week_comparison
+    @week_comparison_data = fetch_cached_analytics('week_comparison') { calculate_week_comparison }
 
     # Tonnage tracker (weekly volume over last 12 weeks)
-    @tonnage_data = calculate_tonnage_tracker
+    @tonnage_data = fetch_cached_analytics('tonnage') { calculate_tonnage_tracker }
 
     # Plateau detector (exercises with no PR in 4+ weeks)
-    @plateau_data = calculate_plateaus
+    @plateau_data = fetch_cached_analytics('plateaus') { calculate_plateaus }
 
     # Training density (volume per minute over last 20 workouts)
-    @training_density_data = calculate_training_density
+    @training_density_data = fetch_cached_analytics('training_density') { calculate_training_density }
 
     # Muscle group volume distribution (last 7 days for recovery indicator)
-    @muscle_group_data = calculate_muscle_group_volume
+    @muscle_group_data = fetch_cached_analytics('muscle_group_volume') { calculate_muscle_group_volume }
 
     # Muscle group spider chart data (last 30 days for balance)
-    @muscle_balance_data = calculate_muscle_balance
+    @muscle_balance_data = fetch_cached_analytics('muscle_balance') { calculate_muscle_balance }
   end
 
   # GET /analytics
@@ -151,7 +151,7 @@ class DashboardController < ApplicationController
   def analytics
     return unless Current.user
 
-    @pr_timeline_data = calculate_pr_timeline
+    @pr_timeline_data = fetch_cached_analytics('pr_timeline') { calculate_pr_timeline }
 
     @workout_frequency = (0..7).map do |weeks_ago|
       week_start = weeks_ago.weeks.ago.beginning_of_week
@@ -162,8 +162,8 @@ class DashboardController < ApplicationController
       }
     end.reverse
 
-    @consistency_data = calculate_consistency_data
-    @rep_range_data = calculate_rep_range_distribution
+    @consistency_data = fetch_cached_analytics('consistency') { calculate_consistency_data }
+    @rep_range_data = fetch_cached_analytics('rep_range_distribution') { calculate_rep_range_distribution }
 
     @session_duration_data = Current.user.workouts
       .where.not(finished_at: nil)
@@ -178,17 +178,21 @@ class DashboardController < ApplicationController
         }
       end.reverse
 
-    @exercise_frequency_data = calculate_exercise_frequency
-    @streak_data = calculate_streaks
-    @week_comparison_data = calculate_week_comparison
-    @tonnage_data = calculate_tonnage_tracker
-    @plateau_data = calculate_plateaus
-    @training_density_data = calculate_training_density
-    @muscle_group_data = calculate_muscle_group_volume
-    @muscle_balance_data = calculate_muscle_balance
+    @exercise_frequency_data = fetch_cached_analytics('exercise_frequency') { calculate_exercise_frequency }
+    @streak_data = fetch_cached_analytics('streaks') { calculate_streaks }
+    @week_comparison_data = fetch_cached_analytics('week_comparison') { calculate_week_comparison }
+    @tonnage_data = fetch_cached_analytics('tonnage') { calculate_tonnage_tracker }
+    @plateau_data = fetch_cached_analytics('plateaus') { calculate_plateaus }
+    @training_density_data = fetch_cached_analytics('training_density') { calculate_training_density }
+    @muscle_group_data = fetch_cached_analytics('muscle_group_volume') { calculate_muscle_group_volume }
+    @muscle_balance_data = fetch_cached_analytics('muscle_balance') { calculate_muscle_balance }
   end
 
   private
+
+  def fetch_cached_analytics(key, &block)
+    DashboardAnalyticsCache.fetch(user_id: Current.user.id, key:, &block)
+  end
 
   # Calculate distribution of rep ranges (1-5, 6-10, 11-15, 16+) from last 30 days
   # Helps identify training bias toward strength vs hypertrophy vs endurance

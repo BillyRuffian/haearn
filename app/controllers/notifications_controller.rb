@@ -29,7 +29,7 @@ class NotificationsController < ApplicationController
   def rest_timer_expired
     completed_at_ms = params[:completed_at_ms].to_i
     return head :unprocessable_entity if completed_at_ms <= 0
-    return render json: { ok: true, skipped: true } unless Current.user.notify_rest_timer_in_app?
+    return render json: { ok: true, skipped: true } unless Current.user.notify_rest_timer_in_app? || Current.user.notify_rest_timer_push?
 
     workout = Current.user.active_workout
     dedupe_key = "rest-timer:#{workout&.id || 'none'}:#{completed_at_ms}"
@@ -45,7 +45,10 @@ class NotificationsController < ApplicationController
         completed_at_ms: completed_at_ms
       }
     )
-    notification.save! if notification.changed?
+    if notification.changed?
+      notification.save!
+      WebPushNotificationService.new(user: Current.user).deliver_notification(notification)
+    end
 
     render json: { ok: true, notification_id: notification.id }
   end
