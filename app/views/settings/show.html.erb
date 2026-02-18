@@ -144,7 +144,11 @@
               <div class="form-text">Target reps to hit consistently before progressing weight (typically 8-12 for hypertrophy)</div>
             </div>
 
-            <div class="mb-4" data-controller="notification-permission">
+            <div class="mb-4"
+                 data-controller="notification-permission"
+                 data-notification-permission-public-key-value="<%= WebPushConfig.public_key %>"
+                 data-notification-permission-subscribe-url-value="<%= push_subscriptions_path %>"
+                 data-notification-permission-unsubscribe-url-value="<%= push_subscriptions_path %>">
               <div class="d-flex justify-content-between align-items-start">
                 <div>
                   <strong>Push Notifications</strong>
