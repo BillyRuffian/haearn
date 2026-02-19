@@ -91,6 +91,40 @@ module ApplicationHelper
     end
   end
 
+  # Get previous session data for the next set number so "Copy Last" can prefill.
+  # Returns values in the same unit expected by the current input form.
+  def previous_session_set_data(workout_exercise, set_number)
+    previous = workout_exercise.previous_exercise
+    return nil unless previous
+
+    previous_set = previous.exercise_sets.order(:position, :created_at)[set_number.to_i - 1]
+    return nil unless previous_set
+
+    data = {}
+    data[:weight] = input_weight_value_for(previous_set.weight_kg, workout_exercise) if previous_set.weight_kg.present?
+    data[:reps] = previous_set.reps if previous_set.reps.present?
+    data[:duration_seconds] = previous_set.duration_seconds if previous_set.duration_seconds.present?
+    data[:distance_meters] = previous_set.distance_meters if previous_set.distance_meters.present?
+    data.presence
+  end
+
+  # Best estimated 1RM (kg) for this exercise + machine combo.
+  def estimated_1rm_for(workout_exercise)
+    sets = Current.user.exercise_sets
+      .joins(workout_exercise: { workout_block: :workout })
+      .where(workout_exercises: {
+        exercise_id: workout_exercise.exercise_id,
+        machine_id: workout_exercise.machine_id
+      })
+      .where.not(workouts: { finished_at: nil })
+      .where(is_warmup: false)
+      .where.not(weight_kg: nil, reps: nil)
+      .where('reps > 0')
+
+    best = OneRmCalculator.best_estimated_1rm(sets)
+    best&.dig(:estimated_1rm)
+  end
+
   # Format large numbers with SI units (K, M, etc.)
   def number_to_si(number)
     return '0' if number.nil? || number.zero?
