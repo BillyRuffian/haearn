@@ -1,4 +1,8 @@
 <%= form_with(model: [gym, machine], class: "row g-3 align-items-end") do |form| %>
+  <% if local_assigns[:return_to].present? %>
+    <%= hidden_field_tag :return_to, return_to %>
+  <% end %>
+
   <% if machine.errors.any? %>
     <div class="col-12">
       <div class="alert alert-danger py-2">

@@ -158,6 +158,8 @@ User
 
 23. **Plate Sanity Warnings**: Plate calculator should display inline warnings for impossible/impractical targets (below bar weight, uneven side loading, excessive plate count per side, non-exact combinations) instead of silently failing.
 
+24. **Machine Unit Default & Input Rule**: New machines should default `display_unit` to the creating user's `preferred_unit`. For set entry, when a machine has `display_unit`, UI labels/placeholders/input hints must use that machine unit; otherwise use user preferred unit.
+
 ## Equipment Types (Enum)
 
 ```ruby

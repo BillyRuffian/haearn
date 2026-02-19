@@ -31,11 +31,31 @@ module ApplicationHelper
   def last_weight_for(workout_exercise)
     last_set = workout_exercise.exercise_sets.order(created_at: :desc).first
     if last_set&.weight_kg
-      Current.user.format_weight(last_set.weight_kg)
+      input_weight_value_for(last_set.weight_kg, workout_exercise)
     elsif workout_exercise.previous_exercise
       prev_set = workout_exercise.previous_exercise.exercise_sets.order(created_at: :desc).first
-      prev_set&.weight_kg ? Current.user.format_weight(prev_set.weight_kg) : nil
+      prev_set&.weight_kg ? input_weight_value_for(prev_set.weight_kg, workout_exercise) : nil
     end
+  end
+
+  # Unit used for weight input on a workout exercise.
+  # Machine display unit takes precedence so the value entered matches what the machine shows.
+  def input_weight_unit_for(workout_exercise)
+    machine_unit = workout_exercise&.machine&.display_unit
+    machine_unit.presence || Current.user.preferred_unit
+  end
+
+  # Format a stored kg value into the unit expected by the input for this workout exercise.
+  def input_weight_value_for(kg_value, workout_exercise)
+    return nil if kg_value.nil?
+
+    display_value = if workout_exercise&.machine&.display_unit.present?
+      WeightConverter.kg_to_machine(kg_value, workout_exercise.machine)
+    else
+      WeightConverter.from_kg(kg_value, Current.user.preferred_unit)
+    end
+
+    format_input_number(display_value)
   end
 
   # Get last reps used for this exercise in this workout
@@ -183,6 +203,21 @@ module ApplicationHelper
       "Set #{set_num}: #{set.distance_meters}m#{warmup_tag}"
     else
       "Set #{set_num}: completed#{warmup_tag}"
+    end
+  end
+
+  private
+
+  def format_input_number(value)
+    return nil if value.nil?
+
+    rounded = value.round(2)
+    if rounded == rounded.to_i
+      rounded.to_i.to_s
+    elsif rounded == rounded.round(1)
+      format('%.1f', rounded)
+    else
+      format('%.2f', rounded)
     end
   end
 end

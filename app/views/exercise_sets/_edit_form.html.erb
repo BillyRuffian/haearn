@@ -1,4 +1,5 @@
 <%= turbo_frame_tag set do %>
+  <% input_unit = input_weight_unit_for(workout_exercise) %>
   <%= form_with model: set, 
       url: workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
       method: :patch,
@@ -13,9 +14,9 @@
 
       <% if workout_exercise.exercise.has_weight %>
         <div class="col">
-          <label class="form-label small text-muted mb-1">Weight (<%= Current.user.preferred_unit %>)</label>
+          <label class="form-label small text-muted mb-1">Weight (<%= input_unit %>)</label>
           <%= form.number_field :weight_value,
-              value: set.weight_kg ? Current.user.format_weight(set.weight_kg) : nil,
+              value: set.weight_kg ? input_weight_value_for(set.weight_kg, workout_exercise) : nil,
               class: "form-control form-control-sm text-center",
               step: "any",
               inputmode: "decimal" %>

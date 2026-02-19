@@ -19,6 +19,14 @@
           <span class="ms-2"><%= @exercise.description %></span>
         <% end %>
       </p>
+      <% if @exercise.has_cues? %>
+        <div class="mt-2 d-flex flex-wrap gap-1">
+          <span class="small text-muted me-1">Form cues:</span>
+          <% @exercise.cues_list.each do |cue| %>
+            <span class="badge bg-secondary-subtle text-light border border-secondary-subtle"><%= cue %></span>
+          <% end %>
+        </div>
+      <% end %>
     </div>
   </div>
 

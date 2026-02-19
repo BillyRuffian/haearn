@@ -837,6 +837,8 @@ $text-muted: #6c757d;
 ## Phase 21: Gym User Experience
 
 ### 21.1 In-Gym Flow Optimization
+- [x] **NEXT: Default new equipment unit to the user's preferred unit** _(Implemented defaulting in machine creation flows: new forms preselect `Current.user.preferred_unit`, create action persists that default when `display_unit` is blank, and regression tests cover both default and explicit override.)_
+- [x] **Unit consistency audit fix** _(Machine-linked set-entry UI now uses machine input unit for labels/placeholder/calculator params and converts stored kg values back to machine display units in add/edit forms; non-machine entries continue to use user preferred unit.)_
 - [ ] Add backup exercise autosuggest with available-equipment filtering when stations are occupied
 - [x] Add offline confidence mode showing queued action count and sync status at a glance _(Added global offline confidence widget with online/offline/syncing/error state, queued action count, last synced timestamp, and manual retry action wired to `offline_controller` queue sync.)_
 - [x] Add locker-room quick log flow (voice/one-thumb fast entry between stations) _(Added Quick Log mode toggle on active workouts and simplified one-thumb set form layout with larger inputs and single-tap “Log Set” submission.)_

@@ -19,58 +19,7 @@
 
   <div class="card">
     <div class="card-body">
-      <%= form_with model: [@gym, @machine], local: true do |form| %>
-        <% if @return_to.present? %>
-          <%= hidden_field_tag :return_to, @return_to %>
-        <% end %>
-
-        <% if @machine.errors.any? %>
-          <div class="alert alert-danger mb-4">
-            <% @machine.errors.full_messages.each do |message| %>
-              <div><%= message %></div>
-            <% end %>
-          </div>
-        <% end %>
-
-        <div class="mb-3">
-          <%= form.label :name, class: "form-label" %>
-          <%= form.text_field :name, class: "form-control", placeholder: "e.g. Leg Press #2, Cable Tower Left" %>
-        </div>
-
-        <div class="mb-3">
-          <%= form.label :equipment_type, class: "form-label" %>
-          <%= form.select :equipment_type, 
-              Machine::EQUIPMENT_TYPES.map { |t| [t.humanize, t] },
-              {},
-              class: "form-select",
-              data: { controller: "custom-select" } %>
-        </div>
-
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <%= form.label :weight_increment, class: "form-label" %>
-            <div class="input-group">
-              <%= form.number_field :weight_increment, class: "form-control", step: 0.5, min: 0, placeholder: "2.5" %>
-              <span class="input-group-text">kg</span>
-            </div>
-            <div class="form-text">Smallest weight increase possible</div>
-          </div>
-          <div class="col-md-6">
-            <%= form.label :weight_ratio, class: "form-label" %>
-            <%= form.number_field :weight_ratio, class: "form-control", step: 0.1, min: 0.1, placeholder: "1.0" %>
-            <div class="form-text">Cable pulley ratio (1.0 = 1:1, 0.5 = 2:1)</div>
-          </div>
-        </div>
-
-        <div class="mb-3">
-          <%= form.label :notes, "Notes", class: "form-label" %>
-          <%= form.text_area :notes, class: "form-control", rows: 2, placeholder: "Seat position, handle type, etc." %>
-        </div>
-
-        <div class="d-grid">
-          <%= form.submit "Add Equipment", class: "btn btn-primary" %>
-        </div>
-      <% end %>
+      <%= render "machines/form", machine: @machine, gym: @gym, return_to: @return_to %>
     </div>
   </div>
 </div>

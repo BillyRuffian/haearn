@@ -1,5 +1,6 @@
 <% show_plate_calc = workout_exercise.exercise.has_weight && workout_exercise.machine&.plate_loaded? %>
-<% initial_weight = set.weight_kg ? Current.user.format_weight(set.weight_kg) : last_weight_for(workout_exercise) %>
+<% input_unit = input_weight_unit_for(workout_exercise) %>
+<% initial_weight = set.weight_kg ? input_weight_value_for(set.weight_kg, workout_exercise) : last_weight_for(workout_exercise) %>
 <% quick_log_mode = local_assigns.fetch(:quick_log_mode, false) %>
 
 <% if workout_exercise.exercise.has_weight? %>
@@ -14,8 +15,8 @@
 
 <div <% if show_plate_calc %>data-controller="plate-calculator" 
      data-plate-calculator-weight-value="<%= initial_weight || 0 %>"
-     data-plate-calculator-bar-weight-value="<%= Current.user.preferred_unit == 'kg' ? 20 : 45 %>"
-     data-plate-calculator-unit-value="<%= Current.user.preferred_unit %>"
+     data-plate-calculator-bar-weight-value="<%= input_unit == 'kg' ? 20 : 45 %>"
+     data-plate-calculator-unit-value="<%= input_unit %>"
      data-plate-calculator-max-plates-per-side-value="6"
      data-plate-calculator-machine-type-value="<%= workout_exercise.machine&.equipment_type %>"<% end %>>
   <%= form_with model: set, 
@@ -27,7 +28,7 @@
     <div class="row g-2 align-items-end">
       <% if workout_exercise.exercise.has_weight %>
         <div class="col">
-          <label class="form-label small text-muted mb-1">Weight (<%= Current.user.preferred_unit %>)</label>
+          <label class="form-label small text-muted mb-1">Weight (<%= input_unit %>)</label>
           <%= form.number_field :weight_value,
               value: initial_weight,
               class: "form-control form-control-sm text-center",

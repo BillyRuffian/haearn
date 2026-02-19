@@ -23,7 +23,7 @@
     <!-- New Machine Form - At Top -->
     <div class="card-body border-bottom">
       <%= turbo_frame_tag "new_machine_form" do %>
-        <%= render "machines/form", machine: @gym.machines.build, gym: @gym %>
+        <%= render "machines/form", machine: @new_machine, gym: @gym %>
       <% end %>
     </div>
     

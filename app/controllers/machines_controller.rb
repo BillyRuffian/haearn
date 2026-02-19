@@ -15,7 +15,7 @@ class MachinesController < ApplicationController
   end
 
   def new
-    @machine = @gym.machines.build
+    @machine = build_machine_with_defaults
     @return_to = params[:return_to]
   end
 
@@ -23,7 +23,7 @@ class MachinesController < ApplicationController
   # Creates new equipment/machine for the gym
   # Supports return_to for workout setup flow (create machine, then select it)
   def create
-    @machine = @gym.machines.build(machine_params)
+    @machine = @gym.machines.build(machine_params_with_defaults)
 
     respond_to do |format|
       if @machine.save
@@ -37,7 +37,7 @@ class MachinesController < ApplicationController
           format.turbo_stream do
             render turbo_stream: [
               turbo_stream.prepend('machines', partial: 'machines/machine', locals: { machine: @machine, gym: @gym }),
-              turbo_stream.update('new_machine_form', partial: 'machines/form', locals: { machine: @gym.machines.build, gym: @gym })
+              turbo_stream.update('new_machine_form', partial: 'machines/form', locals: { machine: build_machine_with_defaults, gym: @gym })
             ]
           end
           format.html { redirect_to gym_path(@gym), notice: 'Equipment added successfully.' }
@@ -105,5 +105,15 @@ class MachinesController < ApplicationController
       :seat_setting, :pin_setting, :handle_setting,
       photos: []
     )
+  end
+
+  def machine_params_with_defaults
+    attrs = machine_params
+    attrs[:display_unit] = Current.user.preferred_unit if attrs[:display_unit].blank?
+    attrs
+  end
+
+  def build_machine_with_defaults
+    @gym.machines.build(display_unit: Current.user.preferred_unit)
   end
 end
