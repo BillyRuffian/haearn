@@ -1,212 +1,162 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Renders a simplified front/back body silhouette with muscle recovery overlays.
-// Expects data like: { chest: { label, days_since, sets, volume }, ... }
+// Connects to data-controller="body-map"
 export default class extends Controller {
   static targets = ["container", "tooltip"]
-  static values = { data: Object }
+  static values = {
+    data: Object
+  }
+
+  // Muscle group positions for the body map grid layout
+  // Using a simplified grid representation
+  musclePositions = {
+    // Front view
+    chest: { label: "Chest", icon: "□", col: 1 },
+    shoulders: { label: "Shoulders", icon: "◇", col: 2 },
+    biceps: { label: "Biceps", icon: "◯", col: 1 },
+    triceps: { label: "Triceps", icon: "◯", col: 2 },
+    forearms: { label: "Forearms", icon: "│", col: 1 },
+    core: { label: "Core", icon: "▢", col: 2 },
+    quadriceps: { label: "Quads", icon: "▭", col: 1 },
+    // Back view
+    back: { label: "Back", icon: "▣", col: 2 },
+    hamstrings: { label: "Hamstrings", icon: "▭", col: 1 },
+    glutes: { label: "Glutes", icon: "◑", col: 2 },
+    calves: { label: "Calves", icon: "▯", col: 1 },
+    full_body: { label: "Full Body", icon: "⬡", col: 2 }
+  }
 
   connect() {
-    this.zoneListeners = []
     this.render()
   }
 
-  disconnect() {
-    this.detachZoneListeners()
-  }
-
   render() {
-    if (!this.hasContainerTarget) return
+    const data = this.dataValue
+    const container = this.containerTarget
 
-    const zones = this.zoneData()
+    let html = '<div class="body-map-grid">'
 
-    this.containerTarget.innerHTML = `
-      <div class="body-map-shell">
-        <div class="body-map-views">
-          ${this.figureMarkup("Front", this.frontZones(), zones)}
-          ${this.figureMarkup("Back", this.backZones(), zones)}
-        </div>
-        <div class="body-map-legend mt-3">
-          <span><span class="legend-dot" style="background:#a33232"></span>Freshly trained</span>
-          <span><span class="legend-dot" style="background:#b8860b"></span>Recovering</span>
-          <span><span class="legend-dot" style="background:#3d7ea6"></span>Almost ready</span>
-          <span><span class="legend-dot" style="background:#2d7a3e"></span>Ready</span>
-        </div>
-      </div>
-    `
+    // Group muscles into rows for nice layout
+    const muscleOrder = [
+      ["shoulders", "chest"],
+      ["back", "core"],
+      ["biceps", "triceps"],
+      ["forearms", "full_body"],
+      ["quadriceps", "glutes"],
+      ["hamstrings", "calves"]
+    ]
 
-    this.attachZoneListeners()
-  }
+    muscleOrder.forEach(row => {
+      html += '<div class="body-map-row">'
+      row.forEach(muscleGroup => {
+        const muscleData = data[muscleGroup]
+        if (!muscleData) return
 
-  zoneData() {
-    const source = this.dataValue || {}
-    const result = {}
+        const recovery = muscleData.recovery || 100
+        const color = this.getRecoveryColor(recovery)
+        const daysAgo = muscleData.days_ago
+        const volume = muscleData.volume_7_days || 0
 
-    Object.entries(source).forEach(([muscle, value]) => {
-      const daysSince = Number(value?.days_since)
-      const knownDays = Number.isFinite(daysSince)
-      result[muscle] = {
-        label: value?.label || this.humanize(muscle),
-        daysSince: knownDays ? daysSince : 999,
-        sets: Number(value?.sets || 0),
-        volume: Number(value?.volume || 0),
-        color: this.recoveryColor(knownDays ? daysSince : 999)
-      }
+        let statusText = ""
+        let statusClass = ""
+        if (daysAgo === null) {
+          statusText = "Never trained"
+          statusClass = "text-muted"
+        } else if (daysAgo === 0) {
+          statusText = "Today"
+          statusClass = "text-danger"
+        } else if (daysAgo === 1) {
+          statusText = "Yesterday"
+          statusClass = "text-warning"
+        } else if (daysAgo <= 3) {
+          statusText = `${daysAgo}d ago`
+          statusClass = "text-info"
+        } else {
+          statusText = `${daysAgo}d ago`
+          statusClass = "text-success"
+        }
+
+        html += `
+          <div class="body-map-muscle" 
+               style="--recovery-color: ${color};"
+               data-action="mouseenter->body-map#showTooltip mouseleave->body-map#hideTooltip"
+               data-muscle="${muscleGroup}"
+               data-days="${daysAgo}"
+               data-volume="${volume}"
+               data-recovery="${recovery}">
+            <div class="muscle-indicator" style="background: ${color};"></div>
+            <div class="muscle-info">
+              <span class="muscle-name">${muscleData.label}</span>
+              <span class="muscle-status ${statusClass}">${statusText}</span>
+            </div>
+          </div>
+        `
+      })
+      html += '</div>'
     })
 
-    return result
-  }
+    html += '</div>'
 
-  figureMarkup(label, zoneDefs, zones) {
-    return `
-      <div class="body-map-figure">
-        <div class="body-map-figure-label">${label}</div>
-        <svg viewBox="0 0 100 135" class="body-map-svg" role="img" aria-label="${label} body recovery map">
-          <circle cx="50" cy="10" r="7" class="body-base" />
-          <rect x="40" y="18" width="20" height="17" rx="8" class="body-base" />
-          <rect x="32" y="32" width="36" height="34" rx="10" class="body-base" />
-          <rect x="36" y="66" width="28" height="16" rx="8" class="body-base" />
-          <rect x="34" y="82" width="12" height="30" rx="6" class="body-base" />
-          <rect x="54" y="82" width="12" height="30" rx="6" class="body-base" />
-          <rect x="35" y="112" width="10" height="18" rx="5" class="body-base" />
-          <rect x="55" y="112" width="10" height="18" rx="5" class="body-base" />
-          <rect x="20" y="32" width="10" height="26" rx="5" class="body-base" />
-          <rect x="70" y="32" width="10" height="26" rx="5" class="body-base" />
-          <rect x="17" y="58" width="9" height="22" rx="4" class="body-base" />
-          <rect x="74" y="58" width="9" height="22" rx="4" class="body-base" />
-
-          ${zoneDefs.map((zone) => this.zoneMarkup(zone, zones)).join("")}
-        </svg>
+    // Add legend
+    html += `
+      <div class="body-map-legend mt-3">
+        <div class="d-flex justify-content-center gap-4 small">
+          <span><span class="legend-dot" style="background: #dc3545;"></span> Just trained</span>
+          <span><span class="legend-dot" style="background: #ffc107;"></span> Recovering</span>
+          <span><span class="legend-dot" style="background: #17a2b8;"></span> Partial</span>
+          <span><span class="legend-dot" style="background: #28a745;"></span> Rested</span>
+        </div>
       </div>
     `
+
+    container.innerHTML = html
   }
 
-  zoneMarkup(zone, zones) {
-    const data = zones[zone.muscle] || {
-      label: this.humanize(zone.muscle),
-      daysSince: 999,
-      sets: 0,
-      volume: 0,
-      color: "#4b4f54"
+  getRecoveryColor(recovery) {
+    // Color gradient from red (0% recovered) to green (100% recovered)
+    if (recovery <= 20) return "#dc3545"  // Red - just trained
+    if (recovery <= 40) return "#fd7e14"  // Orange - recovering
+    if (recovery <= 60) return "#ffc107"  // Yellow - partial
+    if (recovery <= 80) return "#17a2b8"  // Cyan - mostly recovered
+    return "#28a745"                       // Green - fully rested
+  }
+
+  showTooltip(event) {
+    const muscle = event.target.closest('.body-map-muscle')
+    if (!muscle) return
+
+    const muscleName = this.dataValue[muscle.dataset.muscle]?.label || muscle.dataset.muscle
+    const days = muscle.dataset.days
+    const volume = parseInt(muscle.dataset.volume) || 0
+    const recovery = muscle.dataset.recovery
+
+    let tooltipContent = `<strong>${muscleName}</strong><br>`
+    if (days === "null" || days === null) {
+      tooltipContent += `Never trained`
+    } else {
+      tooltipContent += `Last: ${days === "0" ? "Today" : days + " days ago"}<br>`
+      tooltipContent += `Volume (7d): ${this.formatNumber(volume)}<br>`
+      tooltipContent += `Recovery: ${recovery}%`
     }
 
-    return `
-      <rect x="${zone.x}" y="${zone.y}" width="${zone.w}" height="${zone.h}" rx="${zone.r || 5}"
-            class="body-map-zone"
-            style="--zone-color:${data.color}"
-            data-muscle="${zone.muscle}"
-            data-label="${data.label}"
-            data-days-since="${data.daysSince}"
-            data-sets="${data.sets}"
-            data-volume="${data.volume}" />
-    `
-  }
+    const tooltip = this.tooltipTarget
+    tooltip.innerHTML = tooltipContent
+    tooltip.classList.remove('d-none')
 
-  frontZones() {
-    return [
-      { muscle: "shoulders", x: 30, y: 20, w: 40, h: 11, r: 5 },
-      { muscle: "chest", x: 34, y: 33, w: 32, h: 13, r: 5 },
-      { muscle: "biceps", x: 20, y: 34, w: 10, h: 18, r: 5 },
-      { muscle: "biceps", x: 70, y: 34, w: 10, h: 18, r: 5 },
-      { muscle: "forearms", x: 17, y: 56, w: 9, h: 20, r: 4 },
-      { muscle: "forearms", x: 74, y: 56, w: 9, h: 20, r: 4 },
-      { muscle: "core", x: 39, y: 49, w: 22, h: 18, r: 5 },
-      { muscle: "quadriceps", x: 34, y: 82, w: 12, h: 25, r: 5 },
-      { muscle: "quadriceps", x: 54, y: 82, w: 12, h: 25, r: 5 },
-      { muscle: "calves", x: 35, y: 111, w: 10, h: 18, r: 5 },
-      { muscle: "calves", x: 55, y: 111, w: 10, h: 18, r: 5 }
-    ]
-  }
-
-  backZones() {
-    return [
-      { muscle: "shoulders", x: 30, y: 20, w: 40, h: 11, r: 5 },
-      { muscle: "back", x: 33, y: 32, w: 34, h: 23, r: 6 },
-      { muscle: "triceps", x: 20, y: 34, w: 10, h: 18, r: 5 },
-      { muscle: "triceps", x: 70, y: 34, w: 10, h: 18, r: 5 },
-      { muscle: "forearms", x: 17, y: 56, w: 9, h: 20, r: 4 },
-      { muscle: "forearms", x: 74, y: 56, w: 9, h: 20, r: 4 },
-      { muscle: "glutes", x: 38, y: 63, w: 24, h: 12, r: 6 },
-      { muscle: "hamstrings", x: 34, y: 82, w: 12, h: 25, r: 5 },
-      { muscle: "hamstrings", x: 54, y: 82, w: 12, h: 25, r: 5 },
-      { muscle: "calves", x: 35, y: 111, w: 10, h: 18, r: 5 },
-      { muscle: "calves", x: 55, y: 111, w: 10, h: 18, r: 5 }
-    ]
-  }
-
-  attachZoneListeners() {
-    this.detachZoneListeners()
-
-    this.containerTarget.querySelectorAll(".body-map-zone").forEach((zone) => {
-      const onEnter = () => this.showTooltip(zone)
-      const onLeave = () => this.hideTooltip()
-      const onClick = (event) => {
-        event.preventDefault()
-        if (this.tooltipTarget.classList.contains("d-none")) {
-          this.showTooltip(zone)
-        } else {
-          this.hideTooltip()
-        }
-      }
-
-      zone.addEventListener("mouseenter", onEnter)
-      zone.addEventListener("mouseleave", onLeave)
-      zone.addEventListener("click", onClick)
-
-      this.zoneListeners.push({ zone, onEnter, onLeave, onClick })
-    })
-  }
-
-  detachZoneListeners() {
-    this.zoneListeners.forEach(({ zone, onEnter, onLeave, onClick }) => {
-      zone.removeEventListener("mouseenter", onEnter)
-      zone.removeEventListener("mouseleave", onLeave)
-      zone.removeEventListener("click", onClick)
-    })
-    this.zoneListeners = []
-  }
-
-  showTooltip(zone) {
-    if (!this.hasTooltipTarget) return
-
-    const label = zone.dataset.label
-    const days = Number(zone.dataset.daysSince)
-    const sets = Number(zone.dataset.sets || 0)
-    const volume = Number(zone.dataset.volume || 0)
-
-    const status = days >= 999 ? "No recent training" : (days === 0 ? "Trained today" : `Last trained ${days}d ago`)
-    this.tooltipTarget.innerHTML = `<strong>${label}</strong><br>${status}<br>${sets} sets · ${this.formatNumber(volume)} volume`
-    this.tooltipTarget.classList.remove("d-none")
-
-    const rect = zone.getBoundingClientRect()
+    const rect = muscle.getBoundingClientRect()
     const containerRect = this.containerTarget.getBoundingClientRect()
 
-    this.tooltipTarget.style.left = `${rect.left - containerRect.left + rect.width / 2}px`
-    this.tooltipTarget.style.top = `${rect.top - containerRect.top - 8}px`
+    tooltip.style.left = (rect.left - containerRect.left + rect.width / 2) + 'px'
+    tooltip.style.top = (rect.top - containerRect.top - 10) + 'px'
   }
 
   hideTooltip() {
-    if (!this.hasTooltipTarget) return
-    this.tooltipTarget.classList.add("d-none")
-  }
-
-  recoveryColor(daysSince) {
-    if (daysSince === 0) return "#a33232"
-    if (daysSince === 1) return "#b8860b"
-    if (daysSince <= 2) return "#3d7ea6"
-    if (daysSince <= 6) return "#2d7a3e"
-    return "#4b4f54"
-  }
-
-  humanize(value) {
-    return String(value)
-      .replaceAll("_", " ")
-      .replace(/\b\w/g, (m) => m.toUpperCase())
+    this.tooltipTarget.classList.add('d-none')
   }
 
   formatNumber(num) {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
-    return `${num}`
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + "M"
+    if (num >= 1000) return (num / 1000).toFixed(1) + "k"
+    return num.toLocaleString()
   }
 }

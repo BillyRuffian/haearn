@@ -172,20 +172,63 @@
         <div class="col-12">
           <div class="card position-relative">
             <div class="card-body py-4">
-              <% body_map_payload = @muscle_group_data.each_with_object({}) do |(muscle, data), payload| %>
-                <% payload[muscle.to_s] = {
-                  label: Exercise::MUSCLE_GROUP_LABELS[muscle] || muscle.to_s.humanize,
-                  days_since: data[:days_since],
-                  sets: data[:sets],
-                  volume: data[:volume]
-                } %>
-              <% end %>
-
-              <div data-controller="body-map"
-                   data-body-map-data-value="<%= body_map_payload.to_json %>">
-                <div data-body-map-target="container"></div>
-                <div data-body-map-target="tooltip" class="body-map-tooltip d-none"></div>
+              <div class="d-flex align-items-center gap-1 mb-3 small">
+                <span class="text-muted">Rest</span>
+                <div class="recovery-scale-bar"></div>
+                <span class="text-muted">Ready</span>
               </div>
+
+              <%
+                upper_push = %w[chest shoulders triceps]
+                upper_pull = %w[back biceps forearms]
+                lower_core = %w[quadriceps hamstrings glutes calves core]
+                regions = [
+                  { label: "Upper Push", groups: upper_push },
+                  { label: "Upper Pull", groups: upper_pull },
+                  { label: "Lower & Core", groups: lower_core }
+                ]
+              %>
+
+              <% regions.each do |region| %>
+                <% region_muscles = region[:groups].select { |mg| @muscle_group_data[mg] } %>
+                <% next if region_muscles.empty? %>
+                <div class="mb-3">
+                  <div class="stat-label mb-2"><%= region[:label] %></div>
+                  <% region_muscles.each do |muscle_group| %>
+                    <% muscle_data = @muscle_group_data[muscle_group] %>
+                    <% days_since = muscle_data[:days_since] %>
+                    <%
+                      recovery_pct = [(days_since / 4.0 * 100), 100].min.round
+                      bar_color = if days_since == 0
+                        '#a33232'
+                      elsif days_since == 1
+                        '#b8860b'
+                      elsif days_since <= 2
+                        '#3d7ea6'
+                      else
+                        '#2d7a3e'
+                      end
+                      status_text = if days_since == 0
+                        'Today'
+                      elsif days_since == 1
+                        '1d'
+                      elsif days_since < 7
+                        "#{days_since}d"
+                      else
+                        '—'
+                      end
+                    %>
+                    <div class="recovery-row d-flex align-items-center mb-1">
+                      <span class="recovery-label"><%= Exercise::MUSCLE_GROUP_LABELS[muscle_group] %></span>
+                      <div class="recovery-bar-track flex-grow-1 mx-2">
+                        <div class="recovery-bar-fill" style="width: <%= recovery_pct %>%; background: <%= bar_color %>;">
+                        </div>
+                      </div>
+                      <span class="recovery-days" style="color: <%= bar_color %>"><%= status_text %></span>
+                    </div>
+                  <% end %>
+                </div>
+              <% end %>
             </div>
           </div>
         </div>
