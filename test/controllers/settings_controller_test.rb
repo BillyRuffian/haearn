@@ -12,6 +12,20 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
     assert_select 'h1', text: /Settings/
   end
 
+  test 'show includes push subscription health indicators' do
+    @user.push_subscriptions.create!(
+      endpoint: 'https://updates.push.example/subscriptions/settings-health',
+      p256dh_key: 'test-p256dh-settings',
+      auth_key: 'test-auth-settings',
+      last_successful_push_at: 1.hour.ago
+    )
+
+    get settings_path
+    assert_response :success
+    assert_includes response.body, 'Devices subscribed:'
+    assert_includes response.body, 'Last successful push:'
+  end
+
   test 'should update profile' do
     patch settings_path, params: { user: { name: 'New Name', email_address: 'new@example.com' } }
     assert_redirected_to settings_path

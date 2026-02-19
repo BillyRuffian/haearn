@@ -123,6 +123,43 @@ class WebPushNotificationServiceTest < ActiveSupport::TestCase
     assert_equal 1, metrics[:failures_by_host_and_error]['fcm.googleapis.com|WebPushNotificationServiceTest::PushBoom']
   end
 
+  test 'updates last successful push timestamp on successful delivery' do
+    subscription = @user.push_subscriptions.create!(
+      endpoint: 'https://updates.push.example/subscriptions/health',
+      p256dh_key: 'test-p256dh-health',
+      auth_key: 'test-auth-health'
+    )
+
+    push_client = FakePushClient.new
+    config = FakeConfig.new(true, { subject: 'mailto:test@example.com', public_key: 'pub', private_key: 'priv' })
+
+    WebPushNotificationService
+      .new(user: @user, push_client:, push_config: config, metrics_cache_store: @cache_store)
+      .deliver_notification(@notification)
+
+    assert_not_nil subscription.reload.last_successful_push_at
+  end
+
+  test 'subscription_health_for returns subscribed count and last successful timestamp' do
+    @user.push_subscriptions.create!(
+      endpoint: 'https://updates.push.example/subscriptions/h1',
+      p256dh_key: 'test-p256dh-h1',
+      auth_key: 'test-auth-h1',
+      last_successful_push_at: 2.hours.ago
+    )
+    @user.push_subscriptions.create!(
+      endpoint: 'https://updates.push.example/subscriptions/h2',
+      p256dh_key: 'test-p256dh-h2',
+      auth_key: 'test-auth-h2',
+      last_successful_push_at: 30.minutes.ago
+    )
+
+    health = WebPushNotificationService.subscription_health_for(user: @user)
+
+    assert_equal 2, health[:subscribed_device_count]
+    assert_in_delta 30.minutes.ago.to_f, health[:last_successful_push_at].to_f, 10
+  end
+
   test 'retries transient standard error with backoff and succeeds' do
     endpoint = 'https://fcm.googleapis.com/fcm/send/retry-standard'
     @user.push_subscriptions.create!(

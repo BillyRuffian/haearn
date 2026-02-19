@@ -825,7 +825,7 @@ $text-muted: #6c757d;
 ### 20.1 Delivery Reliability
 - [x] Add push delivery observability (attempt/success/failure counters by error class and endpoint host) _(Added `WebPushNotificationService` metrics counters with host/error-class bucketing and query/reset helpers, covered by service tests.)_
 - [x] Add retry pipeline with backoff for transient push delivery failures _(Added transient-only retries in `WebPushNotificationService` with exponential backoff for timeout/network and 429/5xx push service responses; permanent subscription errors still fail fast and prune invalid subscriptions.)_
-- [ ] Add subscription health indicators (subscribed device count + last successful push timestamp)
+- [x] Add subscription health indicators (subscribed device count + last successful push timestamp) _(Added `last_successful_push_at` tracking on `PushSubscription`, surfaced via `WebPushNotificationService.subscription_health_for`, and displayed in Settings push section.)_
 
 ### 20.2 Runtime Safety
 - [ ] Add service worker versioning + cache invalidation rollout checklist

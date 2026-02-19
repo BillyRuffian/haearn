@@ -49,6 +49,10 @@ class WebPushNotificationService
     end
   end
 
+  def self.subscription_health_for(user:)
+    PushSubscription.health_for_user(user)
+  end
+
   private
 
   def notification_path(notification)
@@ -88,7 +92,7 @@ class WebPushNotificationService
       )
 
       increment_delivery_metric(type: 'success', host:)
-      subscription.touch(:updated_at)
+      subscription.touch(:last_successful_push_at)
     rescue Webpush::ExpiredSubscription, Webpush::InvalidSubscription => e
       increment_delivery_metric(type: 'failure', host:, error_class: e.class.name)
       handle_subscription_error(subscription, e)

@@ -148,6 +148,8 @@ User
 
 18. **Web Push Retry Policy**: Retry only transient push failures (timeouts/network interruptions, 429, 5xx/push-service errors) with exponential backoff; do not retry permanent subscription errors (`ExpiredSubscription`/`InvalidSubscription`) and continue pruning invalid subscriptions.
 
+19. **Push Subscription Health**: Track per-device delivery health on `PushSubscription.last_successful_push_at`; surface user-facing health indicators as subscribed device count + most recent successful push timestamp.
+
 ## Equipment Types (Enum)
 
 ```ruby

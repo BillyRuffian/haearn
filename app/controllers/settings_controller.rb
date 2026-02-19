@@ -2,6 +2,7 @@
 # Manages preferred units, rest timers, password changes, and workout data exports
 class SettingsController < ApplicationController
   before_action :set_user
+  before_action :set_push_subscription_health
 
   # GET /settings
   # Shows settings page with preferences and export options
@@ -88,6 +89,10 @@ class SettingsController < ApplicationController
 
   def set_user
     @user = Current.user
+  end
+
+  def set_push_subscription_health
+    @push_subscription_health = WebPushNotificationService.subscription_health_for(user: @user)
   end
 
   def user_params

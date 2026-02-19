@@ -155,6 +155,17 @@
                   <strong>Push Notifications</strong>
                   <span data-notification-permission-target="status" class="badge badge-sm bg-secondary ms-2">Checking...</span>
                   <div class="form-text mt-1">Rest timer alerts when app is in the background</div>
+                  <div class="form-text mt-1">
+                    Devices subscribed:
+                    <strong><%= @push_subscription_health[:subscribed_device_count] %></strong>
+                    <% if @push_subscription_health[:last_successful_push_at].present? %>
+                      · Last successful push:
+                      <strong><%= @push_subscription_health[:last_successful_push_at].in_time_zone.strftime('%Y-%m-%d %H:%M') %></strong>
+                    <% else %>
+                      · Last successful push:
+                      <strong>None yet</strong>
+                    <% end %>
+                  </div>
                 </div>
                 <button type="button" 
                         class="btn btn-sm btn-primary ms-3 flex-shrink-0"
