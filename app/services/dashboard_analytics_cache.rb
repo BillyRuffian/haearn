@@ -22,7 +22,7 @@ class DashboardAnalyticsCache
   METRICS_TTL = 8.days
 
   def self.fetch(user_id:, key:, expires_in: 3.minutes, cache_store: self.cache_store, &block)
-    cache_key_value = cache_key(user_id:, key:)
+    cache_key_value = cache_key(user_id:, key:, cache_store:)
     cached = cache_store.read(cache_key_value)
     hit = !cached.nil?
 
@@ -49,15 +49,16 @@ class DashboardAnalyticsCache
         next
       end
 
-      cache_store.delete(cache_key(user_id:, key:))
+      bump_version!(user_id:, key:, cache_store:)
       increment_metric(user_id:, metric_type: 'invalidation', cache_store:)
       instrument_invalidation(user_id:, key:, skipped: false)
       invalidation_tokens << token
     end
   end
 
-  def self.cache_key(user_id:, key:)
-    "dashboard:analytics:v1:user:#{user_id}:#{key}"
+  def self.cache_key(user_id:, key:, cache_store: self.cache_store)
+    version = version_for(user_id:, key:, cache_store:)
+    "dashboard:analytics:v2:user:#{user_id}:#{key}:version:#{version}"
   end
 
   def self.cache_store
@@ -102,6 +103,20 @@ class DashboardAnalyticsCache
 
   def self.metric_key(user_id:, date:, metric_type:)
     "dashboard:analytics:metrics:user:#{user_id}:date:#{date.iso8601}:#{metric_type}"
+  end
+
+  def self.version_for(user_id:, key:, cache_store:)
+    version = cache_store.read(version_key(user_id:, key:))
+    version.to_i.positive? ? version.to_i : 1
+  end
+
+  def self.bump_version!(user_id:, key:, cache_store:)
+    next_version = version_for(user_id:, key:, cache_store:) + 1
+    cache_store.write(version_key(user_id:, key:), next_version, expires_in: 30.days)
+  end
+
+  def self.version_key(user_id:, key:)
+    "dashboard:analytics:version:user:#{user_id}:#{key}"
   end
 
   def self.instrument_fetch(user_id:, key:, cache_key:, hit:)

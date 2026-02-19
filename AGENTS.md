@@ -130,7 +130,8 @@ User
 
 11. **Dashboard Analytics Caching**: Expensive dashboard analytics datasets should use user-scoped short-TTL `Rails.cache` entries; keep active workout and readiness checks uncached for near-real-time feedback.
     Invalidate dashboard analytics cache after commits that affect analytics inputs (`Workout`, `WorkoutExercise`, `ExerciseSet`) using `DashboardAnalyticsCache.invalidate_for_user!`.
-    Cache invalidation is deduped per request/context via `Current` tracking to avoid repeated key deletes during bulk set/exercise updates.
+    Cache invalidation is deduped per request/context via `Current` tracking to avoid repeated version bumps during bulk set/exercise updates.
+    Cache keys are chart-scoped and include per-user per-chart version tokens (`...:version:n`) so invalidation can target only affected charts without broad deletes.
     Prefer scoped invalidation keys per model/change type so non-impacting updates (e.g., notes-only edits) do not clear unrelated analytics caches.
 
 12. **Mobile Calendar Density Rule**: On small screens, calendar cells should prioritize glanceability by showing activity color intensity + workout-count badge only; hide per-day volume/set text and workout-dot clusters.

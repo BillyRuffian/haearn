@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: February 18, 2026
+> Last Updated: February 19, 2026
 
 ## Overview
 
@@ -813,10 +813,10 @@ $text-muted: #6c757d;
 
 ### 19.3 Further Optimizations (Next)
 - [x] Add instrumentation for dashboard analytics cache hit/miss rates and invalidation counts (user-scoped metrics) _(Dashboard analytics now fetch through `DashboardAnalyticsCache.fetch` with per-user daily counters for `cache_hit`, `cache_miss`, and `invalidation`, plus `ActiveSupport::Notifications` instrumentation for fetch/invalidation events.)_
-- [ ] Add chart-level cache key versioning so invalidation can target smaller subsets without clearing full analytics bundles
-- [ ] Add optional async pre-warm job for expensive analytics datasets after workout completion
-- [ ] Add seeded large-data benchmark profile and track timing trends in CI artifacts
-- [ ] Evaluate pre-aggregated daily/weekly rollups for very large histories (opt-in path once dataset thresholds are exceeded)
+- [x] Add chart-level cache key versioning so invalidation can target smaller subsets without clearing full analytics bundles _(Dashboard analytics cache keys now include per-user per-chart version tokens; invalidation bumps only affected chart versions instead of broad cache-key deletes.)_
+- [ ] Add optional async pre-warm job for expensive analytics datasets after workout completion _(Deferred to later)_
+- [ ] Add seeded large-data benchmark profile and track timing trends in CI artifacts _(Deferred to later)_
+- [ ] Evaluate pre-aggregated daily/weekly rollups for very large histories (opt-in path once dataset thresholds are exceeded) _(Deferred to later)_
 
 ---
 
