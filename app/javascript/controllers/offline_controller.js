@@ -11,7 +11,7 @@ import { Controller } from "@hotwired/stimulus"
 //   </div>
 //
 export default class extends Controller {
-  static targets = ["indicator", "confidence", "status", "queueCount", "lastSynced", "syncButton"]
+  static targets = ["indicator", "confidence", "dot", "status", "queueCount", "lastSynced", "syncButton"]
   static classes = ["show"]
   static values = {
     syncUrl: { type: String, default: "/api/sync" }
@@ -239,6 +239,10 @@ export default class extends Controller {
       this.lastSyncedTarget.textContent = this.lastSyncedText()
     }
 
+    if (this.hasDotTarget) {
+      this.dotTarget.className = `offline-confidence-dot ${this.dotStateClass()}`
+    }
+
     if (this.hasSyncButtonTarget) {
       this.syncButtonTarget.textContent = this.syncError ? "Retry" : "Sync now"
     }
@@ -255,6 +259,13 @@ export default class extends Controller {
   lastSyncedText() {
     if (!this.lastSyncedAt) return "Last synced: --"
     return `Last synced: ${new Date(this.lastSyncedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+  }
+
+  dotStateClass() {
+    if (!this.isOnline) return "offline-confidence-dot-offline"
+    if (this.syncError) return "offline-confidence-dot-error"
+    if (this.isSyncing) return "offline-confidence-dot-syncing"
+    return "offline-confidence-dot-online"
   }
 
   persistLastSyncedAt(value) {

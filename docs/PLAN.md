@@ -838,7 +838,7 @@ $text-muted: #6c757d;
 
 ### 21.1 In-Gym Flow Optimization
 - [ ] Add backup exercise autosuggest with available-equipment filtering when stations are occupied
-- [ ] Add offline confidence mode showing queued action count and sync status at a glance
+- [x] Add offline confidence mode showing queued action count and sync status at a glance _(Added global offline confidence widget with online/offline/syncing/error state, queued action count, last synced timestamp, and manual retry action wired to `offline_controller` queue sync.)_
 - [ ] Add locker-room quick log flow (voice/one-thumb fast entry between stations)
 - [ ] Add personal equipment setup memory surfaced by gym + machine (seat/pin/handle defaults)
 - [ ] Add plate-load sanity checks for impossible combinations by selected bar/machine

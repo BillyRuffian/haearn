@@ -150,6 +150,8 @@ User
 
 19. **Push Subscription Health**: Track per-device delivery health on `PushSubscription.last_successful_push_at`; surface user-facing health indicators as subscribed device count + most recent successful push timestamp.
 
+20. **Offline Confidence UX**: Keep a persistent, glanceable sync-confidence widget driven by `offline_controller` showing state (`Offline`/`Syncing`/`Sync failed`/`Synced`), queued action count, last synced time, and a manual retry trigger.
+
 ## Equipment Types (Enum)
 
 ```ruby
