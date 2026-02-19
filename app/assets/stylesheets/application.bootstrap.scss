@@ -469,6 +469,20 @@ select option:checked {
   font-variant-numeric: tabular-nums;
 }
 
+.notifications-dropdown {
+  width: min(28rem, calc(100vw - 1rem));
+  min-width: 20rem;
+  max-height: min(70vh, 32rem);
+  overflow-y: auto;
+}
+
+@media (max-width: 575.98px) {
+  .notifications-dropdown {
+    width: calc(100vw - 0.75rem);
+    min-width: 0;
+  }
+}
+
 .nav-link {
   text-transform: uppercase;
   font-size: 0.8rem;
