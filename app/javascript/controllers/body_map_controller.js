@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Renders a simplified front/back body silhouette with muscle recovery overlays.
+// Renders front/back body silhouettes with clickable muscle-zone overlays.
 // Expects data like: { chest: { label, days_since, sets, volume }, ... }
 export default class extends Controller {
   static targets = ["container", "tooltip"]
@@ -23,8 +23,8 @@ export default class extends Controller {
     this.containerTarget.innerHTML = `
       <div class="body-map-shell">
         <div class="body-map-views">
-          ${this.figureMarkup("Front", this.frontZones(), zones)}
-          ${this.figureMarkup("Back", this.backZones(), zones)}
+          ${this.figureMarkup("Front", "front", this.frontZones(), zones)}
+          ${this.figureMarkup("Back", "back", this.backZones(), zones)}
         </div>
         <div class="body-map-legend mt-3">
           <span><span class="legend-dot" style="background:#a33232"></span>Freshly trained</span>
@@ -57,27 +57,40 @@ export default class extends Controller {
     return result
   }
 
-  figureMarkup(label, zoneDefs, zones) {
+  figureMarkup(label, view, zoneDefs, zones) {
     return `
       <div class="body-map-figure">
         <div class="body-map-figure-label">${label}</div>
-        <svg viewBox="0 0 100 135" class="body-map-svg" role="img" aria-label="${label} body recovery map">
-          <circle cx="50" cy="10" r="7" class="body-base" />
-          <rect x="40" y="18" width="20" height="17" rx="8" class="body-base" />
-          <rect x="32" y="32" width="36" height="34" rx="10" class="body-base" />
-          <rect x="36" y="66" width="28" height="16" rx="8" class="body-base" />
-          <rect x="34" y="82" width="12" height="30" rx="6" class="body-base" />
-          <rect x="54" y="82" width="12" height="30" rx="6" class="body-base" />
-          <rect x="35" y="112" width="10" height="18" rx="5" class="body-base" />
-          <rect x="55" y="112" width="10" height="18" rx="5" class="body-base" />
-          <rect x="20" y="32" width="10" height="26" rx="5" class="body-base" />
-          <rect x="70" y="32" width="10" height="26" rx="5" class="body-base" />
-          <rect x="17" y="58" width="9" height="22" rx="4" class="body-base" />
-          <rect x="74" y="58" width="9" height="22" rx="4" class="body-base" />
-
+        <svg viewBox="0 0 220 420" class="body-map-svg" role="img" aria-label="${label} body recovery map">
+          ${this.baseFigureMarkup(view)}
           ${zoneDefs.map((zone) => this.zoneMarkup(zone, zones)).join("")}
         </svg>
       </div>
+    `
+  }
+
+  baseFigureMarkup(view) {
+    if (view === "front") {
+      return `
+        <circle cx="110" cy="34" r="20" class="body-base" />
+        <path d="M96 58 C102 66,118 66,124 58 L122 76 C118 83,102 83,98 76 Z" class="body-base" />
+        <path d="M84 82 C94 72,126 72,136 82 C146 94,145 130,138 156 C130 182,126 210,124 250 C123 290,129 330,132 378 L116 378 C112 334,109 299,110 252 C109 299,106 334,102 378 L88 378 C92 328,97 286,96 248 C94 208,90 182,82 156 C75 130,74 94,84 82 Z" class="body-base" />
+        <path d="M83 86 C70 96,63 108,58 124 C52 143,50 166,54 188 C58 210,66 230,73 248 L86 241 C78 220,71 202,68 184 C65 165,66 146,71 130 C75 117,82 105,92 98 Z" class="body-base" />
+        <path d="M137 86 C150 96,157 108,162 124 C168 143,170 166,166 188 C162 210,154 230,147 248 L134 241 C142 220,149 202,152 184 C155 165,154 146,149 130 C145 117,138 105,128 98 Z" class="body-base" />
+        <path d="M100 252 C96 300,92 340,90 404 L104 404 C106 361,109 320,110 278 C111 320,114 361,116 404 L130 404 C128 340,124 300,120 252 Z" class="body-base" />
+      `
+    }
+
+    return `
+      <circle cx="110" cy="34" r="20" class="body-base" />
+      <path d="M96 58 C102 66,118 66,124 58 L122 76 C118 83,102 83,98 76 Z" class="body-base" />
+      <path d="M84 82 C94 72,126 72,136 82 C146 94,145 132,138 160 C130 188,126 214,124 250 C123 292,129 332,132 378 L116 378 C112 334,109 299,110 254 C109 299,106 334,102 378 L88 378 C92 332,97 292,96 250 C94 214,90 188,82 160 C75 132,74 94,84 82 Z" class="body-base" />
+      <path d="M83 86 C70 96,63 108,58 124 C52 143,50 166,54 188 C58 210,66 230,73 248 L86 241 C78 220,71 202,68 184 C65 165,66 146,71 130 C75 117,82 105,92 98 Z" class="body-base" />
+      <path d="M137 86 C150 96,157 108,162 124 C168 143,170 166,166 188 C162 210,154 230,147 248 L134 241 C142 220,149 202,152 184 C155 165,154 146,149 130 C145 117,138 105,128 98 Z" class="body-base" />
+      <path d="M100 254 C96 302,92 342,90 404 L104 404 C106 363,109 322,110 282 C111 322,114 363,116 404 L130 404 C128 342,124 302,120 254 Z" class="body-base" />
+      <path d="M87 86 C95 80,125 80,133 86" class="body-outline" />
+      <path d="M95 114 C102 126,118 126,125 114" class="body-outline" />
+      <path d="M94 146 C102 158,118 158,126 146" class="body-outline" />
     `
   }
 
@@ -90,47 +103,40 @@ export default class extends Controller {
       color: "#4b4f54"
     }
 
-    return `
-      <rect x="${zone.x}" y="${zone.y}" width="${zone.w}" height="${zone.h}" rx="${zone.r || 5}"
-            class="body-map-zone"
-            style="--zone-color:${data.color}"
-            data-muscle="${zone.muscle}"
-            data-label="${data.label}"
-            data-days-since="${data.daysSince}"
-            data-sets="${data.sets}"
-            data-volume="${data.volume}" />
-    `
+    return `<path d="${zone.d}" class="body-map-zone" style="--zone-color:${data.color}" data-muscle="${zone.muscle}" data-label="${data.label}" data-days-since="${data.daysSince}" data-sets="${data.sets}" data-volume="${data.volume}" />`
   }
 
   frontZones() {
     return [
-      { muscle: "shoulders", x: 30, y: 20, w: 40, h: 11, r: 5 },
-      { muscle: "chest", x: 34, y: 33, w: 32, h: 13, r: 5 },
-      { muscle: "biceps", x: 20, y: 34, w: 10, h: 18, r: 5 },
-      { muscle: "biceps", x: 70, y: 34, w: 10, h: 18, r: 5 },
-      { muscle: "forearms", x: 17, y: 56, w: 9, h: 20, r: 4 },
-      { muscle: "forearms", x: 74, y: 56, w: 9, h: 20, r: 4 },
-      { muscle: "core", x: 39, y: 49, w: 22, h: 18, r: 5 },
-      { muscle: "quadriceps", x: 34, y: 82, w: 12, h: 25, r: 5 },
-      { muscle: "quadriceps", x: 54, y: 82, w: 12, h: 25, r: 5 },
-      { muscle: "calves", x: 35, y: 111, w: 10, h: 18, r: 5 },
-      { muscle: "calves", x: 55, y: 111, w: 10, h: 18, r: 5 }
+      { muscle: "shoulders", d: "M84 84 C93 74,102 72,110 77 C102 86,96 95,90 104 C84 100,79 93,84 84 Z" },
+      { muscle: "shoulders", d: "M136 84 C127 74,118 72,110 77 C118 86,124 95,130 104 C136 100,141 93,136 84 Z" },
+      { muscle: "chest", d: "M92 104 C100 95,120 95,128 104 C127 120,119 130,110 132 C101 130,93 120,92 104 Z" },
+      { muscle: "core", d: "M98 133 C103 128,117 128,122 133 C123 151,120 173,110 183 C100 173,97 151,98 133 Z" },
+      { muscle: "biceps", d: "M70 116 C74 104,84 101,91 108 C89 126,84 143,76 152 C69 145,66 130,70 116 Z" },
+      { muscle: "biceps", d: "M150 116 C146 104,136 101,129 108 C131 126,136 143,144 152 C151 145,154 130,150 116 Z" },
+      { muscle: "forearms", d: "M66 154 C72 147,80 147,85 154 C83 172,78 192,70 208 C63 194,61 173,66 154 Z" },
+      { muscle: "forearms", d: "M154 154 C148 147,140 147,135 154 C137 172,142 192,150 208 C157 194,159 173,154 154 Z" },
+      { muscle: "quadriceps", d: "M93 214 C100 209,106 210,110 218 C109 260,105 300,99 340 C91 331,86 303,85 260 C86 239,88 223,93 214 Z" },
+      { muscle: "quadriceps", d: "M127 214 C120 209,114 210,110 218 C111 260,115 300,121 340 C129 331,134 303,135 260 C134 239,132 223,127 214 Z" },
+      { muscle: "calves", d: "M95 343 C101 339,106 341,108 350 C107 368,105 386,102 402 C96 398,92 383,91 365 C91 355,92 348,95 343 Z" },
+      { muscle: "calves", d: "M125 343 C119 339,114 341,112 350 C113 368,115 386,118 402 C124 398,128 383,129 365 C129 355,128 348,125 343 Z" }
     ]
   }
 
   backZones() {
     return [
-      { muscle: "shoulders", x: 30, y: 20, w: 40, h: 11, r: 5 },
-      { muscle: "back", x: 33, y: 32, w: 34, h: 23, r: 6 },
-      { muscle: "triceps", x: 20, y: 34, w: 10, h: 18, r: 5 },
-      { muscle: "triceps", x: 70, y: 34, w: 10, h: 18, r: 5 },
-      { muscle: "forearms", x: 17, y: 56, w: 9, h: 20, r: 4 },
-      { muscle: "forearms", x: 74, y: 56, w: 9, h: 20, r: 4 },
-      { muscle: "glutes", x: 38, y: 63, w: 24, h: 12, r: 6 },
-      { muscle: "hamstrings", x: 34, y: 82, w: 12, h: 25, r: 5 },
-      { muscle: "hamstrings", x: 54, y: 82, w: 12, h: 25, r: 5 },
-      { muscle: "calves", x: 35, y: 111, w: 10, h: 18, r: 5 },
-      { muscle: "calves", x: 55, y: 111, w: 10, h: 18, r: 5 }
+      { muscle: "shoulders", d: "M84 84 C93 74,102 72,110 77 C102 86,96 95,90 104 C84 100,79 93,84 84 Z" },
+      { muscle: "shoulders", d: "M136 84 C127 74,118 72,110 77 C118 86,124 95,130 104 C136 100,141 93,136 84 Z" },
+      { muscle: "back", d: "M90 100 C97 91,123 91,130 100 C132 126,127 148,119 168 C115 176,105 176,101 168 C93 148,88 126,90 100 Z" },
+      { muscle: "triceps", d: "M70 116 C74 104,84 101,91 108 C89 126,84 143,76 152 C69 145,66 130,70 116 Z" },
+      { muscle: "triceps", d: "M150 116 C146 104,136 101,129 108 C131 126,136 143,144 152 C151 145,154 130,150 116 Z" },
+      { muscle: "forearms", d: "M66 154 C72 147,80 147,85 154 C83 172,78 192,70 208 C63 194,61 173,66 154 Z" },
+      { muscle: "forearms", d: "M154 154 C148 147,140 147,135 154 C137 172,142 192,150 208 C157 194,159 173,154 154 Z" },
+      { muscle: "glutes", d: "M96 178 C102 172,118 172,124 178 C125 194,121 208,110 214 C99 208,95 194,96 178 Z" },
+      { muscle: "hamstrings", d: "M93 214 C100 210,106 211,110 219 C108 252,103 290,98 332 C90 325,86 298,85 262 C86 240,88 223,93 214 Z" },
+      { muscle: "hamstrings", d: "M127 214 C120 210,114 211,110 219 C112 252,117 290,122 332 C130 325,134 298,135 262 C134 240,132 223,127 214 Z" },
+      { muscle: "calves", d: "M95 334 C101 330,106 332,108 341 C107 362,105 383,102 402 C96 399,92 385,91 366 C91 348,92 339,95 334 Z" },
+      { muscle: "calves", d: "M125 334 C119 330,114 332,112 341 C113 362,115 383,118 402 C124 399,128 385,129 366 C129 348,128 339,125 334 Z" }
     ]
   }
 
