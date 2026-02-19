@@ -1,5 +1,10 @@
 # frozen_string_literal: true
-require 'webpush'
+begin
+  require 'webpush'
+rescue LoadError
+  # Allow the app to boot and settings to render even when the optional webpush
+  # gem is unavailable in the current environment.
+end
 
 # Sends persisted notifications to browser push subscribers using VAPID.
 class WebPushNotificationService
@@ -9,7 +14,7 @@ class WebPushNotificationService
 
   def initialize(
     user:,
-    push_client: Webpush,
+    push_client: (defined?(Webpush) ? Webpush : nil),
     push_config: WebPushConfig,
     metrics_cache_store: Rails.cache,
     max_retries: DEFAULT_MAX_RETRIES,
@@ -25,6 +30,7 @@ class WebPushNotificationService
 
   def deliver_notification(notification)
     return unless notification
+    return unless @push_client
     return unless @push_config.configured?
     return unless @user.web_push_enabled_for?(notification.kind)
     return if @user.push_subscriptions.empty?
