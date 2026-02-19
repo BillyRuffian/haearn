@@ -2435,11 +2435,7 @@ html {
   max-height: 360px;
 }
 
-.body-base-symbol {
-  pointer-events: none;
-}
-
-.anatomy-fill {
+.body-base {
   fill: rgba(88, 96, 103, 0.33);
   stroke: rgba(146, 155, 163, 0.44);
   stroke-width: 1;
@@ -2448,7 +2444,7 @@ html {
   stroke-linejoin: round;
 }
 
-.anatomy-line {
+.body-outline {
   fill: none;
   stroke: rgba(255, 255, 255, 0.12);
   stroke-width: 1;
