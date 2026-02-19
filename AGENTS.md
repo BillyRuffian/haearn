@@ -152,6 +152,12 @@ User
 
 20. **Offline Confidence UX**: Keep a persistent, glanceable sync-confidence widget driven by `offline_controller` showing state (`Offline`/`Syncing`/`Sync failed`/`Synced`), queued action count, last synced time, and a manual retry trigger.
 
+21. **Quick Log Mode**: Active workout pages can switch into a one-thumb Quick Log mode (query-param driven) that prioritizes primary set inputs and single-tap logging, while preserving full mode for RPE/RIR/warmup details.
+
+22. **Machine Setup Memory**: Store personal setup defaults on `Machine` (`seat_setting`, `pin_setting`, `handle_setting`) and surface the combined setup summary in workout logging context.
+
+23. **Plate Sanity Warnings**: Plate calculator should display inline warnings for impossible/impractical targets (below bar weight, uneven side loading, excessive plate count per side, non-exact combinations) instead of silently failing.
+
 ## Equipment Types (Enum)
 
 ```ruby

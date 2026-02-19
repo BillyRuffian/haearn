@@ -469,6 +469,19 @@ select option:checked {
   font-variant-numeric: tabular-nums;
 }
 
+.quick-log-form {
+  .form-control {
+    min-height: 2.35rem;
+    font-size: 1rem;
+  }
+
+  .btn-primary {
+    min-height: 2.35rem;
+    min-width: 5.5rem;
+    font-weight: 700;
+  }
+}
+
 .notifications-dropdown {
   width: min(28rem, calc(100vw - 1rem));
   min-width: 20rem;

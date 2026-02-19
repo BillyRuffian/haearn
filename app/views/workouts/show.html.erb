@@ -39,6 +39,11 @@
     <% if @workout.in_progress? %>
       <%# Mobile: action buttons below the title (timer is in navbar on mobile) %>
       <div class="d-flex align-items-center gap-2 mt-3">
+        <%= link_to workout_path(@workout, quick_log: @quick_log_mode ? nil : 1),
+            class: "btn btn-sm #{@quick_log_mode ? 'btn-warning' : 'btn-outline-warning'}" do %>
+          <i class="bi bi-lightning-charge-fill me-1"></i>
+          <%= @quick_log_mode ? "Quick Log On" : "Quick Log" %>
+        <% end %>
         <div class="d-flex gap-2 ms-auto">
           <%= button_to workout_path(@workout), 
               method: :delete, 

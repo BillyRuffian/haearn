@@ -10,9 +10,9 @@
       <% end %>
       <%= link_to history_exercise_path(workout_exercise.exercise, machine_id: workout_exercise.machine_id), class: "text-decoration-none", data: { turbo_frame: "_top" } do %>
         <strong><%= workout_exercise.exercise.name %></strong>
-        <% if workout_exercise.machine %>
-          <small class="text-muted ms-1"><%= workout_exercise.machine.name %></small>
-        <% end %>
+      <% if workout_exercise.machine %>
+        <small class="text-muted ms-1"><%= workout_exercise.machine.name %></small>
+      <% end %>
         <i class="bi bi-graph-up-arrow ms-1 text-muted small"></i>
       <% end %>
       <% if workout_exercise.machine&.photos&.attached? %>
@@ -57,6 +57,14 @@
   </div>
 
   <div class="card-body py-2">
+    <!-- Previous Performance (if any) -->
+    <% if workout_exercise.machine&.setup_memory? %>
+      <div class="small text-muted mb-2">
+        <i class="bi bi-sliders2-vertical me-1"></i>
+        <%= workout_exercise.machine.setup_memory_summary %>
+      </div>
+    <% end %>
+
     <!-- Previous Performance (if any) -->
     <% if workout_exercise.previous_exercise %>
       <div class="previous-performance text-muted small mb-2">
@@ -139,7 +147,8 @@
             <%= render "exercise_sets/form",
                 workout: workout,
                 workout_exercise: workout_exercise,
-                set: workout_exercise.exercise_sets.build %>
+                set: workout_exercise.exercise_sets.build,
+                quick_log_mode: (params[:quick_log] == "1") %>
           <% end %>
         </div>
       </div>

@@ -6,7 +6,9 @@ export default class extends Controller {
   static values = {
     weight: { type: Number, default: 0 },
     barWeight: { type: Number, default: 20 },
-    unit: { type: String, default: "kg" }
+    unit: { type: String, default: "kg" },
+    maxPlatesPerSide: { type: Number, default: 6 },
+    machineType: { type: String, default: "" }
   }
 
   static targets = ["display", "breakdown"]
@@ -58,7 +60,7 @@ export default class extends Controller {
 
     // Can't load less than bar weight
     if (totalWeight <= barWeight || totalWeight <= 0) {
-      this.renderEmpty()
+      this.renderEmpty(totalWeight > 0 ? [`Target is at or below bar weight (${barWeight}${unit}).`] : [])
       return
     }
 
@@ -66,7 +68,7 @@ export default class extends Controller {
     const perSide = (totalWeight - barWeight) / 2
     const plates = this.calculatePlates(perSide, unit)
 
-    this.render(plates, perSide, unit)
+    this.render(plates, perSide, unit, totalWeight, barWeight)
   }
 
   calculatePlates(targetWeight, unit) {
@@ -90,7 +92,7 @@ export default class extends Controller {
     return { plates: result, remainder: 0, exact: true }
   }
 
-  renderEmpty() {
+  renderEmpty(warnings = []) {
     if (this.hasDisplayTarget) {
       this.displayTarget.innerHTML = ""
       this.displayTarget.classList.add("d-none")
@@ -98,15 +100,37 @@ export default class extends Controller {
     if (this.hasBreakdownTarget) {
       this.breakdownTarget.innerHTML = ""
     }
+
+    if (warnings.length > 0 && this.hasDisplayTarget) {
+      this.displayTarget.classList.remove("d-none")
+      this.displayTarget.innerHTML = `
+        <div class="plate-calc-warning text-warning small">
+          <i class="bi bi-exclamation-triangle me-1"></i>${warnings.join(" ")}
+        </div>
+      `
+    }
   }
 
-  render(result, perSide, unit) {
+  render(result, perSide, unit, totalWeight, barWeight) {
     if (!this.hasDisplayTarget) return
 
     this.displayTarget.classList.remove("d-none")
 
     // Build the visual representation
     const { plates, remainder, exact } = result
+    const warnings = []
+
+    if ((totalWeight - barWeight) % 2 !== 0) {
+      warnings.push("Load is uneven per side for standard barbell loading.")
+    }
+
+    if (plates.length > this.maxPlatesPerSideValue) {
+      warnings.push(`More than ${this.maxPlatesPerSideValue} plates per side may be impractical.`)
+    }
+
+    if (!exact) {
+      warnings.push(`Exact load not possible with available ${unit.toUpperCase()} plates.`)
+    }
 
     if (plates.length === 0) {
       this.displayTarget.innerHTML = `
@@ -153,6 +177,14 @@ export default class extends Controller {
         ${!exact ? `<span class="text-warning ms-2"><i class="bi bi-exclamation-triangle"></i> +${remainder.toFixed(2)}${unit} needed</span>` : ""}
       </div>
     `
+
+    if (warnings.length > 0) {
+      html += `
+        <div class="plate-calc-warning text-warning small mt-1">
+          <i class="bi bi-exclamation-triangle me-1"></i>${warnings.join(" ")}
+        </div>
+      `
+    }
 
     this.displayTarget.innerHTML = html
   }

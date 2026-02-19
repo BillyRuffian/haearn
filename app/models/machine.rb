@@ -5,8 +5,11 @@
 #  id             :integer          not null, primary key
 #  display_unit   :string
 #  equipment_type :string
+#  handle_setting :string
 #  name           :string
 #  notes          :text
+#  pin_setting    :string
+#  seat_setting   :string
 #  weight_ratio   :decimal(, )
 #  created_at     :datetime         not null
 #  updated_at     :datetime         not null
@@ -52,6 +55,7 @@ class Machine < ApplicationRecord
   validate :acceptable_photos
 
   scope :ordered, -> { order(:name) }
+  scope :with_setup_memory, -> { where.not(seat_setting: [ nil, '' ]).or(where.not(pin_setting: [ nil, '' ])).or(where.not(handle_setting: [ nil, '' ])) }
 
   # Calculate the actual weight lifted for cable/pulley machines
   # For cable machines: actual weight = displayed weight × ratio
@@ -79,6 +83,18 @@ class Machine < ApplicationRecord
   # Useful for calculating available weights based on plate inventory
   def plate_loaded?
     barbell? || smith_machine?
+  end
+
+  def setup_memory?
+    seat_setting.present? || pin_setting.present? || handle_setting.present?
+  end
+
+  def setup_memory_summary
+    parts = []
+    parts << "Seat #{seat_setting}" if seat_setting.present?
+    parts << "Pin #{pin_setting}" if pin_setting.present?
+    parts << "Handle #{handle_setting}" if handle_setting.present?
+    parts.join(' · ')
   end
 
   private

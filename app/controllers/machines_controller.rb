@@ -100,6 +100,10 @@ class MachinesController < ApplicationController
   # weight_ratio: for pulley systems (0.5 = 2:1 ratio, you lift half)
   # display_unit: what unit the machine displays (kg/lbs)
   def machine_params
-    params.require(:machine).permit(:name, :equipment_type, :weight_ratio, :display_unit, :notes, photos: [])
+    params.require(:machine).permit(
+      :name, :equipment_type, :weight_ratio, :display_unit, :notes,
+      :seat_setting, :pin_setting, :handle_setting,
+      photos: []
+    )
   end
 end

@@ -20,6 +20,11 @@
             <% if machine.notes.present? %>
               <span class="text-truncate" style="max-width: 150px;"><i class="bi bi-chat-text"></i> <%= machine.notes %></span>
             <% end %>
+            <% if machine.setup_memory? %>
+              <span class="text-truncate" style="max-width: 220px;">
+                <i class="bi bi-sliders2-vertical"></i> <%= machine.setup_memory_summary %>
+              </span>
+            <% end %>
             <% if machine.photos.attached? && machine.photos.count > 1 %>
               <span><i class="bi bi-images"></i> <%= machine.photos.count %></span>
             <% end %>

@@ -35,6 +35,7 @@ class WorkoutsController < ApplicationController
       workout_exercises: [ :exercise, { machine: :photos_attachments }, :exercise_sets ]
     ).order(:position)
     @editing_notes = params[:editing_notes].present?
+    @quick_log_mode = params[:quick_log] == '1'
 
     # Fatigue Analysis for active workout
     @fatigue_data = []

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_19_210500) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_20_001000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -135,8 +135,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_19_210500) do
     t.string "display_unit"
     t.string "equipment_type"
     t.integer "gym_id", null: false
+    t.string "handle_setting"
     t.string "name"
     t.text "notes"
+    t.string "pin_setting"
+    t.string "seat_setting"
     t.datetime "updated_at", null: false
     t.decimal "weight_ratio"
     t.index ["gym_id"], name: "index_machines_on_gym_id"

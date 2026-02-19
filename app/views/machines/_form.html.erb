@@ -52,6 +52,21 @@
     <%= form.text_field :notes, class: "form-control", placeholder: "Seat settings, etc." %>
   </div>
 
+  <div class="col-md-2">
+    <%= form.label :seat_setting, "Seat", class: "form-label" %>
+    <%= form.text_field :seat_setting, class: "form-control", placeholder: "e.g. 4" %>
+  </div>
+
+  <div class="col-md-2">
+    <%= form.label :pin_setting, "Pin", class: "form-label" %>
+    <%= form.text_field :pin_setting, class: "form-control", placeholder: "e.g. 8" %>
+  </div>
+
+  <div class="col-md-2">
+    <%= form.label :handle_setting, "Handle", class: "form-label" %>
+    <%= form.text_field :handle_setting, class: "form-control", placeholder: "e.g. Neutral D" %>
+  </div>
+
   <div class="col-12">
     <div class="d-flex gap-2">
       <%= form.submit machine.persisted? ? "Update" : "Add Machine", class: "btn btn-primary" %>

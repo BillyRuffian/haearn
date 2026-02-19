@@ -26,7 +26,12 @@ class ExerciseSetsController < ApplicationController
               locals: { set: @exercise_set, workout_exercise: @workout_exercise, workout: @workout, index: index }),
             turbo_stream.replace("new_set_#{@workout_exercise.id}",
               partial: 'exercise_sets/form',
-              locals: { workout_exercise: @workout_exercise, workout: @workout, set: @workout_exercise.exercise_sets.build }),
+              locals: {
+                workout_exercise: @workout_exercise,
+                workout: @workout,
+                set: @workout_exercise.exercise_sets.build,
+                quick_log_mode: params[:quick_log] == '1'
+              }),
             turbo_stream.replace('workout_stats',
               partial: 'workouts/stats',
               locals: { workout: @workout })
@@ -45,7 +50,12 @@ class ExerciseSetsController < ApplicationController
         format.turbo_stream do
           render turbo_stream: turbo_stream.replace("new_set_#{@workout_exercise.id}",
             partial: 'exercise_sets/form',
-            locals: { workout_exercise: @workout_exercise, workout: @workout, set: @exercise_set })
+            locals: {
+              workout_exercise: @workout_exercise,
+              workout: @workout,
+              set: @exercise_set,
+              quick_log_mode: params[:quick_log] == '1'
+            })
         end
         format.html { redirect_to workout_path(@workout), alert: 'Could not save set.' }
       end

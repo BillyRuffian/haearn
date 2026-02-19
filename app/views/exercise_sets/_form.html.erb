@@ -1,5 +1,6 @@
 <% show_plate_calc = workout_exercise.exercise.has_weight && workout_exercise.machine&.plate_loaded? %>
 <% initial_weight = set.weight_kg ? Current.user.format_weight(set.weight_kg) : last_weight_for(workout_exercise) %>
+<% quick_log_mode = local_assigns.fetch(:quick_log_mode, false) %>
 
 <% if workout_exercise.exercise.has_weight? %>
   <% suggester = ProgressionSuggester.new(workout_exercise: workout_exercise, user: Current.user) %>
@@ -14,10 +15,12 @@
 <div <% if show_plate_calc %>data-controller="plate-calculator" 
      data-plate-calculator-weight-value="<%= initial_weight || 0 %>"
      data-plate-calculator-bar-weight-value="<%= Current.user.preferred_unit == 'kg' ? 20 : 45 %>"
-     data-plate-calculator-unit-value="<%= Current.user.preferred_unit %>"<% end %>>
+     data-plate-calculator-unit-value="<%= Current.user.preferred_unit %>"
+     data-plate-calculator-max-plates-per-side-value="6"
+     data-plate-calculator-machine-type-value="<%= workout_exercise.machine&.equipment_type %>"<% end %>>
   <%= form_with model: set, 
-      url: workout_workout_exercise_exercise_sets_path(workout, workout_exercise),
-      class: "add-set-form mt-2",
+      url: workout_workout_exercise_exercise_sets_path(workout, workout_exercise, quick_log: (quick_log_mode ? 1 : nil)),
+      class: "add-set-form mt-2 #{'quick-log-form' if quick_log_mode}",
       data: { controller: "set-form", action: "submit->set-form#submitted" } do |form| %>
     
     <%# Row 1: Primary fields - Weight + Reps/Time/Distance %>
@@ -69,41 +72,49 @@
 
     <%# Row 2: Secondary fields - Warmup, RPE, RIR, Submit %>
     <div class="row g-2 align-items-center mt-1">
-      <div class="col-auto">
-        <label class="form-label small text-muted mb-1">Warmup</label>
-        <div class="form-check d-flex justify-content-center">
-          <%= form.check_box :is_warmup, class: "form-check-input", title: "Warmup set" %>
+      <% unless quick_log_mode %>
+        <div class="col-auto">
+          <label class="form-label small text-muted mb-1">Warmup</label>
+          <div class="form-check d-flex justify-content-center">
+            <%= form.check_box :is_warmup, class: "form-check-input", title: "Warmup set" %>
+          </div>
         </div>
-      </div>
 
-      <div class="col">
-        <label class="form-label small text-muted mb-1" title="Rate of Perceived Exertion (1-10)">RPE</label>
-        <%= form.number_field :rpe,
-            value: set.rpe,
-            class: "form-control form-control-sm text-center",
-            placeholder: "—",
-            min: 1,
-            max: 10,
-            step: 0.5,
-            inputmode: "decimal",
-            onfocus: "this.select()" %>
-      </div>
+        <div class="col">
+          <label class="form-label small text-muted mb-1" title="Rate of Perceived Exertion (1-10)">RPE</label>
+          <%= form.number_field :rpe,
+              value: set.rpe,
+              class: "form-control form-control-sm text-center",
+              placeholder: "—",
+              min: 1,
+              max: 10,
+              step: 0.5,
+              inputmode: "decimal",
+              onfocus: "this.select()" %>
+        </div>
 
-      <div class="col">
-        <label class="form-label small text-muted mb-1" title="Reps in Reserve (0-10)">RIR</label>
-        <%= form.number_field :rir,
-            value: set.rir,
-            class: "form-control form-control-sm text-center",
-            placeholder: "—",
-            min: 0,
-            max: 10,
-            inputmode: "numeric",
-            onfocus: "this.select()" %>
-      </div>
+        <div class="col">
+          <label class="form-label small text-muted mb-1" title="Reps in Reserve (0-10)">RIR</label>
+          <%= form.number_field :rir,
+              value: set.rir,
+              class: "form-control form-control-sm text-center",
+              placeholder: "—",
+              min: 0,
+              max: 10,
+              inputmode: "numeric",
+              onfocus: "this.select()" %>
+        </div>
+      <% end %>
+
+      <% if quick_log_mode %>
+        <%= form.hidden_field :is_warmup, value: false %>
+      <% end %>
 
       <div class="col-auto">
         <div class="mt-3">
-          <%= form.submit "✓", class: "btn btn-primary btn-sm", data: { set_form_target: "submit" } %>
+          <%= form.submit(quick_log_mode ? "Log Set" : "✓",
+              class: "btn btn-primary #{quick_log_mode ? '' : 'btn-sm'}",
+              data: { set_form_target: "submit" }) %>
         </div>
       </div>
     </div>
