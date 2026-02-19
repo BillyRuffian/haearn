@@ -146,6 +146,8 @@ User
 
 17. **Web Push Observability**: Push delivery telemetry should be tracked in `WebPushNotificationService` as counters for attempts/successes/failures, bucketed by endpoint host and failure error class, with simple query/reset helpers for operational checks and tests.
 
+18. **Web Push Retry Policy**: Retry only transient push failures (timeouts/network interruptions, 429, 5xx/push-service errors) with exponential backoff; do not retry permanent subscription errors (`ExpiredSubscription`/`InvalidSubscription`) and continue pruning invalid subscriptions.
+
 ## Equipment Types (Enum)
 
 ```ruby

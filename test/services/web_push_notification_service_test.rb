@@ -16,14 +16,15 @@ class WebPushNotificationServiceTest < ActiveSupport::TestCase
   class FakePushClient
     attr_reader :sent_payloads
 
-    def initialize(failure_endpoint: nil, failure_error: StandardError.new('boom'))
+    def initialize(failures: {})
       @sent_payloads = []
-      @failure_endpoint = failure_endpoint
-      @failure_error = failure_error
+      @failures = failures.transform_values(&:dup)
     end
 
     def payload_send(**kwargs)
-      raise @failure_error if @failure_endpoint.present? && kwargs[:endpoint] == @failure_endpoint
+      endpoint = kwargs[:endpoint]
+      queued = @failures[endpoint]
+      raise queued.shift if queued.present?
 
       @sent_payloads << kwargs
       true
@@ -111,10 +112,7 @@ class WebPushNotificationServiceTest < ActiveSupport::TestCase
       auth_key: 'test-auth-f'
     )
 
-    push_client = FakePushClient.new(
-      failure_endpoint: endpoint,
-      failure_error: PushBoom.new('push failed')
-    )
+    push_client = FakePushClient.new(failures: { endpoint => [ PushBoom.new('push failed') ] })
     config = FakeConfig.new(true, { subject: 'mailto:test@example.com', public_key: 'pub', private_key: 'priv' })
     WebPushNotificationService
       .new(user: @user, push_client:, push_config: config, metrics_cache_store: @cache_store)
@@ -123,5 +121,94 @@ class WebPushNotificationServiceTest < ActiveSupport::TestCase
     metrics = WebPushNotificationService.metrics_for(cache_store: @cache_store)
     assert_equal 1, metrics[:attempts_by_host]['fcm.googleapis.com']
     assert_equal 1, metrics[:failures_by_host_and_error]['fcm.googleapis.com|WebPushNotificationServiceTest::PushBoom']
+  end
+
+  test 'retries transient standard error with backoff and succeeds' do
+    endpoint = 'https://fcm.googleapis.com/fcm/send/retry-standard'
+    @user.push_subscriptions.create!(
+      endpoint: endpoint,
+      p256dh_key: 'test-p256dh-r1',
+      auth_key: 'test-auth-r1'
+    )
+
+    push_client = FakePushClient.new(failures: { endpoint => [ Timeout::Error.new('temporary timeout') ] })
+    config = FakeConfig.new(true, { subject: 'mailto:test@example.com', public_key: 'pub', private_key: 'priv' })
+    sleeps = []
+
+    WebPushNotificationService
+      .new(
+        user: @user,
+        push_client:,
+        push_config: config,
+        metrics_cache_store: @cache_store,
+        sleeper: ->(seconds) { sleeps << seconds }
+      )
+      .deliver_notification(@notification)
+
+    metrics = WebPushNotificationService.metrics_for(cache_store: @cache_store)
+    assert_equal 2, metrics[:attempts_by_host]['fcm.googleapis.com']
+    assert_equal 1, metrics[:successes_by_host]['fcm.googleapis.com']
+    assert_equal 1, metrics[:failures_by_host_and_error]['fcm.googleapis.com|Timeout::Error']
+    assert_equal [0.25], sleeps
+  end
+
+  test 'retries Webpush::TooManyRequests and succeeds' do
+    endpoint = 'https://updates.push.example/subscriptions/retry-429'
+    @user.push_subscriptions.create!(
+      endpoint: endpoint,
+      p256dh_key: 'test-p256dh-r2',
+      auth_key: 'test-auth-r2'
+    )
+
+    response = Struct.new(:code, :body).new('429', 'too many requests')
+    error = Webpush::TooManyRequests.new(response, 'updates.push.example')
+    push_client = FakePushClient.new(failures: { endpoint => [ error ] })
+    config = FakeConfig.new(true, { subject: 'mailto:test@example.com', public_key: 'pub', private_key: 'priv' })
+    sleeps = []
+
+    WebPushNotificationService
+      .new(
+        user: @user,
+        push_client:,
+        push_config: config,
+        metrics_cache_store: @cache_store,
+        sleeper: ->(seconds) { sleeps << seconds }
+      )
+      .deliver_notification(@notification)
+
+    metrics = WebPushNotificationService.metrics_for(cache_store: @cache_store)
+    assert_equal 2, metrics[:attempts_by_host]['updates.push.example']
+    assert_equal 1, metrics[:successes_by_host]['updates.push.example']
+    assert_equal 1, metrics[:failures_by_host_and_error]['updates.push.example|Webpush::TooManyRequests']
+    assert_equal [0.25], sleeps
+  end
+
+  test 'does not retry non-transient standard error' do
+    endpoint = 'https://updates.push.example/subscriptions/no-retry'
+    @user.push_subscriptions.create!(
+      endpoint: endpoint,
+      p256dh_key: 'test-p256dh-r3',
+      auth_key: 'test-auth-r3'
+    )
+
+    push_client = FakePushClient.new(failures: { endpoint => [ PushBoom.new('fatal') ] })
+    config = FakeConfig.new(true, { subject: 'mailto:test@example.com', public_key: 'pub', private_key: 'priv' })
+    sleeps = []
+
+    WebPushNotificationService
+      .new(
+        user: @user,
+        push_client:,
+        push_config: config,
+        metrics_cache_store: @cache_store,
+        sleeper: ->(seconds) { sleeps << seconds }
+      )
+      .deliver_notification(@notification)
+
+    metrics = WebPushNotificationService.metrics_for(cache_store: @cache_store)
+    assert_equal 1, metrics[:attempts_by_host]['updates.push.example']
+    assert_nil metrics[:successes_by_host]['updates.push.example']
+    assert_equal 1, metrics[:failures_by_host_and_error]['updates.push.example|WebPushNotificationServiceTest::PushBoom']
+    assert_empty sleeps
   end
 end

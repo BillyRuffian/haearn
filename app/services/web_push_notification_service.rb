@@ -4,12 +4,23 @@ require 'webpush'
 # Sends persisted notifications to browser push subscribers using VAPID.
 class WebPushNotificationService
   METRICS_TTL = 8.days
+  DEFAULT_MAX_RETRIES = 2
+  BASE_BACKOFF_SECONDS = 0.25
 
-  def initialize(user:, push_client: Webpush, push_config: WebPushConfig, metrics_cache_store: Rails.cache)
+  def initialize(
+    user:,
+    push_client: Webpush,
+    push_config: WebPushConfig,
+    metrics_cache_store: Rails.cache,
+    max_retries: DEFAULT_MAX_RETRIES,
+    sleeper: ->(seconds) { sleep(seconds) }
+  )
     @user = user
     @push_client = push_client
     @push_config = push_config
     @metrics_cache_store = metrics_cache_store
+    @max_retries = max_retries
+    @sleeper = sleeper
   end
 
   def deliver_notification(notification)
@@ -61,24 +72,45 @@ class WebPushNotificationService
   end
 
   def send_payload!(subscription:, payload:)
-    increment_delivery_metric(type: 'attempt', host: endpoint_host(subscription.endpoint))
+    host = endpoint_host(subscription.endpoint)
+    attempt = 0
 
-    @push_client.payload_send(
-      endpoint: subscription.endpoint,
-      message: payload.to_json,
-      p256dh: subscription.p256dh_key,
-      auth: subscription.auth_key,
-      vapid: @push_config.vapid_options
-    )
+    begin
+      attempt += 1
+      increment_delivery_metric(type: 'attempt', host:)
 
-    increment_delivery_metric(type: 'success', host: endpoint_host(subscription.endpoint))
-    subscription.touch(:updated_at)
-  rescue Webpush::ExpiredSubscription, Webpush::InvalidSubscription, Webpush::ResponseError => e
-    increment_delivery_metric(type: 'failure', host: endpoint_host(subscription.endpoint), error_class: e.class.name)
-    handle_subscription_error(subscription, e)
-  rescue StandardError => e
-    increment_delivery_metric(type: 'failure', host: endpoint_host(subscription.endpoint), error_class: e.class.name)
-    Rails.logger.warn("[WebPush] Failed for subscription #{subscription.id}: #{e.class}: #{e.message}")
+      @push_client.payload_send(
+        endpoint: subscription.endpoint,
+        message: payload.to_json,
+        p256dh: subscription.p256dh_key,
+        auth: subscription.auth_key,
+        vapid: @push_config.vapid_options
+      )
+
+      increment_delivery_metric(type: 'success', host:)
+      subscription.touch(:updated_at)
+    rescue Webpush::ExpiredSubscription, Webpush::InvalidSubscription => e
+      increment_delivery_metric(type: 'failure', host:, error_class: e.class.name)
+      handle_subscription_error(subscription, e)
+    rescue Webpush::ResponseError => e
+      increment_delivery_metric(type: 'failure', host:, error_class: e.class.name)
+
+      if retryable_webpush_error?(e) && retryable_attempt?(attempt)
+        schedule_retry(subscription:, attempt:, error: e)
+        retry
+      end
+
+      Rails.logger.warn("[WebPush] Failed for subscription #{subscription.id}: #{e.class}: #{e.message}")
+    rescue StandardError => e
+      increment_delivery_metric(type: 'failure', host:, error_class: e.class.name)
+
+      if retryable_standard_error?(e) && retryable_attempt?(attempt)
+        schedule_retry(subscription:, attempt:, error: e)
+        retry
+      end
+
+      Rails.logger.warn("[WebPush] Failed for subscription #{subscription.id}: #{e.class}: #{e.message}")
+    end
   end
 
   def handle_subscription_error(subscription, error)
@@ -92,6 +124,39 @@ class WebPushNotificationService
 
   def increment_delivery_metric(type:, host:, error_class: nil)
     self.class.increment_metric(type:, host:, error_class:, cache_store: @metrics_cache_store)
+  end
+
+  def retryable_attempt?(attempt)
+    attempt <= @max_retries
+  end
+
+  def schedule_retry(subscription:, attempt:, error:)
+    delay = (BASE_BACKOFF_SECONDS * (2**(attempt - 1))).round(3)
+    Rails.logger.info("[WebPush] Retrying subscription #{subscription.id} in #{delay}s after #{error.class}")
+    @sleeper.call(delay)
+  end
+
+  def retryable_webpush_error?(error)
+    return true if error.is_a?(Webpush::TooManyRequests) || error.is_a?(Webpush::PushServiceError)
+
+    code = error.response&.respond_to?(:code) ? error.response.code.to_i : 0
+    code == 429 || code >= 500
+  end
+
+  def retryable_standard_error?(error)
+    transient = [
+      Timeout::Error,
+      SocketError,
+      EOFError,
+      Errno::ECONNRESET,
+      Errno::ETIMEDOUT
+    ]
+
+    transient << Net::OpenTimeout if defined?(Net::OpenTimeout)
+    transient << Net::ReadTimeout if defined?(Net::ReadTimeout)
+    transient << OpenSSL::SSL::SSLError if defined?(OpenSSL::SSL::SSLError)
+
+    transient.any? { |klass| error.is_a?(klass) }
   end
 
   def self.endpoint_host(endpoint)
