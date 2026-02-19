@@ -11,25 +11,41 @@ import { Controller } from "@hotwired/stimulus"
 //   </div>
 //
 export default class extends Controller {
-  static targets = ["indicator", "syncButton"]
+  static targets = ["indicator", "confidence", "status", "queueCount", "lastSynced", "syncButton"]
   static classes = ["show"]
   static values = {
     syncUrl: { type: String, default: "/api/sync" }
   }
 
   connect() {
-    this.updateStatus()
+    this.pendingCount = 0
+    this.isSyncing = false
+    this.syncError = null
+    this.lastSyncedAt = this.readLastSyncedAt()
 
-    window.addEventListener("online", this.handleOnline.bind(this))
-    window.addEventListener("offline", this.handleOffline.bind(this))
+    this.onlineHandler = this.handleOnline.bind(this)
+    this.offlineHandler = this.handleOffline.bind(this)
+    this.serviceWorkerMessageHandler = this.handleServiceWorkerMessage.bind(this)
+    this.queuedHandler = this.handleQueued.bind(this)
+
+    this.updateStatus()
+    this.refreshQueueCount()
+
+    window.addEventListener("online", this.onlineHandler)
+    window.addEventListener("offline", this.offlineHandler)
 
     // Listen for sync messages from service worker
-    navigator.serviceWorker?.addEventListener("message", this.handleServiceWorkerMessage.bind(this))
+    navigator.serviceWorker?.addEventListener("message", this.serviceWorkerMessageHandler)
+
+    // Listen for newly queued offline form submissions
+    this.element.addEventListener("offline-form:queued", this.queuedHandler)
   }
 
   disconnect() {
-    window.removeEventListener("online", this.handleOnline.bind(this))
-    window.removeEventListener("offline", this.handleOffline.bind(this))
+    window.removeEventListener("online", this.onlineHandler)
+    window.removeEventListener("offline", this.offlineHandler)
+    navigator.serviceWorker?.removeEventListener("message", this.serviceWorkerMessageHandler)
+    this.element.removeEventListener("offline-form:queued", this.queuedHandler)
   }
 
   get isOnline() {
@@ -48,8 +64,10 @@ export default class extends Controller {
     }
 
     if (this.hasSyncButtonTarget) {
-      this.syncButtonTarget.disabled = !this.isOnline
+      this.syncButtonTarget.disabled = !this.isOnline || this.isSyncing || this.pendingCount === 0
     }
+
+    this.renderConfidence()
 
     // Dispatch event for other controllers
     this.dispatch(this.isOnline ? "online" : "offline")
@@ -57,6 +75,7 @@ export default class extends Controller {
 
   handleOnline() {
     console.log("[Offline] Back online")
+    this.syncError = null
     this.updateStatus()
     this.syncPendingData()
   }
@@ -64,6 +83,11 @@ export default class extends Controller {
   handleOffline() {
     console.log("[Offline] Gone offline")
     this.updateStatus()
+  }
+
+  handleQueued() {
+    this.syncError = null
+    this.refreshQueueCount()
   }
 
   handleServiceWorkerMessage(event) {
@@ -74,12 +98,20 @@ export default class extends Controller {
 
   // Sync any pending offline data
   async syncPendingData() {
-    if (!this.isOnline) return
+    if (!this.isOnline || this.isSyncing) return
 
     try {
+      this.isSyncing = true
+      this.syncError = null
+      this.updateStatus()
+
       const pendingData = await this.getPendingWorkouts()
+      this.pendingCount = pendingData.length
+
       if (pendingData.length === 0) {
         console.log("[Offline] No pending data to sync")
+        this.isSyncing = false
+        this.updateStatus()
         return
       }
 
@@ -89,10 +121,17 @@ export default class extends Controller {
         await this.syncItem(item)
       }
 
+      this.lastSyncedAt = Date.now()
+      this.persistLastSyncedAt(this.lastSyncedAt)
       this.dispatch("synced", { detail: { count: pendingData.length } })
     } catch (error) {
       console.error("[Offline] Sync failed:", error)
+      this.syncError = error
       this.dispatch("syncFailed", { detail: { error } })
+    } finally {
+      this.isSyncing = false
+      await this.refreshQueueCount()
+      this.updateStatus()
     }
   }
 
@@ -166,7 +205,72 @@ export default class extends Controller {
   }
 
   // Manual sync trigger
-  sync() {
+  sync(event) {
+    event?.preventDefault()
     this.syncPendingData()
+  }
+
+  async refreshQueueCount() {
+    try {
+      const pending = await this.getPendingWorkouts()
+      this.pendingCount = pending.length
+    } catch (error) {
+      console.warn("[Offline] Unable to read pending queue", error)
+      this.pendingCount = 0
+    }
+
+    this.updateStatus()
+  }
+
+  renderConfidence() {
+    if (!this.hasConfidenceTarget) return
+
+    this.confidenceTarget.classList.remove("d-none")
+
+    if (this.hasStatusTarget) {
+      this.statusTarget.textContent = this.statusText()
+    }
+
+    if (this.hasQueueCountTarget) {
+      this.queueCountTarget.textContent = `${this.pendingCount} queued`
+    }
+
+    if (this.hasLastSyncedTarget) {
+      this.lastSyncedTarget.textContent = this.lastSyncedText()
+    }
+
+    if (this.hasSyncButtonTarget) {
+      this.syncButtonTarget.textContent = this.syncError ? "Retry" : "Sync now"
+    }
+  }
+
+  statusText() {
+    if (!this.isOnline) return "Offline"
+    if (this.isSyncing) return "Syncing..."
+    if (this.syncError) return "Sync failed"
+    if (this.pendingCount > 0) return "Online"
+    return "Synced"
+  }
+
+  lastSyncedText() {
+    if (!this.lastSyncedAt) return "Last synced: --"
+    return `Last synced: ${new Date(this.lastSyncedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+  }
+
+  persistLastSyncedAt(value) {
+    try {
+      window.localStorage.setItem("haearn:last-synced-at", String(value))
+    } catch (_error) {
+      // Ignore localStorage failures in private/sandboxed contexts
+    }
+  }
+
+  readLastSyncedAt() {
+    try {
+      const value = window.localStorage.getItem("haearn:last-synced-at")
+      return value ? Number(value) : null
+    } catch (_error) {
+      return null
+    }
   }
 }
