@@ -144,6 +144,8 @@ User
 
 16. **Analytics Cache Observability**: Dashboard analytics cache must emit per-user daily counters (`cache_hit`, `cache_miss`, `invalidation`) and `ActiveSupport::Notifications` events (`dashboard_analytics_cache.fetch`, `dashboard_analytics_cache.invalidate`) so hit-rate regressions are visible.
 
+17. **Web Push Observability**: Push delivery telemetry should be tracked in `WebPushNotificationService` as counters for attempts/successes/failures, bucketed by endpoint host and failure error class, with simple query/reset helpers for operational checks and tests.
+
 ## Equipment Types (Enum)
 
 ```ruby

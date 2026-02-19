@@ -3,10 +3,13 @@ require 'webpush'
 
 # Sends persisted notifications to browser push subscribers using VAPID.
 class WebPushNotificationService
-  def initialize(user:, push_client: Webpush, push_config: WebPushConfig)
+  METRICS_TTL = 8.days
+
+  def initialize(user:, push_client: Webpush, push_config: WebPushConfig, metrics_cache_store: Rails.cache)
     @user = user
     @push_client = push_client
     @push_config = push_config
+    @metrics_cache_store = metrics_cache_store
   end
 
   def deliver_notification(notification)
@@ -58,6 +61,8 @@ class WebPushNotificationService
   end
 
   def send_payload!(subscription:, payload:)
+    increment_delivery_metric(type: 'attempt', host: endpoint_host(subscription.endpoint))
+
     @push_client.payload_send(
       endpoint: subscription.endpoint,
       message: payload.to_json,
@@ -66,15 +71,104 @@ class WebPushNotificationService
       vapid: @push_config.vapid_options
     )
 
+    increment_delivery_metric(type: 'success', host: endpoint_host(subscription.endpoint))
     subscription.touch(:updated_at)
   rescue Webpush::ExpiredSubscription, Webpush::InvalidSubscription, Webpush::ResponseError => e
+    increment_delivery_metric(type: 'failure', host: endpoint_host(subscription.endpoint), error_class: e.class.name)
     handle_subscription_error(subscription, e)
   rescue StandardError => e
+    increment_delivery_metric(type: 'failure', host: endpoint_host(subscription.endpoint), error_class: e.class.name)
     Rails.logger.warn("[WebPush] Failed for subscription #{subscription.id}: #{e.class}: #{e.message}")
   end
 
   def handle_subscription_error(subscription, error)
     Rails.logger.info("[WebPush] Removing invalid subscription #{subscription.id}: #{error.class}")
     subscription.destroy
+  end
+
+  def endpoint_host(endpoint)
+    self.class.endpoint_host(endpoint)
+  end
+
+  def increment_delivery_metric(type:, host:, error_class: nil)
+    self.class.increment_metric(type:, host:, error_class:, cache_store: @metrics_cache_store)
+  end
+
+  def self.endpoint_host(endpoint)
+    URI.parse(endpoint).host.to_s.downcase.presence || 'unknown'
+  rescue URI::InvalidURIError, ArgumentError
+    'unknown'
+  end
+
+  def self.metrics_for(date: Date.current, cache_store: Rails.cache)
+    {
+      attempts_by_host: metric_bucket(type: 'attempt', date:, cache_store:),
+      successes_by_host: metric_bucket(type: 'success', date:, cache_store:),
+      failures_by_host_and_error: failure_metric_bucket(date:, cache_store:)
+    }
+  end
+
+  def self.reset_metrics!(date: Date.current, cache_store: Rails.cache)
+    delete_matched(cache_store, "web_push:metrics:date:#{date.iso8601}:*")
+  end
+
+  def self.increment_metric(type:, host:, error_class: nil, cache_store: Rails.cache)
+    key = metric_key(type:, host:, date: Date.current, error_class:)
+
+    if cache_store.respond_to?(:increment)
+      cache_store.increment(key, 1, initial: 0, expires_in: METRICS_TTL)
+    else
+      cache_store.write(key, cache_store.read(key).to_i + 1, expires_in: METRICS_TTL)
+    end
+  end
+
+  def self.metric_key(type:, host:, date:, error_class: nil)
+    base = "web_push:metrics:date:#{date.iso8601}:type:#{type}:host:#{host}"
+    error_class.present? ? "#{base}:error:#{error_class}" : base
+  end
+
+  def self.metric_bucket(type:, date:, cache_store:)
+    read_matched(cache_store, "web_push:metrics:date:#{date.iso8601}:type:#{type}:host:*")
+      .each_with_object({}) do |(key, value), bucket|
+        host = key.split(':host:').last
+        bucket[host] = value.to_i
+      end
+  end
+
+  def self.failure_metric_bucket(date:, cache_store:)
+    read_matched(cache_store, "web_push:metrics:date:#{date.iso8601}:type:failure:host:*:error:*")
+      .each_with_object({}) do |(key, value), bucket|
+        host = key.split(':host:').last.split(':error:').first
+        error = key.split(':error:').last
+        bucket["#{host}|#{error}"] = value.to_i
+      end
+  end
+
+  def self.read_matched(cache_store, pattern)
+    return {} unless cache_store.respond_to?(:read_multi)
+
+    # MemoryStore supports key enumeration via delete_matched internals; use a non-destructive scan.
+    keys = cache_store.instance_variable_get(:@data)&.keys&.grep(glob_to_regex(pattern)) || []
+    return {} if keys.empty?
+
+    cache_store.read_multi(*keys)
+  rescue StandardError
+    {}
+  end
+
+  def self.delete_matched(cache_store, pattern)
+    if cache_store.respond_to?(:delete_matched)
+      cache_store.delete_matched(pattern)
+      return
+    end
+
+    keys = cache_store.instance_variable_get(:@data)&.keys&.grep(glob_to_regex(pattern)) || []
+    keys.each { |key| cache_store.delete(key) }
+  rescue StandardError
+    nil
+  end
+
+  def self.glob_to_regex(pattern)
+    Regexp.new("\\A#{Regexp.escape(pattern).gsub('\\*', '.*')}\\z")
   end
 end

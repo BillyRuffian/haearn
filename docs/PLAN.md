@@ -823,7 +823,7 @@ $text-muted: #6c757d;
 ## Phase 20: Push Reliability & Operations
 
 ### 20.1 Delivery Reliability
-- [ ] Add push delivery observability (attempt/success/failure counters by error class and endpoint host)
+- [x] Add push delivery observability (attempt/success/failure counters by error class and endpoint host) _(Added `WebPushNotificationService` metrics counters with host/error-class bucketing and query/reset helpers, covered by service tests.)_
 - [ ] Add retry pipeline with backoff for transient push delivery failures
 - [ ] Add subscription health indicators (subscribed device count + last successful push timestamp)
 
