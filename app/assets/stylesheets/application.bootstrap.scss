@@ -2397,6 +2397,97 @@ html {
   background: linear-gradient(to right, #a33232, #b8860b, #3d7ea6, #2d7a3e);
 }
 
+// SVG Muscle Recovery Map
+.body-map-shell {
+  position: relative;
+}
+
+.body-map-views {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 1rem;
+
+  @media (max-width: 575.98px) {
+    gap: 0.5rem;
+  }
+}
+
+.body-map-figure {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0) 100%);
+  border: 1px solid rgba($iron-light, 0.65);
+  border-radius: 0.3rem;
+  padding: 0.5rem;
+}
+
+.body-map-figure-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9aa0a7;
+  text-align: center;
+  margin-bottom: 0.35rem;
+}
+
+.body-map-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.body-base {
+  fill: rgba($iron-light, 0.4);
+  stroke: rgba(#6f767d, 0.55);
+  stroke-width: 0.7;
+}
+
+.body-map-zone {
+  fill: var(--zone-color, #4b4f54);
+  fill-opacity: 0.85;
+  stroke: rgba(255, 255, 255, 0.15);
+  stroke-width: 0.7;
+  transition: fill-opacity 0.15s ease, filter 0.15s ease;
+  cursor: pointer;
+}
+
+.body-map-zone:hover {
+  fill-opacity: 1;
+  filter: brightness(1.12);
+}
+
+.body-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  justify-content: center;
+  font-size: 0.76rem;
+  color: #b2b7bd;
+
+  .legend-dot {
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 999px;
+    display: inline-block;
+    margin-right: 0.32rem;
+    vertical-align: middle;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+}
+
+.body-map-tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background: rgba(12, 12, 14, 0.96);
+  border: 1px solid rgba($iron-light, 0.85);
+  border-radius: 0.35rem;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: #d6dbe0;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 20;
+}
+
 // =====================================================
 // Admin Panel
 // =====================================================
