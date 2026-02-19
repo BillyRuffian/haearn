@@ -225,14 +225,17 @@ export default class extends Controller {
   renderConfidence() {
     if (!this.hasConfidenceTarget) return
 
-    this.confidenceTarget.classList.remove("d-none")
+    const shouldShow = !this.isOnline || this.isSyncing || this.syncError || this.pendingCount > 0
+    this.confidenceTarget.classList.toggle("d-none", !shouldShow)
+    if (!shouldShow) return
 
     if (this.hasStatusTarget) {
       this.statusTarget.textContent = this.statusText()
     }
 
     if (this.hasQueueCountTarget) {
-      this.queueCountTarget.textContent = `${this.pendingCount} queued`
+      this.queueCountTarget.textContent = String(this.pendingCount)
+      this.queueCountTarget.classList.toggle("d-none", this.pendingCount === 0)
     }
 
     if (this.hasLastSyncedTarget) {
@@ -252,7 +255,7 @@ export default class extends Controller {
     if (!this.isOnline) return "Offline"
     if (this.isSyncing) return "Syncing..."
     if (this.syncError) return "Sync failed"
-    if (this.pendingCount > 0) return "Online"
+    if (this.pendingCount > 0) return "Queued"
     return "Synced"
   }
 

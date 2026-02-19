@@ -51,25 +51,6 @@
       You're offline — Changes will sync when back online
     </div>
 
-    <div data-offline-target="confidence"
-         class="offline-confidence d-none"
-         aria-live="polite">
-      <div class="offline-confidence-main">
-        <span data-offline-target="dot" class="offline-confidence-dot"></span>
-        <span data-offline-target="status" class="offline-confidence-status">Checking...</span>
-        <span data-offline-target="queueCount" class="offline-confidence-queue">0 queued</span>
-      </div>
-      <div class="offline-confidence-meta">
-        <span data-offline-target="lastSynced">Last synced: --</span>
-        <button type="button"
-                class="btn btn-link btn-sm offline-confidence-retry"
-                data-offline-target="syncButton"
-                data-action="click->offline#sync">
-          Sync now
-        </button>
-      </div>
-    </div>
-
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
       <div class="container">
@@ -77,6 +58,18 @@
           <i class="bi bi-fire me-2"></i>
           HAEARN
         <% end %>
+
+        <div data-offline-target="confidence"
+             data-action="click->offline#sync"
+             class="offline-nav-indicator d-none ms-2"
+             aria-live="polite"
+             role="status"
+             title="Sync status">
+          <span data-offline-target="dot" class="offline-confidence-dot offline-confidence-dot-online"></span>
+          <span data-offline-target="status" class="offline-nav-status">Synced</span>
+          <span data-offline-target="queueCount" class="offline-nav-queue d-none">0</span>
+          <span data-offline-target="lastSynced" class="d-none">Last synced: --</span>
+        </div>
 
         <%# Mobile right-side controls order: [timer] [bell] [gear] %>
         <% if Current.user %>

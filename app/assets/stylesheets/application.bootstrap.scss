@@ -417,89 +417,56 @@ select option:checked {
   }
 }
 
-.offline-confidence {
-  position: fixed;
-  right: 0.75rem;
-  bottom: calc(4.9rem + env(safe-area-inset-bottom));
-  z-index: 1045;
-  min-width: 13rem;
-  max-width: min(88vw, 18rem);
-  background: rgba(17, 18, 20, 0.94);
-  border: 1px solid rgba($iron-light, 0.9);
-  border-radius: 0.45rem;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
-  padding: 0.45rem 0.55rem;
-  color: #d3d9de;
-  font-size: 0.73rem;
-  backdrop-filter: blur(2px);
+.offline-nav-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.12rem 0.35rem;
+  border-radius: 999px;
+  color: rgba(200, 200, 200, 0.65);
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
 
-  @media (min-width: 992px) {
-    bottom: 1rem;
-    right: 1rem;
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(230, 230, 230, 0.85);
   }
 }
 
-.offline-confidence-main {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-weight: 700;
-}
-
 .offline-confidence-dot {
-  width: 0.45rem;
-  height: 0.45rem;
+  width: 0.34rem;
+  height: 0.34rem;
   border-radius: 999px;
 }
 
 .offline-confidence-dot-online {
-  background: #2d7a3e;
-  box-shadow: 0 0 0 2px rgba(45, 122, 62, 0.2);
+  background: rgba(45, 122, 62, 0.8);
 }
 
 .offline-confidence-dot-syncing {
-  background: #3d7ea6;
-  box-shadow: 0 0 0 2px rgba(61, 126, 166, 0.2);
+  background: rgba(61, 126, 166, 0.85);
 }
 
 .offline-confidence-dot-offline {
-  background: #b8860b;
-  box-shadow: 0 0 0 2px rgba(184, 134, 11, 0.2);
+  background: rgba(184, 134, 11, 0.9);
 }
 
 .offline-confidence-dot-error {
-  background: #a33232;
-  box-shadow: 0 0 0 2px rgba(163, 50, 50, 0.22);
+  background: rgba(163, 50, 50, 0.9);
 }
 
-.offline-confidence-status {
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.offline-confidence-queue {
-  margin-left: auto;
-  color: #adb5bd;
+.offline-nav-status {
+  opacity: 0.8;
   font-weight: 600;
 }
 
-.offline-confidence-meta {
-  margin-top: 0.2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: #8f99a1;
-}
-
-.offline-confidence-retry {
-  color: $rust-light;
-  padding: 0;
-  line-height: 1;
-  text-decoration: none;
-
-  &:hover {
-    color: $forge-orange;
-  }
+.offline-nav-queue {
+  color: rgba(173, 181, 189, 0.85);
+  font-variant-numeric: tabular-nums;
 }
 
 .nav-link {
