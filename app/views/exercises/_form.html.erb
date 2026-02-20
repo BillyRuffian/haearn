@@ -1,4 +1,8 @@
-<%= form_with(model: exercise, class: "row g-3 align-items-end") do |form| %>
+<%= form_with(model: exercise, class: "row g-3 align-items-start") do |form| %>
+  <% if local_assigns[:return_to].present? %>
+    <%= hidden_field_tag :return_to, return_to %>
+  <% end %>
+
   <% if exercise.errors.any? %>
     <div class="col-12">
       <div class="alert alert-danger py-2">
@@ -25,18 +29,21 @@
   </div>
 
   <div class="col-md-2">
-    <div class="form-check mt-4">
-      <%= form.check_box :has_weight, class: "form-check-input" %>
-      <%= form.label :has_weight, "Uses Weight", class: "form-check-label" %>
-    </div>
+    <%= form.label :has_weight, "Uses Weight", class: "form-label" %>
+    <%= form.select :has_weight,
+        [["Yes", true], ["No", false]],
+        { selected: exercise.has_weight.nil? ? true : exercise.has_weight },
+        class: "form-select",
+        data: { controller: "custom-select" } %>
   </div>
 
   <div class="col-md-3">
     <%= form.label :primary_muscle_group, "Muscle Group", class: "form-label" %>
     <%= form.select :primary_muscle_group, 
         Exercise::MUSCLE_GROUPS.map { |m| [Exercise::MUSCLE_GROUP_LABELS[m], m] }, 
-        { include_blank: "Optional..." },
+        { include_blank: "Select..." },
         class: "form-select",
+        required: true,
         data: { controller: "custom-select" } %>
   </div>
 

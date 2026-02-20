@@ -62,4 +62,10 @@ class ExerciseTest < ActiveSupport::TestCase
     @exercise.form_cues = nil
     assert_equal [], @exercise.cues_list
   end
+
+  test 'primary_muscle_group is required' do
+    @exercise.primary_muscle_group = nil
+    assert_not @exercise.valid?
+    assert_includes @exercise.errors[:primary_muscle_group], "can't be blank"
+  end
 end

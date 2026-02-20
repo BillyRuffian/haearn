@@ -186,7 +186,7 @@ class WebPushNotificationServiceTest < ActiveSupport::TestCase
     assert_equal 2, metrics[:attempts_by_host]['fcm.googleapis.com']
     assert_equal 1, metrics[:successes_by_host]['fcm.googleapis.com']
     assert_equal 1, metrics[:failures_by_host_and_error]['fcm.googleapis.com|Timeout::Error']
-    assert_equal [0.25], sleeps
+    assert_equal [ 0.25 ], sleeps
   end
 
   test 'retries Webpush::TooManyRequests and succeeds' do
@@ -217,7 +217,7 @@ class WebPushNotificationServiceTest < ActiveSupport::TestCase
     assert_equal 2, metrics[:attempts_by_host]['updates.push.example']
     assert_equal 1, metrics[:successes_by_host]['updates.push.example']
     assert_equal 1, metrics[:failures_by_host_and_error]['updates.push.example|Webpush::TooManyRequests']
-    assert_equal [0.25], sleeps
+    assert_equal [ 0.25 ], sleeps
   end
 
   test 'does not retry non-transient standard error' do

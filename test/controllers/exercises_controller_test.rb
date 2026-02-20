@@ -39,4 +39,20 @@ class ExercisesControllerTest < ActionDispatch::IntegrationTest
     @exercise.reload
     assert_equal cues, @exercise.form_cues
   end
+
+  test 'create rejects missing primary muscle group' do
+    assert_no_difference('Exercise.count') do
+      post exercises_path, params: {
+        exercise: {
+          name: 'Missing Muscle Group',
+          exercise_type: 'reps',
+          has_weight: true,
+          primary_muscle_group: '',
+          form_cues: 'Test cue'
+        }
+      }
+    end
+
+    assert_response :unprocessable_entity
+  end
 end

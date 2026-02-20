@@ -80,7 +80,7 @@ class Exercise < ApplicationRecord
 
   validates :name, presence: true
   validates :exercise_type, presence: true, inclusion: { in: EXERCISE_TYPES }
-  validates :primary_muscle_group, inclusion: { in: MUSCLE_GROUPS }, allow_blank: true
+  validates :primary_muscle_group, presence: true, inclusion: { in: MUSCLE_GROUPS }
 
   scope :global, -> { where(user_id: nil) }
   scope :for_user, ->(user) { where(user_id: [ nil, user.id ]) }  # Global + user's custom

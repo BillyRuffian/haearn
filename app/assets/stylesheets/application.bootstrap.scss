@@ -110,7 +110,6 @@ body {
   background-attachment: fixed;
   min-height: 100vh;
   max-width: 100%;
-  overflow-x: hidden;
 
   // Subtle noise texture overlay
   &::before {
@@ -393,6 +392,13 @@ select option:checked {
     inset 0 1px 0 rgba(0, 0, 0, 0.3),
     0 4px 20px rgba($rust, 0.15),
     0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.navbar.sticky-top {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 1030;
 }
 
 .navbar-brand {
@@ -1145,6 +1151,36 @@ body.add-set-form-open .workout-fab {
   .rest-timer-adjust-btn {
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
+  }
+}
+
+// iPhone landscape support:
+// iOS PWA may still rotate to landscape, so force a true full-width layout on short landscape viewports.
+@media (orientation: landscape) and (max-height: 500px) {
+  .container,
+  .container-sm,
+  .container-md,
+  .container-lg,
+  .container-xl,
+  .container-xxl {
+    max-width: 100%;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .bottom-nav-container {
+    max-width: none;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .rest-timer-bar-content {
+    max-width: 100%;
+  }
+
+  .notifications-dropdown {
+    width: calc(100vw - 0.75rem);
+    min-width: 0;
   }
 }
 
@@ -2004,7 +2040,6 @@ html.turbo-loading {
 html {
   scroll-behavior: smooth;
   max-width: 100%;
-  overflow-x: hidden;
 }
 
 // Reduce motion for accessibility
