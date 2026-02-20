@@ -110,6 +110,7 @@ body {
   background-attachment: fixed;
   min-height: 100vh;
   max-width: 100%;
+  overflow-x: clip;
 
   // Subtle noise texture overlay
   &::before {
@@ -2040,6 +2041,7 @@ html.turbo-loading {
 html {
   scroll-behavior: smooth;
   max-width: 100%;
+  overflow-x: clip;
 }
 
 // Reduce motion for accessibility
