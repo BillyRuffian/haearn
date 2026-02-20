@@ -42,7 +42,12 @@ class ExerciseMergerTest < ActiveSupport::TestCase
 
   test 'works when duplicate has no workout uses' do
     # Create a fresh exercise with no associations
-    fresh = Exercise.create!(name: 'Orphan Exercise', exercise_type: 'reps', has_weight: true)
+    fresh = Exercise.create!(
+      name: 'Orphan Exercise',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'chest'
+    )
 
     result = ExerciseMerger.call(target: @target, duplicate: fresh)
 

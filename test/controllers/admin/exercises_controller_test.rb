@@ -29,7 +29,12 @@ class Admin::ExercisesControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(@admin)
     assert_difference 'Exercise.count' do
       post admin_exercises_path, params: {
-        exercise: { name: 'New Global Ex', exercise_type: 'reps', has_weight: true }
+        exercise: {
+          name: 'New Global Ex',
+          exercise_type: 'reps',
+          has_weight: true,
+          primary_muscle_group: 'chest'
+        }
       }
     end
     exercise = Exercise.last

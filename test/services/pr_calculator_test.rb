@@ -9,6 +9,7 @@ class PrCalculatorTest < ActiveSupport::TestCase
       name: 'Test Bench Press',
       has_weight: true,
       exercise_type: 'reps',
+      primary_muscle_group: 'chest',
       user: @user
     )
     @machine = Machine.create!(

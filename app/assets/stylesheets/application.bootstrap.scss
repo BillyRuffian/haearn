@@ -402,6 +402,18 @@ select option:checked {
   z-index: 1030;
 }
 
+// iOS PWA safe-area handling:
+// prevent the navbar (and fixed top notices) from colliding with status indicators.
+@media (display-mode: standalone) and (max-width: 991.98px) {
+  .navbar {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  [data-offline-target="indicator"] {
+    top: env(safe-area-inset-top) !important;
+  }
+}
+
 .navbar-brand {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 1.6rem;

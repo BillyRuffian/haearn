@@ -8,6 +8,7 @@ class FatigueAnalyzerTest < ActiveSupport::TestCase
       name: 'Fatigue Scope Test Lift',
       has_weight: true,
       exercise_type: 'reps',
+      primary_muscle_group: 'chest',
       user: @user
     )
     @machine_a = Machine.create!(

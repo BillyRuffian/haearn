@@ -5,7 +5,13 @@ class ExercisePolicyTest < ActiveSupport::TestCase
     @admin = users(:admin)
     @user = users(:one)
     @user_exercise = exercises(:one)
-    @global_exercise = Exercise.create!(name: 'Global Test', exercise_type: 'reps', has_weight: true, user: nil)
+    @global_exercise = Exercise.create!(
+      name: 'Global Test',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'chest',
+      user: nil
+    )
   end
 
   test 'anyone can index exercises' do
