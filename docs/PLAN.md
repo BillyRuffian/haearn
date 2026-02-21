@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: February 19, 2026
+> Last Updated: February 21, 2026
 
 ## Overview
 
@@ -557,6 +557,7 @@ $text-muted: #6c757d;
 - [x] Progress photos with date overlay _(ProgressPhoto model with Active Storage, category poses, date/weight overlay, comparison view)_
 - [x] Wilks/DOTS/IPF GL score calculation for powerlifters _(WilksCalculator service with 2020 formula, shows score + classification: novice → world class)_
 - [x] Bodyweight-relative strength tracking (e.g., 2x BW squat) _(Displays on exercise history PRs, shows ratio like "2.1x BW" with best lift @ bodyweight)_
+- [x] Mobile/PWA quick access for body metrics via Settings quick links _(Added a `Body Metrics` link to mobile Settings quick links; logging remains accessible from the Body Metrics page.)_
 
 ### 8.7 Recovery & Readiness
 - [ ] Sleep quality logging (hours, rating)
