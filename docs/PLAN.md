@@ -664,6 +664,16 @@ $text-muted: #6c757d;
 
 ---
 
+## Phase 11.7 Regression Safety Net
+
+- [x] Add RSpec regression suite for high-risk UI flows (workout show actions, timer markup transitions, machine-unit set display, settings quick links)
+- [x] Configure RSpec to use existing Rails fixtures (`test/fixtures`) for fast, deterministic request/helper specs
+- [x] Expand RSpec safety net to cover core gym-user workflows (auth guardrails, workout lifecycle start/add/log/finish, settings preference updates)
+- [x] Add RSpec coverage for push notification persistence endpoints (subscription create/remove, rest-timer notification dedupe)
+- [x] Add RSpec coverage for admin audit log access/filter behavior (admin-only access + action filtering)
+
+---
+
 ## Phase 12: Admin Panel & Authorization (Pundit)
 
 ### 12.1 Pundit Setup & Admin Role

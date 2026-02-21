@@ -160,6 +160,10 @@ User
 
 24. **Machine Unit Default & Input Rule**: New machines should default `display_unit` to the creating user's `preferred_unit`. For set entry, when a machine has `display_unit`, UI labels/placeholders/input hints must use that machine unit; otherwise use user preferred unit.
 
+25. **Regression Testing Direction**: For new regression coverage, prefer RSpec over Minitest. Keep high-risk UI behavior checks in focused request/helper specs (with fixture-backed deterministic setup), and extend this suite whenever regressions are fixed.
+
+26. **Core Safety Net Baseline**: Keep a small RSpec request-suite that always covers core user flows (auth gating, workout lifecycle, settings updates), push endpoints (subscription + rest-timer dedupe), and admin audit-log access/filtering to catch high-impact regressions early.
+
 ## Equipment Types (Enum)
 
 ```ruby
