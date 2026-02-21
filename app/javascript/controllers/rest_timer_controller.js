@@ -16,6 +16,8 @@ export default class extends Controller {
     this.endTime = null
     this.isRunning = false
     this.interval = null
+    this.lastAlertAt = 0
+    this.lastSetLoggedAt = 0
 
     // Load saved duration from localStorage if available
     const savedDuration = localStorage.getItem("haearn_rest_duration")
@@ -28,9 +30,9 @@ export default class extends Controller {
       }
     }
 
+    this.initializePanelState()
     // Check if there's a running timer from before navigation
     this.restoreTimerState()
-
     this.updateDisplay()
 
     if (this.autoStartValue && !this.isRunning) {
@@ -48,6 +50,10 @@ export default class extends Controller {
     // Re-sync timer when page becomes visible (for backgrounded PWA)
     this.visibilityHandler = this.handleVisibilityChange.bind(this)
     document.addEventListener("visibilitychange", this.visibilityHandler)
+
+    // iOS Safari/PWA can keep audio context suspended unless it is primed by gesture.
+    this.pointerUnlockHandler = this.warmUpAudio.bind(this)
+    window.addEventListener("pointerdown", this.pointerUnlockHandler, { once: true })
   }
 
   disconnect() {
@@ -59,6 +65,7 @@ export default class extends Controller {
     window.removeEventListener("set-logged", this.setLoggedHandler)
     this.element.removeEventListener("rest-duration-changed", this.durationChangedHandler)
     document.removeEventListener("visibilitychange", this.visibilityHandler)
+    window.removeEventListener("pointerdown", this.pointerUnlockHandler)
   }
 
   restoreTimerState() {
@@ -137,8 +144,15 @@ export default class extends Controller {
   }
 
   complete() {
+    if (!this.isRunning || !this.endTime) return
+
+    const now = Date.now()
+    // Guard against duplicate/stray completes around rapid set logging.
+    if (now - this.lastAlertAt < 1000) return
+
     const completionTimestamp = this.endTime || Date.now()
     this.stop()
+    this.lastAlertAt = now
     this.playAlert()
     this.vibrate()
     this.showNotification("Rest Complete!", "Time to lift! 💪")
@@ -148,8 +162,11 @@ export default class extends Controller {
     if (this.hasContainerTarget) {
       this.containerTarget.classList.add("timer-complete")
       setTimeout(() => {
-        this.hideTimer()
-        this.containerTarget.classList.remove("timer-complete")
+        this.containerTarget.classList.add("timer-fade-out")
+        setTimeout(() => {
+          this.hideTimer()
+          this.containerTarget.classList.remove("timer-complete", "timer-fade-out")
+        }, 350)
       }, 5000)
     }
   }
@@ -214,22 +231,49 @@ export default class extends Controller {
 
   showTimer() {
     if (this.hasCollapsedTarget) {
-      this.collapsedTarget.classList.add("d-none")
+      this.setPanelVisible(this.collapsedTarget, false)
     }
     if (this.hasContainerTarget) {
-      this.containerTarget.classList.remove("d-none")
       this.containerTarget.classList.add("timer-active")
+      this.setPanelVisible(this.containerTarget, true)
     }
   }
 
   hideTimer() {
     if (this.hasContainerTarget) {
-      this.containerTarget.classList.add("d-none")
       this.containerTarget.classList.remove("timer-active")
+      this.setPanelVisible(this.containerTarget, false)
     }
     if (this.hasCollapsedTarget) {
-      this.collapsedTarget.classList.remove("d-none")
+      this.setPanelVisible(this.collapsedTarget, true)
     }
+  }
+
+  initializePanelState() {
+    if (this.hasCollapsedTarget) {
+      this.collapsedTarget.classList.remove("is-hidden")
+      this.collapsedTarget.setAttribute("aria-hidden", "false")
+    }
+
+    if (this.hasContainerTarget) {
+      this.containerTarget.classList.add("is-hidden")
+      this.containerTarget.setAttribute("aria-hidden", "true")
+    }
+  }
+
+  setPanelVisible(panel, visible) {
+    if (!panel) return
+
+    if (visible) {
+      requestAnimationFrame(() => {
+        panel.classList.remove("is-hidden")
+        panel.setAttribute("aria-hidden", "false")
+      })
+      return
+    }
+
+    panel.classList.add("is-hidden")
+    panel.setAttribute("aria-hidden", "true")
   }
 
   // Initialize audio context during user gesture (start/setLogged) so it's
@@ -240,7 +284,7 @@ export default class extends Controller {
         this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
       }
       if (this.audioContext.state === "suspended") {
-        this.audioContext.resume()
+        this.audioContext.resume().catch(() => {})
       }
     } catch (e) {
       console.log("Audio context init failed:", e)
@@ -257,7 +301,7 @@ export default class extends Controller {
 
       // Last-resort resume attempt
       if (this.audioContext.state === "suspended") {
-        this.audioContext.resume()
+        this.audioContext.resume().catch(() => {})
       }
 
       const playBeep = (startTime, frequency, duration) => {
@@ -379,6 +423,8 @@ export default class extends Controller {
   // Called when a set is logged - auto-start the timer
   // Uses the block-specific rest time if the set came from a block with custom rest
   setLogged(event) {
+    this.lastSetLoggedAt = Date.now()
+
     // Check if the event carries a block-specific duration
     const blockDuration = event?.detail?.restSeconds
     if (blockDuration && blockDuration >= 15 && blockDuration <= 600) {

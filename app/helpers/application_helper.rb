@@ -58,6 +58,17 @@ module ApplicationHelper
     format_input_number(display_value)
   end
 
+  # Format a stored kg value for set-level display on a specific workout exercise.
+  # Uses machine display unit when present; otherwise falls back to user preference.
+  def set_weight_display_for(kg_value, workout_exercise)
+    input_weight_value_for(kg_value, workout_exercise)
+  end
+
+  # Unit suffix for set-level display on a specific workout exercise.
+  def set_weight_unit_for(workout_exercise)
+    input_weight_unit_for(workout_exercise)
+  end
+
   # Get last reps used for this exercise in this workout
   def last_reps_for(workout_exercise)
     last_set = workout_exercise.exercise_sets.order(created_at: :desc).first

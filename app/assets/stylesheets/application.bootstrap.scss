@@ -776,6 +776,12 @@ select option:checked {
   }
 }
 
+// Keep workout action menus usable inside set rows.
+.workout-block:has(.dropdown-menu.show) {
+  overflow: visible;
+  z-index: 120;
+}
+
 // Drag handle styles for reordering
 .drag-handle {
   cursor: grab;
@@ -915,6 +921,29 @@ select option:checked {
   }
 }
 
+// iPhone/PWA safe area for modal close controls.
+// Prevents close buttons from colliding with the status/notch region.
+@media (display-mode: standalone) and (max-width: 991.98px) {
+  .modal.show .modal-dialog,
+  .modal.fade.show .modal-dialog {
+    margin-top: max(0.5rem, env(safe-area-inset-top));
+  }
+
+  .modal-header {
+    padding-top: calc(var(--bs-modal-header-padding-y) + env(safe-area-inset-top));
+  }
+
+  .modal-fullscreen-sm-down .modal-header,
+  .modal-fullscreen .modal-header {
+    padding-top: calc(var(--bs-modal-header-padding-y) + env(safe-area-inset-top));
+  }
+
+  .modal-header .btn-close {
+    margin-top: 0;
+    align-self: flex-start;
+  }
+}
+
 // Floating Action Button for Add Exercise
 .workout-fab {
   position: fixed;
@@ -950,6 +979,12 @@ body.add-set-form-open .workout-fab {
   transform: scale(0.9);
 }
 
+body.add-set-form-open .rest-timer-footer {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
+}
+
 // Rest Timer Footer Bar UI
 .rest-timer-footer {
   position: fixed;
@@ -960,6 +995,7 @@ body.add-set-form-open .workout-fab {
   background: linear-gradient(180deg, rgba(20, 20, 22, 0.98) 0%, rgba(10, 10, 12, 0.98) 100%);
   border-top: 1px solid rgba($rust, 0.3);
   backdrop-filter: blur(10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
 
   // On large screens, bottom nav is hidden so timer sits at bottom
   @media (min-width: 992px) {
@@ -978,6 +1014,31 @@ body.add-set-form-open .workout-fab {
 .rest-timer-collapsed {
   padding: 0.75rem 1rem;
   text-align: center;
+}
+
+.rest-timer-stage {
+  position: relative;
+  min-height: 70px;
+}
+
+.rest-timer-panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rest-timer-collapsed,
+.rest-timer-bar {
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.rest-timer-collapsed.is-hidden,
+.rest-timer-bar.is-hidden {
+  opacity: 0;
+  transform: translateY(10px) scale(0.985);
+  pointer-events: none;
 }
 
 .rest-timer-start-btn {
@@ -999,7 +1060,9 @@ body.add-set-form-open .workout-fab {
 }
 
 .rest-timer-bar {
+  position: relative;
   padding: 0.5rem 1rem;
+  overflow: visible;
 
   &.timer-active {
     border-top-color: $rust;
@@ -1007,8 +1070,25 @@ body.add-set-form-open .workout-fab {
   }
 
   &.timer-complete {
-    animation: timerPulse 0.3s ease-in-out infinite;
+    background: linear-gradient(
+      120deg,
+      rgba($rust-dark, 0.92) 0%,
+      rgba($rust, 0.95) 28%,
+      rgba($forge-orange, 0.98) 50%,
+      rgba($rust-light, 0.96) 70%,
+      rgba($rust-dark, 0.92) 100%
+    );
+    background-size: 220% 220%;
+    animation: timerPulseFill 1.6s ease-in-out infinite;
     border-top-color: $forge-orange;
+    box-shadow:
+      0 -10px 36px rgba($forge-orange, 0.8),
+      0 -2px 12px rgba($rust-light, 0.55);
+  }
+
+  &.timer-fade-out {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
   }
 }
 
@@ -1031,11 +1111,17 @@ body.add-set-form-open .workout-fab {
 
 .rest-timer-display {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 1.75rem;
+  font-size: 2.05rem;
   font-weight: 700;
   color: #fff;
   text-shadow: 0 0 20px rgba($forge-orange, 0.5);
   line-height: 1;
+}
+
+.rest-timer-bar.timer-complete .rest-timer-display {
+  text-shadow:
+    0 0 14px rgba($forge-orange, 0.75),
+    0 0 26px rgba($rust-light, 0.65);
 }
 
 .rest-timer-progress {
@@ -1114,6 +1200,19 @@ body.add-set-form-open .workout-fab {
   }
 }
 
+@keyframes timerPulseFill {
+  0%,
+  100% {
+    background-position: 0% 50%;
+    filter: saturate(1);
+  }
+
+  50% {
+    background-position: 100% 50%;
+    filter: saturate(1.25);
+  }
+}
+
 // Mobile optimizations
 @media (max-width: 576px) {
   .container {
@@ -1145,7 +1244,7 @@ body.add-set-form-open .workout-fab {
   }
 
   .rest-timer-display {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
   }
 
   .rest-timer-bar-content {
@@ -1201,6 +1300,20 @@ body.add-set-form-open .workout-fab {
 // Clip horizontal paint overflow so it never creates page-level rightward scroll.
 .workout-show-page {
   overflow-x: hidden;
+}
+
+@media (max-width: 991.98px) {
+  .workout-show-page .navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+  }
+
+  .workout-show-page main {
+    padding-top: calc(4rem + env(safe-area-inset-top));
+  }
 }
 
 .workout-show-page main,
@@ -1538,6 +1651,7 @@ body.add-set-form-open .workout-fab {
   // Ensure the container with an open dropdown renders above sibling elements
   &:has(.dropdown-menu.show) {
     z-index: 100;
+    overflow: visible;
   }
 }
 
@@ -2627,5 +2741,11 @@ html {
     &:active {
       transform: scale(0.95);
     }
+  }
+}
+
+@media (display-mode: standalone) and (max-width: 991.98px) {
+  .photo-preview-modal .modal-header {
+    padding-top: calc(1rem + env(safe-area-inset-top));
   }
 }

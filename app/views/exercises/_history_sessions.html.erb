@@ -42,7 +42,7 @@
               set.weight_kg == prs[:best_set_weight][:weight_kg] %>
           <span class="set-badge <%= 'pr-set' if is_weight_pr %>">
             <% if we.exercise.has_weight? %>
-              <%= number_with_delimiter(Current.user.format_weight(set.weight_kg)) %> × <%= set.reps %>
+              <%= number_with_delimiter(set_weight_display_for(set.weight_kg, we)) %><%= set_weight_unit_for(we) %> × <%= set.reps %>
             <% elsif we.exercise.exercise_type == "time" %>
               <%= set.duration_seconds %>s
             <% elsif we.exercise.exercise_type == "distance" %>

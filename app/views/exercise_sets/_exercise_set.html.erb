@@ -27,13 +27,14 @@
           <% end %>
         </div>
         <div class="col-3 text-center">
+          <% set_unit = set_weight_unit_for(workout_exercise) %>
           <span class="weight-display <%= 'pr-weight' if is_weight_pr %>">
-            <%= Current.user.format_weight(set.weight_kg) || "—" %>
+            <%= set_weight_display_for(set.weight_kg, workout_exercise) || "—" %>
             <% if is_weight_pr %>
               <i class="bi bi-trophy-fill text-warning ms-1"></i>
             <% end %>
           </span>
-          <small class="text-muted"><%= Current.user.preferred_unit %></small>
+          <small class="text-muted"><%= set_unit %></small>
           <% if is_weight_pr && set.pr_scope_label %>
             <div><small class="badge bg-warning-subtle text-warning-emphasis"><%= set.pr_scope_label %></small></div>
           <% end %>
