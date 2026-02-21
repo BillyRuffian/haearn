@@ -206,7 +206,7 @@
     <% end %>
   </div>
 
-  <!-- Add Exercise Button (non-active: inline, active: FAB) -->
+  <!-- Add Exercise Button (active workouts only) -->
   <% if @workout.in_progress? %>
     <%= link_to add_exercise_workout_path(@workout), 
         class: "btn btn-primary workout-fab shadow",
@@ -214,14 +214,6 @@
         title: "Add Exercise" do %>
       <i class="bi bi-plus-lg"></i>
     <% end %>
-  <% else %>
-    <div class="d-grid mt-4">
-      <%= link_to add_exercise_workout_path(@workout), 
-          class: "btn btn-outline-primary btn-lg",
-          data: { turbo_frame: "modal" } do %>
-        <i class="bi bi-plus-lg me-2"></i>Add Exercise
-      <% end %>
-    </div>
   <% end %>
 </div>
 

@@ -947,7 +947,7 @@ select option:checked {
 // Floating Action Button for Add Exercise
 .workout-fab {
   position: fixed;
-  bottom: calc(140px + env(safe-area-inset-bottom)); // Above rest timer + bottom nav
+  bottom: calc(156px + env(safe-area-inset-bottom)); // Above rest timer + bottom nav
   right: 1.25rem;
   z-index: 1039;
   width: 56px;
@@ -2218,6 +2218,10 @@ html {
 .turbo-progress-bar {
   background: linear-gradient(90deg, $rust, $forge-orange);
   height: 3px;
+  top: calc(4rem + env(safe-area-inset-top)) !important;
+  left: 0;
+  right: 0;
+  z-index: 1061;
 }
 
 // Skeleton loading
