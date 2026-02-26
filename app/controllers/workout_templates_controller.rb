@@ -78,7 +78,13 @@ class WorkoutTemplatesController < ApplicationController
           partial: 'workout_templates/pin_button',
           locals: { template: @template })
       end
-      format.html { redirect_to @template, notice: "Template #{status}." }
+      format.html do
+        if turbo_frame_request?
+          render partial: 'workout_templates/pin_button', locals: { template: @template }
+        else
+          redirect_to @template, notice: "Template #{status}."
+        end
+      end
     end
   end
 
