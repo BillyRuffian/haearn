@@ -54,6 +54,8 @@ class WorkoutsController < ApplicationController
           color: analyzer.status_color
         }
       end
+    else
+      @progression_updates = build_progression_updates
     end
   end
 
@@ -272,6 +274,20 @@ class WorkoutsController < ApplicationController
 
   def workout_params
     params.require(:workout).permit(:gym_id, :notes)
+  end
+
+  def build_progression_updates
+    @workout.workout_exercises.includes(:exercise, :machine).filter_map do |workout_exercise|
+      next unless workout_exercise.exercise.has_weight?
+
+      suggestion = ProgressionSuggester.new(
+        workout_exercise: workout_exercise,
+        user: Current.user
+      ).suggest
+      next unless suggestion
+
+      { workout_exercise: workout_exercise, suggestion: suggestion }
+    end
   end
 
   # Generates shareable text summary of workout

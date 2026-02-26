@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: February 21, 2026
+> Last Updated: February 26, 2026
 
 ## Overview
 
@@ -119,6 +119,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Show previous workout's sets for reference
 - [x] Turbo Stream for instant feedback
 - [x] "+1 Rep" quick button from previous set
+- [x] Show progression updates as a grouped summary after workout completion (not during active set entry)
 
 ### 3.5 Rest Timer (Stimulus)
 - [x] `rest_timer_controller.js`

@@ -109,6 +109,37 @@
   <!-- Workout Stats -->
   <%= render "workouts/stats", workout: @workout %>
 
+  <% if @workout.completed? && @progression_updates.present? %>
+    <div class="card mb-4">
+      <div class="card-body">
+        <h6 class="section-header">
+          <i class="bi bi-arrow-up-circle me-2"></i>Progression Updates
+        </h6>
+        <div class="d-flex flex-column gap-2">
+          <% @progression_updates.each do |update| %>
+            <% we = update[:workout_exercise] %>
+            <% suggestion = update[:suggestion] %>
+            <div class="alert alert-success mb-0 py-2 px-3">
+              <div class="fw-semibold mb-1">
+                <%= we.exercise.name %><% if we.machine %> (<%= we.machine.name %>)<% end %>
+              </div>
+              <div class="small">
+                Ready to progress. Try moving from
+                <strong><%= Current.user.format_weight(suggestion[:current_weight_kg]) %><%= Current.user.preferred_unit %></strong>
+                to
+                <strong><%= Current.user.format_weight(suggestion[:suggested_weight_kg]) %><%= Current.user.preferred_unit %></strong>
+                (+<%= Current.user.format_weight(suggestion[:increase_kg]) %><%= Current.user.preferred_unit %>).
+              </div>
+              <div class="small text-muted mt-1">
+                Why: <%= suggestion[:reasons].join(", ") %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
   <!-- Workout Notes -->
   <% if @workout.in_progress? || @workout.notes.present? %>
     <div class="card mb-4">

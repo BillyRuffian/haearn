@@ -164,6 +164,8 @@ User
 
 26. **Core Safety Net Baseline**: Keep a small RSpec request-suite that always covers core user flows (auth gating, workout lifecycle, settings updates), push endpoints (subscription + rest-timer dedupe), and admin audit-log access/filtering to catch high-impact regressions early.
 
+27. **Progression Messaging Timing**: Do not show progression prompts during active set entry. Aggregate and show progression updates together on completed workout pages so logging flow stays uncluttered.
+
 ## Equipment Types (Enum)
 
 ```ruby

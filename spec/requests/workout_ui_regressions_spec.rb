@@ -87,4 +87,32 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(response.body).to include('Equipment & Tracking')
     expect(response.body).to include('Tempo')
   end
+
+  it 'shows progression updates only after workout completion' do
+    allow_any_instance_of(ProgressionSuggester).to receive(:suggest).and_return(
+      {
+        current_weight_kg: 40.0,
+        suggested_weight_kg: 45.0,
+        increase_kg: 5.0,
+        reasons: [ 'consistently hitting 10 reps' ]
+      }
+    )
+
+    active_workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+    active_block = active_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    active_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+    get workout_path(active_workout)
+    expect(response).to have_http_status(:ok)
+    expect(response.body).not_to include('Progression Updates')
+
+    completed_workout = user.workouts.create!(gym: gym, started_at: 2.hours.ago, finished_at: 1.hour.ago)
+    completed_block = completed_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    completed_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+    get workout_path(completed_workout)
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('Progression Updates')
+    expect(response.body).to include('Ready to progress.')
+  end
 end

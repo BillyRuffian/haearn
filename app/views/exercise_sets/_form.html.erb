@@ -5,16 +5,6 @@
 <% next_set_number = workout_exercise.exercise_sets.count + 1 %>
 <% prev_set_data = previous_session_set_data(workout_exercise, next_set_number) %>
 
-<% if workout_exercise.exercise.has_weight? %>
-  <% suggester = ProgressionSuggester.new(workout_exercise: workout_exercise, user: Current.user) %>
-  <% if (suggestion_msg = suggester.suggestion_message) %>
-    <div class="d-flex align-items-center gap-2 mt-2 mb-2 small text-success">
-      <i class="bi bi-arrow-up-circle-fill"></i>
-      <span><%= suggestion_msg %></span>
-    </div>
-  <% end %>
-<% end %>
-
 <div <% if show_plate_calc %>data-controller="plate-calculator" 
      data-plate-calculator-weight-value="<%= initial_weight || 0 %>"
      data-plate-calculator-bar-weight-value="<%= input_unit == 'kg' ? 20 : 45 %>"
