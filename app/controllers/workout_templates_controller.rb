@@ -82,7 +82,7 @@ class WorkoutTemplatesController < ApplicationController
         if turbo_frame_request?
           render partial: 'workout_templates/pin_button', locals: { template: @template }
         else
-          redirect_to @template, notice: "Template #{status}."
+          redirect_back fallback_location: @template, notice: "Template #{status}."
         end
       end
     end
