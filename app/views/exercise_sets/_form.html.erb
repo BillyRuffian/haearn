@@ -1,6 +1,7 @@
 <% show_plate_calc = workout_exercise.exercise.has_weight && workout_exercise.machine&.plate_loaded? %>
+<% set = seeded_new_set_for(workout_exercise, set) %>
 <% input_unit = input_weight_unit_for(workout_exercise) %>
-<% initial_weight = set.weight_kg ? input_weight_value_for(set.weight_kg, workout_exercise) : last_weight_for(workout_exercise) %>
+<% initial_weight = set.weight_kg ? input_weight_value_for(set.weight_kg, workout_exercise) : nil %>
 <% quick_log_mode = local_assigns.fetch(:quick_log_mode, false) %>
 <% next_set_number = workout_exercise.exercise_sets.count + 1 %>
 <% prev_set_data = previous_session_set_data(workout_exercise, next_set_number) %>
@@ -37,7 +38,7 @@
         <% when 'reps' %>
           <label class="form-label small text-muted mb-1">Reps</label>
           <%= form.number_field :reps,
-              value: set.reps || last_reps_for(workout_exercise),
+              value: set.reps,
               class: "form-control form-control-sm text-center",
               inputmode: "numeric",
               onfocus: "this.select()",
@@ -45,14 +46,14 @@
         <% when 'time' %>
           <label class="form-label small text-muted mb-1">Seconds</label>
           <%= form.number_field :duration_seconds,
-              value: set.duration_seconds || last_duration_for(workout_exercise),
+              value: set.duration_seconds,
               class: "form-control form-control-sm text-center",
               inputmode: "numeric",
               onfocus: "this.select()" %>
         <% when 'distance' %>
           <label class="form-label small text-muted mb-1">Meters</label>
           <%= form.number_field :distance_meters,
-              value: set.distance_meters || last_distance_for(workout_exercise),
+              value: set.distance_meters,
               class: "form-control form-control-sm text-center",
               inputmode: "decimal",
               step: "any",
@@ -112,7 +113,7 @@
               onfocus: "this.select()" %>
         </div>
       <% else %>
-        <%= form.hidden_field :is_warmup, value: false %>
+        <%= form.hidden_field :is_warmup, value: set.is_warmup? %>
       <% end %>
 
       <div class="col-auto">

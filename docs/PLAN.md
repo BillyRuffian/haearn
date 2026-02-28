@@ -120,6 +120,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Turbo Stream for instant feedback
 - [x] "+1 Rep" quick button from previous set
 - [x] Show progression updates as a grouped summary after workout completion (not during active set entry)
+- [x] Apply deterministic add-set prefill order (blank with no history; first set from prior session set 1; subsequent sets from immediate prior current set, including warmup/modifier fields)
 
 ### 3.5 Rest Timer (Stimulus)
 - [x] `rest_timer_controller.js`

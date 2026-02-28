@@ -88,6 +88,82 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(response.body).to include('Tempo')
   end
 
+  it 'prefills add-set fields from prior context using ordered rules' do
+    machine = gym.machines.create!(
+      name: 'Rule Machine',
+      equipment_type: 'machine',
+      display_unit: 'kg',
+      weight_ratio: 1
+    )
+    exercise = user.exercises.create!(
+      name: 'Rule Exercise',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'chest'
+    )
+
+    # Rule 1: no history -> blank defaults.
+    no_history_workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+    no_history_block = no_history_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    no_history_we = no_history_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+    get workout_path(no_history_workout)
+    doc = Nokogiri::HTML.parse(response.body)
+    frame = doc.at_css("turbo-frame#new_set_#{no_history_we.id}")
+    expect(frame.at_css('input[name="exercise_set[weight_value]"]')['value'].to_s).to eq('')
+    expect(frame.at_css('input[name="exercise_set[reps]"]')['value'].to_s).to eq('')
+    expect(frame.at_css('input[type="checkbox"][name="exercise_set[is_warmup]"]')['checked']).to be_nil
+
+    # Previous finished session for rule 2 source data.
+    previous_workout = user.workouts.create!(gym: gym, started_at: 2.days.ago, finished_at: 2.days.ago + 50.minutes)
+    previous_block = previous_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    previous_we = previous_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    previous_we.exercise_sets.create!(
+      position: 1,
+      reps: 11,
+      weight_kg: 42.5,
+      is_warmup: true,
+      completed_at: 2.days.ago + 10.minutes
+    )
+    previous_we.exercise_sets.create!(
+      position: 2,
+      reps: 7,
+      weight_kg: 60,
+      is_warmup: false,
+      completed_at: 2.days.ago + 20.minutes
+    )
+
+    # Rule 2: first set copies first set from previous workout exercise+machine.
+    first_set_workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+    first_set_block = first_set_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    first_set_we = first_set_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+    get workout_path(first_set_workout)
+    doc = Nokogiri::HTML.parse(response.body)
+    frame = doc.at_css("turbo-frame#new_set_#{first_set_we.id}")
+    expect(frame.at_css('input[name="exercise_set[weight_value]"]')['value']).to eq('42.5')
+    expect(frame.at_css('input[name="exercise_set[reps]"]')['value']).to eq('11')
+    expect(frame.at_css('input[type="checkbox"][name="exercise_set[is_warmup]"]')['checked']).to eq('checked')
+
+    # Rule 3: second+ set copies the immediately previous set in current workout.
+    first_set_we.exercise_sets.create!(
+      position: 1,
+      reps: 9,
+      weight_kg: 55,
+      is_warmup: false,
+      rpe: 8.5,
+      completed_at: Time.current
+    )
+
+    get workout_path(first_set_workout)
+    doc = Nokogiri::HTML.parse(response.body)
+    frame = doc.at_css("turbo-frame#new_set_#{first_set_we.id}")
+    expect(frame.at_css('input[name="exercise_set[weight_value]"]')['value']).to eq('55')
+    expect(frame.at_css('input[name="exercise_set[reps]"]')['value']).to eq('9')
+    expect(frame.at_css('input[type="checkbox"][name="exercise_set[is_warmup]"]')['checked']).to be_nil
+    expect(frame.at_css('input[name="exercise_set[rpe]"]')['value']).to eq('8.5')
+  end
+
   it 'shows progression updates only after workout completion' do
     allow_any_instance_of(ProgressionSuggester).to receive(:suggest).and_return(
       {

@@ -1,4 +1,13 @@
 module ApplicationHelper
+  SET_PREFILL_ATTRIBUTE_KEYS = %w[
+    weight_kg reps duration_seconds distance_meters
+    is_warmup is_amrap set_type rpe rir
+    tempo_eccentric tempo_pause_bottom tempo_concentric tempo_pause_top
+    belt knee_sleeves wrist_wraps straps
+    is_failed spotter_assisted pain_flag is_bfr
+    partial_reps pain_note band_tension_kg chain_weight_kg
+  ].freeze
+
   # Bootstrap icons for each equipment type
   def equipment_icon(equipment_type)
     icons = {
@@ -117,6 +126,21 @@ module ApplicationHelper
     data[:duration_seconds] = previous_set.duration_seconds if previous_set.duration_seconds.present?
     data[:distance_meters] = previous_set.distance_meters if previous_set.distance_meters.present?
     data.presence
+  end
+
+  # Seed a brand-new set form using recent history:
+  # 1) If current workout already has sets, copy the immediately previous set.
+  # 2) Otherwise copy set 1 from the previous workout for the same exercise+machine.
+  # 3) If no history exists, keep fields blank/default.
+  def seeded_new_set_for(workout_exercise, set)
+    return set unless set.new_record?
+    return set if set_prefill_fields_changed?(set)
+
+    source_set = source_set_for_new_form(workout_exercise)
+    return set unless source_set
+
+    set.assign_attributes(source_set.attributes.slice(*SET_PREFILL_ATTRIBUTE_KEYS))
+    set
   end
 
   # Best estimated 1RM (kg) for this exercise + machine combo.
@@ -252,6 +276,20 @@ module ApplicationHelper
   end
 
   private
+
+  def source_set_for_new_form(workout_exercise)
+    current_sets = workout_exercise.exercise_sets.order(:position, :created_at)
+    return current_sets.last if current_sets.exists?
+
+    previous_exercise = workout_exercise.previous_exercise
+    return nil unless previous_exercise
+
+    previous_exercise.exercise_sets.order(:position, :created_at).first
+  end
+
+  def set_prefill_fields_changed?(set)
+    (set.changes_to_save.keys & SET_PREFILL_ATTRIBUTE_KEYS).any?
+  end
 
   def format_input_number(value)
     return nil if value.nil?

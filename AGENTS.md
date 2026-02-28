@@ -166,6 +166,8 @@ User
 
 27. **Progression Messaging Timing**: Do not show progression prompts during active set entry. Aggregate and show progression updates together on completed workout pages so logging flow stays uncluttered.
 
+28. **Set Form Prefill Rules**: New set forms should prefill by strict order: (a) if current workout has prior sets for the exercise+machine, copy the immediately previous set; (b) otherwise copy set 1 from the previous finished session for that exact exercise+machine; (c) if no history exists, leave fields blank/default.
+
 ## Equipment Types (Enum)
 
 ```ruby
