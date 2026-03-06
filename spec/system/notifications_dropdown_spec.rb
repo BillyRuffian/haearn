@@ -26,4 +26,31 @@ RSpec.describe 'Notifications dropdown', type: :system, js: true do
 
     expect(unread_notification.reload).to be_read
   end
+
+  it 'keeps the mobile notifications dropdown within the viewport on phone widths' do
+    visit root_path
+    page.current_window.resize_to(390, 844)
+
+    within("div.d-lg-none div.dropdown[data-controller='notifications-center']", visible: true) do
+      find("button[aria-label='Notifications']", visible: true).click
+    end
+
+    metrics = page.evaluate_script(<<~JS)
+      (() => {
+        const menu = document.querySelector(".notifications-dropdown-mobile.show")
+        if (!menu) return null
+
+        const rect = menu.getBoundingClientRect()
+        return {
+          left: rect.left,
+          right: rect.right,
+          viewportWidth: window.innerWidth
+        }
+      })()
+    JS
+
+    expect(metrics).not_to be_nil
+    expect(metrics["left"]).to be >= 0
+    expect(metrics["right"]).to be <= metrics["viewportWidth"]
+  end
 end

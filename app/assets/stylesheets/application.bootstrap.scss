@@ -527,6 +527,17 @@ select option:checked {
     width: calc(100vw - 0.75rem);
     min-width: 0;
   }
+
+  .notifications-dropdown-mobile {
+    position: fixed !important;
+    top: calc(env(safe-area-inset-top, 0px) + 3.75rem) !important;
+    left: 0.375rem !important;
+    right: 0.375rem !important;
+    width: auto !important;
+    max-width: none;
+    max-height: min(70vh, calc(100dvh - env(safe-area-inset-top, 0px) - 4.5rem));
+    transform: none !important;
+  }
 }
 
 .nav-link {

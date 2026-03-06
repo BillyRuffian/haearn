@@ -18,6 +18,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
   - [x] Add an initial Capybara system regression for add-set/edit-set visibility behavior
   - [x] Add a browser-level regression for the set-form `Last` button copying extended previous-session fields
   - [x] Add a browser-level regression for the notifications dropdown feed loading and mark-all-read flow
+  - [x] Keep the mobile notifications dropdown within the viewport on phone-sized screens
   - [x] Add a browser-level regression for the offline confidence widget queued/error/retry state
   - [x] Add a browser-level regression for set duplicate plus inline edit save/cancel flows
 - [x] Add a concise contributor-oriented `README.md` covering architecture, core flows, and local development conventions

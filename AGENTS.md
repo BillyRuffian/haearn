@@ -123,6 +123,7 @@ User
 7. **Performance Notifications Pattern**: Analytics alerts are persisted in `notifications` and surfaced dynamically via JSON polling (`/notifications/feed`) with Stimulus (`notifications_center_controller`) in navbar + dashboard. Rest timer completion should also persist to this same notification feed (`/notifications/rest_timer_expired`) so browser push and in-app notifications stay consistent. Alert generation/display must honor user notification preferences from Settings.
    Keep the active-workout rest timer runtime mounted at the layout level while an active workout exists so timers survive navigation and expired timers can still complete on reconnect.
    When a live page handles a rest-timer completion itself, persist the notification with push suppressed to avoid duplicate local-notification + web-push alerts on the same device.
+   On phone widths, navbar notification dropdowns should use viewport-safe positioning rather than container-relative sizing/alignment so the panel cannot render off-screen on iPhone.
 
 8. **Dashboard Information Architecture**: Keep `dashboard#index` focused on overview/quick actions and place charts in `dashboard#analytics` (accessible from desktop nav and mobile bottom nav).
 
