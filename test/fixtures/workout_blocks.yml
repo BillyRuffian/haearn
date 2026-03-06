@@ -24,6 +24,16 @@ one:
   position: 1
   rest_seconds: 1
 
+active_logging_block:
+  workout: active_logging
+  position: 1
+  rest_seconds: 90
+
+previous_logging_block:
+  workout: previous_logging
+  position: 1
+  rest_seconds: 90
+
 two:
   workout: two
   position: 1

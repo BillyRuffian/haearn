@@ -4,37 +4,31 @@ import { Controller } from "@hotwired/stimulus"
 // Connects to data-controller="copy-last"
 export default class extends Controller {
   static values = {
-    weight: String,
-    reps: String,
-    duration: String,
-    distance: String
+    payload: Object
   }
 
   copy() {
     const form = this.element.closest("form") || this.element.closest(".add-set-form")?.querySelector("form") || this.element.closest("[data-controller~='set-form']")?.closest("form")
-    if (!form) return
+    if (!form || !this.hasPayloadValue) return
 
-    if (this.hasWeightValue && this.weightValue) {
-      const weightField = form.querySelector("[name*='weight_value']")
-      if (weightField) {
-        weightField.value = this.weightValue
-        weightField.dispatchEvent(new Event("input", { bubbles: true }))
-      }
+    Object.entries(this.payloadValue).forEach(([key, value]) => {
+      this.applyFieldValue(form, key, value)
+    })
+  }
+
+  applyFieldValue(form, key, value) {
+    const checkboxField = form.querySelector(`[name='exercise_set[${key}]'][type='checkbox']`)
+    if (checkboxField) {
+      checkboxField.checked = Boolean(value)
+      checkboxField.dispatchEvent(new Event("change", { bubbles: true }))
+      return
     }
 
-    if (this.hasRepsValue && this.repsValue) {
-      const repsField = form.querySelector("[name*='[reps]']")
-      if (repsField) repsField.value = this.repsValue
-    }
+    const field = form.querySelector(`[name='exercise_set[${key}]']:not([type='hidden'])`)
+    if (!field) return
 
-    if (this.hasDurationValue && this.durationValue) {
-      const durationField = form.querySelector("[name*='duration_seconds']")
-      if (durationField) durationField.value = this.durationValue
-    }
-
-    if (this.hasDistanceValue && this.distanceValue) {
-      const distanceField = form.querySelector("[name*='distance_meters']")
-      if (distanceField) distanceField.value = this.distanceValue
-    }
+    field.value = value == null ? "" : String(value)
+    field.dispatchEvent(new Event("input", { bubbles: true }))
+    field.dispatchEvent(new Event("change", { bubbles: true }))
   }
 }

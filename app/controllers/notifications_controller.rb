@@ -28,6 +28,7 @@ class NotificationsController < ApplicationController
 
   def rest_timer_expired
     completed_at_ms = params[:completed_at_ms].to_i
+    suppress_push = ActiveModel::Type::Boolean.new.cast(params[:suppress_push])
     return head :unprocessable_entity if completed_at_ms <= 0
     return render json: { ok: true, skipped: true } unless Current.user.notify_rest_timer_in_app? || Current.user.notify_rest_timer_push?
 
@@ -47,7 +48,7 @@ class NotificationsController < ApplicationController
     )
     if notification.changed?
       notification.save!
-      WebPushNotificationService.new(user: Current.user).deliver_notification(notification)
+      WebPushNotificationService.new(user: Current.user).deliver_notification(notification) unless suppress_push
     end
 
     render json: { ok: true, notification_id: notification.id }

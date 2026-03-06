@@ -1,0 +1,29 @@
+<% compact = local_assigns.fetch(:compact, false) %>
+
+<div class="col-auto">
+  <% if compact %>
+    <div class="form-check mt-3">
+      <%= form.check_box :is_warmup, class: "form-check-input", title: "Warmup set" %>
+      <label class="form-check-label small">W/U</label>
+    </div>
+  <% else %>
+    <label class="form-label small text-muted mb-1">Warmup</label>
+    <div class="form-check d-flex justify-content-center">
+      <%= form.check_box :is_warmup, class: "form-check-input", title: "Warmup set" %>
+    </div>
+  <% end %>
+</div>
+
+<div class="col-auto">
+  <% if compact %>
+    <div class="form-check mt-3">
+      <%= form.check_box :is_amrap, class: "form-check-input", title: "AMRAP set (as many reps as possible)" %>
+      <label class="form-check-label small">AMRAP</label>
+    </div>
+  <% else %>
+    <label class="form-label small text-muted mb-1" title="As Many Reps As Possible">AMRAP</label>
+    <div class="form-check d-flex justify-content-center">
+      <%= form.check_box :is_amrap, class: "form-check-input", title: "AMRAP set (as many reps as possible)" %>
+    </div>
+  <% end %>
+</div>

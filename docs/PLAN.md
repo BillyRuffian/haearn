@@ -1,10 +1,26 @@
 # Haearn Implementation Plan
 
-> Last Updated: February 26, 2026
+> Last Updated: March 6, 2026
 
 ## Overview
 
 This document outlines the phased implementation of Haearn, a hardcore weightlifting tracking application.
+
+---
+
+## Engineering Improvements
+
+### Current Refactor Track
+- [x] Centralize dashboard page assembly in a dedicated service object to reduce `DashboardController` duplication while preserving existing analytics behavior
+- [x] Extract chart/query calculations from `DashboardController` into dedicated analytics services or query objects
+- [x] Consolidate add-set and edit-set UIs around shared form partials/components to reduce drift
+- [ ] Add focused frontend behavior coverage for critical Stimulus controllers (set logging, add/edit visibility, notifications, offline sync)
+  - [x] Add an initial Capybara system regression for add-set/edit-set visibility behavior
+  - [x] Add a browser-level regression for the set-form `Last` button copying extended previous-session fields
+  - [x] Add a browser-level regression for the notifications dropdown feed loading and mark-all-read flow
+  - [x] Add a browser-level regression for the offline confidence widget queued/error/retry state
+  - [x] Add a browser-level regression for set duplicate plus inline edit save/cancel flows
+- [x] Add a concise contributor-oriented `README.md` covering architecture, core flows, and local development conventions
 
 ---
 
@@ -121,6 +137,8 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] "+1 Rep" quick button from previous set
 - [x] Show progression updates as a grouped summary after workout completion (not during active set entry)
 - [x] Apply deterministic add-set prefill order (blank with no history; first set from prior session set 1; subsequent sets from immediate prior current set, including warmup/modifier fields)
+- [x] Make the set-form "Last" button copy the full previous-session payload, including warmup/AMRAP and extended tracking flags
+- [x] Hide the per-exercise add-set trigger while any inline set edit form is active in that exercise card
 
 ### 3.5 Rest Timer (Stimulus)
 - [x] `rest_timer_controller.js`
@@ -132,6 +150,11 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Visible countdown in UI
 - [x] Remember last-used duration per exercise
 - [x] Floating action button to manually start
+- [x] Keep the active-workout rest-timer runtime mounted across navigation so expired timers still complete and alert after reconnect
+- [x] Persist client-originated rest-timer completions without immediate push fanout to avoid duplicate same-device background alerts
+- [x] Bootstrap the rest-timer runtime from the user's configured `default_rest_seconds`
+- [x] Render per-block rest controls and propagate block-specific rest seconds through both normal and duplicate set logging flows
+- [x] Ensure new workout blocks created from add/move logging flows inherit the user's default rest instead of a hardcoded 90 seconds
 
 ### 3.6 Notes
 - [x] Overall workout notes field

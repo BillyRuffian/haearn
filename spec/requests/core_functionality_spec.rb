@@ -76,4 +76,50 @@ RSpec.describe 'Core functionality', type: :request do
     expect(user.default_rest_seconds).to eq(120)
     expect(user.progression_rep_target).to eq(12)
   end
+
+  it 'uses the user default rest when workout logging creates a new block' do
+    sign_in_as(user)
+    user.update!(default_rest_seconds: 150)
+
+    workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+    first_exercise = user.exercises.create!(
+      name: 'Flat Press',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'chest'
+    )
+    second_exercise = user.exercises.create!(
+      name: 'Chest Fly',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'chest'
+    )
+    machine = gym.machines.create!(
+      name: 'Default Rest Stack',
+      equipment_type: 'machine',
+      display_unit: 'kg'
+    )
+
+    post add_exercise_workout_path(workout), params: {
+      exercise_id: first_exercise.id,
+      machine_id: machine.id
+    }
+
+    expect(response).to redirect_to(workout_path(workout))
+    created_block = workout.reload.workout_blocks.sole
+    expect(created_block.rest_seconds).to eq(150)
+
+    movable_exercise = created_block.workout_exercises.create!(
+      exercise: second_exercise,
+      machine: machine,
+      position: 2
+    )
+
+    patch move_to_block_workout_workout_exercise_path(workout, movable_exercise), params: {
+      target_block_id: 'new'
+    }
+
+    expect(response).to redirect_to(workout_path(workout))
+    expect(movable_exercise.reload.workout_block.rest_seconds).to eq(150)
+  end
 end

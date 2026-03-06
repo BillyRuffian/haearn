@@ -488,6 +488,20 @@ select option:checked {
   font-variant-numeric: tabular-nums;
 }
 
+.offline-nav-action {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+
+  &:hover,
+  &:focus {
+    color: rgba(255, 255, 255, 0.92);
+    text-decoration: none;
+  }
+}
+
 .quick-log-form {
   .form-control {
     min-height: 2.35rem;
@@ -983,6 +997,16 @@ body.add-set-form-open .rest-timer-footer {
   opacity: 0;
   pointer-events: none;
   transform: translateY(12px);
+}
+
+.workout-exercise:has(form.edit-set-form) [data-add-set-toggle-target="button"] {
+  display: none !important;
+}
+
+body.workout-show-page:has(form.edit-set-form) .workout-fab,
+body.workout-show-page:has(form.edit-set-form) .rest-timer-footer {
+  opacity: 0;
+  pointer-events: none;
 }
 
 // Rest Timer Footer Bar UI

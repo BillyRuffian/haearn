@@ -1,0 +1,65 @@
+<% compact = local_assigns.fetch(:compact, false) %>
+<% focus_inputs = local_assigns.fetch(:focus_inputs, false) %>
+<% select_on_focus = focus_inputs ? "this.select()" : nil %>
+
+<% if compact %>
+  <div class="col-auto">
+    <label class="form-label small text-muted mb-1">Tempo</label>
+    <div class="d-flex gap-1">
+      <%= form.number_field :tempo_eccentric, class: "form-control form-control-sm text-center", style: "width: 40px;", placeholder: "E", min: 0, max: 30, inputmode: "numeric" %>
+      <%= form.number_field :tempo_pause_bottom, class: "form-control form-control-sm text-center", style: "width: 40px;", placeholder: "P", min: 0, max: 30, inputmode: "numeric" %>
+      <%= form.number_field :tempo_concentric, class: "form-control form-control-sm text-center", style: "width: 40px;", placeholder: "C", min: 0, max: 30, inputmode: "numeric" %>
+      <%= form.number_field :tempo_pause_top, class: "form-control form-control-sm text-center", style: "width: 40px;", placeholder: "T", min: 0, max: 30, inputmode: "numeric" %>
+    </div>
+  </div>
+<% else %>
+  <div data-controller="set-type-toggle">
+    <div class="mt-2">
+      <button type="button" class="btn btn-sm btn-link text-muted p-0" data-action="set-type-toggle#toggleTempo" data-set-type-toggle-target="tempoToggle">
+        <i class="bi bi-stopwatch me-1"></i><span class="small">Tempo</span>
+        <i class="bi bi-chevron-down ms-1 small"></i>
+      </button>
+    </div>
+    <div class="row g-1 mt-1 d-none" data-set-type-toggle-target="tempoRow">
+      <div class="col-3">
+        <label class="form-label small text-muted mb-0 text-center d-block" title="Eccentric (lowering) phase in seconds">Ecc</label>
+        <%= form.number_field :tempo_eccentric,
+            class: "form-control form-control-sm text-center",
+            placeholder: "—",
+            min: 0, max: 30,
+            inputmode: "numeric",
+            onfocus: select_on_focus %>
+      </div>
+      <div class="col-3">
+        <label class="form-label small text-muted mb-0 text-center d-block" title="Pause at bottom/stretch position">Pause</label>
+        <%= form.number_field :tempo_pause_bottom,
+            class: "form-control form-control-sm text-center",
+            placeholder: "—",
+            min: 0, max: 30,
+            inputmode: "numeric",
+            onfocus: select_on_focus %>
+      </div>
+      <div class="col-3">
+        <label class="form-label small text-muted mb-0 text-center d-block" title="Concentric (lifting) phase in seconds">Con</label>
+        <%= form.number_field :tempo_concentric,
+            class: "form-control form-control-sm text-center",
+            placeholder: "—",
+            min: 0, max: 30,
+            inputmode: "numeric",
+            onfocus: select_on_focus %>
+      </div>
+      <div class="col-3">
+        <label class="form-label small text-muted mb-0 text-center d-block" title="Pause at top/lockout position">Top</label>
+        <%= form.number_field :tempo_pause_top,
+            class: "form-control form-control-sm text-center",
+            placeholder: "—",
+            min: 0, max: 30,
+            inputmode: "numeric",
+            onfocus: select_on_focus %>
+      </div>
+      <div class="col-12">
+        <small class="text-muted">Format: eccentric-pause-concentric-pause (seconds)</small>
+      </div>
+    </div>
+  </div>
+<% end %>

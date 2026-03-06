@@ -38,6 +38,22 @@ one:
   session_notes: MyText
   persistent_notes: MyText
 
+active_logging:
+  workout_block: active_logging_block
+  exercise: system_press
+  machine: logging_machine
+  position: 1
+  session_notes:
+  persistent_notes: Grip hard
+
+previous_logging:
+  workout_block: previous_logging_block
+  exercise: system_press
+  machine: logging_machine
+  position: 1
+  session_notes:
+  persistent_notes: Grip hard
+
 two:
   workout_block: two
   exercise: two

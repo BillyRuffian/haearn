@@ -1,0 +1,4 @@
+system:
+  user: system
+  user_agent: System Test Browser
+  ip_address: 127.0.0.1

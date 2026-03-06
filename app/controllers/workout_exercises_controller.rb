@@ -85,11 +85,8 @@ class WorkoutExercisesController < ApplicationController
     target_block_id = params[:target_block_id]
 
     if target_block_id == 'new'
-      # Create a new block
-      target_block = @workout.workout_blocks.create!(
-        position: @workout.workout_blocks.maximum(:position).to_i + 1,
-        rest_seconds: 90
-      )
+      # Let WorkoutBlock apply the user's default rest and next position.
+      target_block = @workout.workout_blocks.create!
     else
       target_block = @workout.workout_blocks.find(target_block_id)
     end

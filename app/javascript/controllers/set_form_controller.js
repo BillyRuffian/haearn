@@ -6,11 +6,12 @@ export default class extends Controller {
 
   connect() {
     // Listen for successful turbo submissions to trigger rest timer
-    this.element.addEventListener("turbo:submit-end", this.handleSubmitEnd.bind(this))
+    this.boundHandleSubmitEnd = this.handleSubmitEnd.bind(this)
+    this.element.addEventListener("turbo:submit-end", this.boundHandleSubmitEnd)
   }
 
   disconnect() {
-    this.element.removeEventListener("turbo:submit-end", this.handleSubmitEnd.bind(this))
+    this.element.removeEventListener("turbo:submit-end", this.boundHandleSubmitEnd)
   }
 
   handleSubmitEnd(event) {

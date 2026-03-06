@@ -1,0 +1,54 @@
+<% weight_value = local_assigns[:weight_value] %>
+<% show_plate_calc = local_assigns.fetch(:show_plate_calc, false) %>
+<% focus_inputs = local_assigns.fetch(:focus_inputs, false) %>
+<% leading_value = local_assigns[:leading_value] %>
+<% leading_col_class = local_assigns.fetch(:leading_col_class, "col-1 text-center small text-muted pt-3") %>
+<% weight_col_class = local_assigns.fetch(:weight_col_class, "col") %>
+<% metric_col_class = local_assigns.fetch(:metric_col_class, "col") %>
+<% weight_input_data = local_assigns.fetch(:weight_input_data, {}) %>
+<% metric_input_data = local_assigns.fetch(:metric_input_data, {}) %>
+<% select_on_focus = focus_inputs ? "this.select()" : nil %>
+
+<% if leading_value.present? %>
+  <div class="<%= leading_col_class %>">
+    <%= leading_value %>
+  </div>
+<% end %>
+
+<% if workout_exercise.exercise.has_weight %>
+  <div class="<%= weight_col_class %>">
+    <label class="form-label small text-muted mb-1">Weight (<%= input_unit %>)</label>
+    <%= form.number_field :weight_value,
+        value: weight_value,
+        class: "form-control form-control-sm text-center",
+        step: "any",
+        inputmode: "decimal",
+        onfocus: select_on_focus,
+        data: weight_input_data.presence %>
+  </div>
+<% end %>
+
+<div class="<%= metric_col_class %>">
+  <% case workout_exercise.exercise.exercise_type %>
+  <% when 'reps' %>
+    <label class="form-label small text-muted mb-1">Reps</label>
+    <%= form.number_field :reps,
+        class: "form-control form-control-sm text-center",
+        inputmode: "numeric",
+        onfocus: select_on_focus,
+        data: metric_input_data.presence %>
+  <% when 'time' %>
+    <label class="form-label small text-muted mb-1">Seconds</label>
+    <%= form.number_field :duration_seconds,
+        class: "form-control form-control-sm text-center",
+        inputmode: "numeric",
+        onfocus: select_on_focus %>
+  <% when 'distance' %>
+    <label class="form-label small text-muted mb-1">Meters</label>
+    <%= form.number_field :distance_meters,
+        class: "form-control form-control-sm text-center",
+        inputmode: "decimal",
+        step: "any",
+        onfocus: select_on_focus %>
+  <% end %>
+</div>

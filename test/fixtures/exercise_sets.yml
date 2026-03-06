@@ -54,6 +54,38 @@ one:
   distance_meters: 9.99
   completed_at: 2026-02-02 21:29:27
 
+active_logging_first_set:
+  workout_exercise: active_logging
+  position: 1
+  is_warmup: false
+  is_amrap: false
+  set_type: normal
+  weight_kg: 42.5
+  reps: 9
+  completed_at: 2026-03-05 10:10:00
+
+previous_logging_first_set:
+  workout_exercise: previous_logging
+  position: 1
+  is_warmup: true
+  is_amrap: false
+  set_type: normal
+  weight_kg: 40
+  reps: 10
+  completed_at: 2026-03-04 10:05:00
+
+previous_logging_second_set:
+  workout_exercise: previous_logging
+  position: 2
+  is_warmup: false
+  is_amrap: true
+  set_type: backoff
+  belt: true
+  pain_flag: true
+  weight_kg: 47.5
+  reps: 12
+  completed_at: 2026-03-04 10:15:00
+
 two:
   workout_exercise: two
   position: 1

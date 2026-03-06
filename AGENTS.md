@@ -121,6 +121,8 @@ User
 6. **PR Scope Includes Equipment State**: PRs can be tracked separately as raw vs equipped, where "equipped" means any set using belt, knee sleeves, wrist wraps, or straps.
 
 7. **Performance Notifications Pattern**: Analytics alerts are persisted in `notifications` and surfaced dynamically via JSON polling (`/notifications/feed`) with Stimulus (`notifications_center_controller`) in navbar + dashboard. Rest timer completion should also persist to this same notification feed (`/notifications/rest_timer_expired`) so browser push and in-app notifications stay consistent. Alert generation/display must honor user notification preferences from Settings.
+   Keep the active-workout rest timer runtime mounted at the layout level while an active workout exists so timers survive navigation and expired timers can still complete on reconnect.
+   When a live page handles a rest-timer completion itself, persist the notification with push suppressed to avoid duplicate local-notification + web-push alerts on the same device.
 
 8. **Dashboard Information Architecture**: Keep `dashboard#index` focused on overview/quick actions and place charts in `dashboard#analytics` (accessible from desktop nav and mobile bottom nav).
 
@@ -133,6 +135,8 @@ User
     Cache invalidation is deduped per request/context via `Current` tracking to avoid repeated version bumps during bulk set/exercise updates.
     Cache keys are chart-scoped and include per-user per-chart version tokens (`...:version:n`) so invalidation can target only affected charts without broad deletes.
     Prefer scoped invalidation keys per model/change type so non-impacting updates (e.g., notes-only edits) do not clear unrelated analytics caches.
+    Keep dashboard page assembly in service objects so `DashboardController` stays focused on routing/rendering while chart calculations migrate out incrementally.
+    Keep chart/query calculations in dedicated analytics service objects (for example `DashboardAnalyticsCalculator`) instead of adding new calculation methods back into the controller.
 
 12. **Mobile Calendar Density Rule**: On small screens, calendar cells should prioritize glanceability by showing activity color intensity + workout-count badge only; hide per-day volume/set text and workout-dot clusters.
 
@@ -151,6 +155,7 @@ User
 19. **Push Subscription Health**: Track per-device delivery health on `PushSubscription.last_successful_push_at`; surface user-facing health indicators as subscribed device count + most recent successful push timestamp.
 
 20. **Offline Confidence UX**: Keep a persistent, glanceable sync-confidence widget driven by `offline_controller` showing state (`Offline`/`Syncing`/`Sync failed`/`Synced`), queued action count, last synced time, and a manual retry trigger.
+    The navbar sync-confidence widget should render a dedicated retry/sync control in the DOM so browser regressions can assert queued/error recovery states directly.
 
 21. **Quick Log Mode**: Active workout pages can switch into a one-thumb Quick Log mode (query-param driven) that prioritizes primary set inputs and single-tap logging, while preserving full mode for RPE/RIR/warmup details.
 
@@ -161,12 +166,19 @@ User
 24. **Machine Unit Default & Input Rule**: New machines should default `display_unit` to the creating user's `preferred_unit`. For set entry, when a machine has `display_unit`, UI labels/placeholders/input hints must use that machine unit; otherwise use user preferred unit.
 
 25. **Regression Testing Direction**: For new regression coverage, prefer RSpec over Minitest. Keep high-risk UI behavior checks in focused request/helper specs (with fixture-backed deterministic setup), and extend this suite whenever regressions are fixed.
+    For browser-backed Stimulus regressions, prefer a small Capybara system-spec layer only for the highest-risk interactive flows, and guard JS-only specs so restricted environments can skip cleanly when browser/socket support is unavailable.
+    For browser-backed system specs, prefer isolated `users(:system)` fixture data plus committed session-cookie sign-in so Selenium sees deterministic records without leaking active-workout state into request/service specs.
 
 26. **Core Safety Net Baseline**: Keep a small RSpec request-suite that always covers core user flows (auth gating, workout lifecycle, settings updates), push endpoints (subscription + rest-timer dedupe), and admin audit-log access/filtering to catch high-impact regressions early.
 
 27. **Progression Messaging Timing**: Do not show progression prompts during active set entry. Aggregate and show progression updates together on completed workout pages so logging flow stays uncluttered.
 
 28. **Set Form Prefill Rules**: New set forms should prefill by strict order: (a) if current workout has prior sets for the exercise+machine, copy the immediately previous set; (b) otherwise copy set 1 from the previous finished session for that exact exercise+machine; (c) if no history exists, leave fields blank/default.
+    The workout "Last" button should mirror the previous-session set payload too, including warmup/AMRAP and other extended set flags, not just weight/reps.
+    Keep add-set and edit-set UIs built from shared exercise-set field partials so advanced set inputs stay aligned across both flows.
+    Duplicate-set rest-timer restarts must carry the same block-specific rest duration metadata as normal set submissions.
+
+29. **Rest Timer Defaults & Block Wiring**: The rest timer should bootstrap from the user's configured `default_rest_seconds` unless a block-specific rest override is present. Per-block rest controls must be rendered in workout blocks via `block-rest` so both set submissions and duplicate-set actions can propagate block rest seconds reliably. When workout logging creates a brand new `WorkoutBlock`, rely on `WorkoutBlock` model defaults instead of hardcoding `rest_seconds` in controllers.
 
 ## Equipment Types (Enum)
 

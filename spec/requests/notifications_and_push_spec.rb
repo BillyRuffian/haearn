@@ -51,4 +51,17 @@ RSpec.describe 'Notifications and push subscriptions', type: :request do
     notification = user.notifications.find(parsed['notification_id'])
     expect(notification.metadata['workout_id']).to eq(workout.id)
   end
+
+  it 'persists rest timer notifications without push delivery when push is suppressed by the client' do
+    user.workouts.create!(gym: gyms(:one), started_at: Time.current, finished_at: nil)
+    expect_any_instance_of(WebPushNotificationService).not_to receive(:deliver_notification)
+
+    expect do
+      post rest_timer_expired_notifications_path,
+        params: { completed_at_ms: 1_706_000_000_999, suppress_push: true },
+        as: :json
+    end.to change(user.notifications.where(kind: 'rest_timer'), :count).by(1)
+
+    expect(response).to have_http_status(:ok)
+  end
 end

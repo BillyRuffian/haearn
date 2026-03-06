@@ -26,6 +26,12 @@ one:
   location: MyString
   notes: MyText
 
+system:
+  user: system
+  name: System Gym
+  location: Test Floor
+  notes: Browser regression coverage
+
 two:
   user: two
   name: MyString

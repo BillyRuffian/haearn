@@ -33,6 +33,14 @@ one:
   display_unit: MyString
   notes: MyText
 
+logging_machine:
+  gym: system
+  name: Logging Machine
+  equipment_type: machine
+  weight_ratio: 1.0
+  display_unit: kg
+  notes: Built for browser regression coverage
+
 two:
   gym: two
   name: MyString

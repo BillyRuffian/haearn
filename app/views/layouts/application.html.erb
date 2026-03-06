@@ -29,10 +29,14 @@
     <%= javascript_importmap_tags %>
   </head>
 
+  <% active_workout = Current.user&.active_workout %>
+  <% body_controllers = ["offline"] %>
+  <% body_controllers << "rest-timer" if active_workout %>
   <body class="<%= content_for?(:body_class) ? yield(:body_class) : nil %>"
-        data-controller="offline"
+        data-controller="<%= body_controllers.join(' ') %>"
         data-offline-show-class="d-block"
-        data-rest-timer-push-enabled="<%= Current.user&.notify_rest_timer_push? ? 'true' : 'false' %>">
+        data-rest-timer-duration-value="<%= Current.user&.default_rest_seconds || User::DEFAULT_REST_SECONDS %>"
+        data-rest-timer-background-alert-enabled="<%= Current.user&.notify_rest_timer_push? ? 'true' : 'false' %>">
     <% if session[:admin_session_id] %>
       <div class="admin-impersonation-banner text-center py-2 small fw-semibold">
         <i class="bi bi-exclamation-triangle me-1"></i>
@@ -59,7 +63,6 @@
         <% end %>
 
         <div data-offline-target="confidence"
-             data-action="click->offline#sync"
              class="offline-nav-indicator d-none ms-2"
              aria-live="polite"
              role="status"
@@ -68,17 +71,23 @@
           <span data-offline-target="status" class="offline-nav-status">Synced</span>
           <span data-offline-target="queueCount" class="offline-nav-queue d-none">0</span>
           <span data-offline-target="lastSynced" class="d-none">Last synced: --</span>
+          <button type="button"
+                  data-offline-target="syncButton"
+                  data-action="click->offline#sync"
+                  class="btn btn-link offline-nav-action p-0">
+            Sync now
+          </button>
         </div>
 
         <%# Mobile right-side controls order: [timer] [bell] [gear] %>
         <% if Current.user %>
           <div class="d-flex d-lg-none align-items-center ms-auto">
-            <% if Current.user.active_workout %>
+            <% if active_workout %>
               <div id="navbar-workout-timer" data-sticky-timer-target="navbar" class="navbar-timer-wrapper me-2" style="display: none;">
-                <%= link_to workout_path(Current.user.active_workout), class: "nav-link py-1 px-2" do %>
+                <%= link_to workout_path(active_workout), class: "nav-link py-1 px-2" do %>
                   <span class="badge bg-primary fs-6 py-2 px-3">
                     <i class="bi bi-stopwatch me-1"></i>
-                    <span data-timer-display><%= Current.user.active_workout.duration_minutes %></span> min
+                    <span data-timer-display><%= active_workout.duration_minutes %></span> min
                   </span>
                 <% end %>
               </div>
@@ -126,7 +135,7 @@
               <li class="nav-item">
                 <%= link_to workouts_path, class: "nav-link #{'active' if controller_name == 'workouts'}" do %>
                   Workouts
-                  <% if Current.user.active_workout %>
+                  <% if active_workout %>
                     <span class="badge bg-warning ms-1" title="Workout in progress">
                       <i class="bi bi-lightning-charge"></i>
                     </span>

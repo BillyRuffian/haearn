@@ -1,0 +1,21 @@
+system_unread_readiness:
+  user: system
+  dedupe_key: system-readiness-1
+  kind: readiness
+  severity: warning
+  title: Grip Is Slipping
+  message: You have not matched last session volume on System Press yet.
+  metadata:
+    exercise_id: <%= ActiveRecord::FixtureSet.identify(:system_press) %>
+    machine_id: <%= ActiveRecord::FixtureSet.identify(:logging_machine) %>
+  read_at:
+
+system_read_volume_drop:
+  user: system
+  dedupe_key: system-volume-drop-1
+  kind: volume_drop
+  severity: danger
+  title: Volume Drop Detected
+  message: This week is trailing your prior baseline.
+  metadata: {}
+  read_at: 2026-03-05 12:00:00

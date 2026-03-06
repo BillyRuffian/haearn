@@ -14,22 +14,26 @@ import { Controller } from "@hotwired/stimulus"
 //   </div>
 //
 export default class extends Controller {
-  static targets = ["button", "form"]
+  static targets = ["button", "form", "editingForm"]
 
   connect() {
+    this.addFormOpen = false
     this.boundHide = this.hide.bind(this)
+    this.observer = new MutationObserver(() => this.syncVisibility())
     window.addEventListener("set-logged", this.boundHide)
+    this.observer.observe(this.element, { childList: true, subtree: true })
+    this.syncVisibility()
   }
 
   disconnect() {
     window.removeEventListener("set-logged", this.boundHide)
+    this.observer?.disconnect()
     this.setFabVisibility(false)
   }
 
   show() {
-    this.buttonTarget.classList.add("d-none")
-    this.formTarget.classList.remove("d-none")
-    this.setFabVisibility(true)
+    this.addFormOpen = true
+    this.syncVisibility()
 
     // Focus the first visible input
     const firstInput = this.formTarget.querySelector("input[type='number']:not([type='hidden'])")
@@ -40,9 +44,29 @@ export default class extends Controller {
 
   hide() {
     if (!this.hasFormTarget || !this.hasButtonTarget) return
-    this.formTarget.classList.add("d-none")
-    this.buttonTarget.classList.remove("d-none")
-    this.setFabVisibility(false)
+    this.addFormOpen = false
+    this.syncVisibility()
+  }
+
+  editingFormTargetConnected() {
+    this.syncVisibility()
+  }
+
+  editingFormTargetDisconnected() {
+    this.syncVisibility()
+  }
+
+  syncVisibility() {
+    if (!this.hasFormTarget || !this.hasButtonTarget) return
+
+    const editingActive = this.editingActive()
+    this.formTarget.classList.toggle("d-none", !this.addFormOpen)
+    this.buttonTarget.classList.toggle("d-none", this.addFormOpen || editingActive)
+    this.setFabVisibility(this.addFormOpen || editingActive)
+  }
+
+  editingActive() {
+    return this.element.querySelector("[data-add-set-toggle-target='editingForm']") !== null
   }
 
   setFabVisibility(hidden) {

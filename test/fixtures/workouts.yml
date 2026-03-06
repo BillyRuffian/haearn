@@ -32,6 +32,20 @@ one:
   finished_at: 2026-02-02 21:29:08
   notes: MyText
 
+active_logging:
+  user: system
+  gym: system
+  started_at: 2026-03-05 10:00:00
+  finished_at:
+  notes:
+
+previous_logging:
+  user: system
+  gym: system
+  started_at: 2026-03-04 10:00:00
+  finished_at: 2026-03-04 10:45:00
+  notes:
+
 two:
   user: two
   gym: two

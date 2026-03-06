@@ -2,7 +2,7 @@
 # Supports workout blocks for organizing exercises and enabling supersets
 # Each workout has a start time, optional finish time, gym, and multiple workout blocks
 class WorkoutsController < ApplicationController
-  before_action :set_workout, only: %i[show edit update destroy finish continue_workout add_exercise reorder_blocks share_text]
+  before_action :set_workout, only: %i[show edit update destroy finish continue_workout add_exercise reorder_blocks share_text update_block_rest]
 
   # GET /workouts
   # Lists all workouts with optional filters (gym, date range)
@@ -223,6 +223,19 @@ class WorkoutsController < ApplicationController
     head :unprocessable_entity
   end
 
+  def update_block_rest
+    block = @workout.workout_blocks.find(params[:block_id])
+    rest_seconds = params[:rest_seconds].to_i
+    return head :unprocessable_entity unless rest_seconds.between?(15, 600)
+
+    block.update!(rest_seconds: rest_seconds)
+    render json: { ok: true, rest_seconds: block.rest_seconds }
+  rescue ActiveRecord::RecordNotFound
+    head :not_found
+  rescue ActiveRecord::RecordInvalid
+    head :unprocessable_entity
+  end
+
   # GET /workouts/:id/share_text
   # Returns workout as formatted text for sharing/copying
   # NOTE: This endpoint exists but is not currently used due to iOS PWA clipboard issues
@@ -246,11 +259,8 @@ class WorkoutsController < ApplicationController
       block = @workout.workout_blocks.find(params[:to_block])
       position = block.workout_exercises.count + 1
     else
-      # Create a new block for this exercise
-      block = @workout.workout_blocks.create!(
-        position: @workout.workout_blocks.count + 1,
-        rest_seconds: 90
-      )
+      # Let WorkoutBlock apply the user's default rest and next position.
+      block = @workout.workout_blocks.create!
       position = 1
     end
 

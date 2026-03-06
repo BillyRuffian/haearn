@@ -45,3 +45,11 @@ bench_press:
   has_weight: true
   description: Global bench press
   primary_muscle_group: chest
+
+system_press:
+  name: System Press
+  exercise_type: reps
+  has_weight: true
+  user: system
+  description: System-only exercise
+  primary_muscle_group: chest

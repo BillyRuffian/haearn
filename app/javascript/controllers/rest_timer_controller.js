@@ -81,8 +81,11 @@ export default class extends Controller {
         this.showTimer()
         this.startInterval()
       } else {
-        // Timer expired while away - clear it
-        this.clearTimerState()
+        // Timer expired while away - complete it on reconnect so the user
+        // still gets the alert after navigation/backgrounding.
+        this.endTime = endTime
+        this.isRunning = true
+        this.complete()
       }
     }
   }
@@ -156,7 +159,7 @@ export default class extends Controller {
     this.playAlert()
     this.vibrate()
     this.showNotification("Rest Complete!", "Time to lift! 💪")
-    this.persistInAppNotification(completionTimestamp)
+    this.persistInAppNotification(completionTimestamp, { suppressPush: true })
 
     // Flash the timer, then hide
     if (this.hasContainerTarget) {
@@ -341,8 +344,8 @@ export default class extends Controller {
   }
 
   showNotification(title, body) {
-    const pushEnabled = document.body?.dataset?.restTimerPushEnabled !== "false"
-    if (!pushEnabled) {
+    const backgroundAlertEnabled = document.body?.dataset?.restTimerBackgroundAlertEnabled !== "false"
+    if (!backgroundAlertEnabled) {
       return
     }
 
@@ -363,7 +366,7 @@ export default class extends Controller {
     }
   }
 
-  async persistInAppNotification(completedAtMs) {
+  async persistInAppNotification(completedAtMs, { suppressPush = false } = {}) {
     try {
       const response = await fetch("/notifications/rest_timer_expired", {
         method: "POST",
@@ -373,7 +376,10 @@ export default class extends Controller {
           "X-Requested-With": "XMLHttpRequest",
           "Accept": "application/json"
         },
-        body: JSON.stringify({ completed_at_ms: completedAtMs })
+        body: JSON.stringify({
+          completed_at_ms: completedAtMs,
+          suppress_push: suppressPush
+        })
       })
 
       if (response.ok) {

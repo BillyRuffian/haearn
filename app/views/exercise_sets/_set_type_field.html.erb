@@ -1,0 +1,8 @@
+<div class="<%= local_assigns.fetch(:wrapper_class, 'col') %>">
+  <label class="form-label small text-muted mb-1">Type</label>
+  <%= form.select :set_type,
+      ExerciseSet::SET_TYPES.map { |set_type| [ExerciseSet.new(set_type: set_type).set_type_label, set_type] },
+      {},
+      class: "form-select form-select-sm",
+      data: local_assigns[:select_data] %>
+</div>

@@ -201,6 +201,13 @@ export default class extends Controller {
 
   // Dispatch set-logged event to reset the rest timer (used by duplicate action)
   dispatchSetLogged() {
-    window.dispatchEvent(new CustomEvent("set-logged", { bubbles: true }))
+    const block = this.element.closest(".workout-block")
+    const blockRestController = block?.querySelector("[data-controller~='block-rest']")
+    const restSeconds = blockRestController ? parseInt(blockRestController.dataset.blockRestSecondsValue, 10) : null
+
+    window.dispatchEvent(new CustomEvent("set-logged", {
+      bubbles: true,
+      detail: { restSeconds }
+    }))
   }
 }

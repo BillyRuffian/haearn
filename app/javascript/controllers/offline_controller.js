@@ -240,6 +240,7 @@ export default class extends Controller {
 
     if (this.hasLastSyncedTarget) {
       this.lastSyncedTarget.textContent = this.lastSyncedText()
+      this.lastSyncedTarget.classList.toggle("d-none", !this.lastSyncedAt)
     }
 
     if (this.hasDotTarget) {
@@ -248,6 +249,7 @@ export default class extends Controller {
 
     if (this.hasSyncButtonTarget) {
       this.syncButtonTarget.textContent = this.syncError ? "Retry" : "Sync now"
+      this.syncButtonTarget.classList.toggle("d-none", !this.isOnline || (this.pendingCount === 0 && !this.syncError))
     }
   }
 

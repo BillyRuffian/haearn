@@ -120,12 +120,10 @@ module ApplicationHelper
     previous_set = previous.exercise_sets.order(:position, :created_at)[set_number.to_i - 1]
     return nil unless previous_set
 
-    data = {}
-    data[:weight] = input_weight_value_for(previous_set.weight_kg, workout_exercise) if previous_set.weight_kg.present?
-    data[:reps] = previous_set.reps if previous_set.reps.present?
-    data[:duration_seconds] = previous_set.duration_seconds if previous_set.duration_seconds.present?
-    data[:distance_meters] = previous_set.distance_meters if previous_set.distance_meters.present?
-    data.presence
+    previous_set
+      .attributes
+      .slice(*SET_PREFILL_ATTRIBUTE_KEYS)
+      .merge('weight_value' => input_weight_value_for(previous_set.weight_kg, workout_exercise))
   end
 
   # Seed a brand-new set form using recent history:
