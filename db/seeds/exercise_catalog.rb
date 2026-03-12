@@ -26,7 +26,7 @@ module ExerciseSeedCatalog
     { name: "Lateral Raises", exercise_type: "reps", has_weight: true, description: "Side delt raise variation", primary_muscle_group: "shoulders" },
     { name: "Front Raises", exercise_type: "reps", has_weight: true, description: "Front delt raise variation", primary_muscle_group: "shoulders" },
     { name: "Rear Delt Flyes", exercise_type: "reps", has_weight: true, description: "Rear delt fly variation", primary_muscle_group: "shoulders" },
-    { name: "Bicep Curl", exercise_type: "reps", has_weight: true, description: "Standard curl pattern", primary_muscle_group: "biceps" },
+    { name: "Bicep Curls", exercise_type: "reps", has_weight: true, description: "Standard curl pattern", primary_muscle_group: "biceps" },
     { name: "Hammer Curls", exercise_type: "reps", has_weight: true, description: "Neutral-grip curl variation", primary_muscle_group: "biceps" },
     { name: "Overhead Tricep Extension", exercise_type: "reps", has_weight: true, description: "Overhead elbow extension", primary_muscle_group: "triceps" },
     { name: "Skull Crushers", exercise_type: "reps", has_weight: true, description: "Lying elbow extension", primary_muscle_group: "triceps" },
