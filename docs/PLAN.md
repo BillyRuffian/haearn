@@ -28,6 +28,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Gate JS system specs behind explicit CI opt-in (`RUN_JS_SYSTEM_SPECS=1`) so the default GitHub Actions test job stays deterministic while a dedicated browser job can still run them
 - [x] Re-stabilize the layout-mounted rest timer so workout-page panels swap cleanly, the active animation keeps the sweeping gradient treatment, and stale local duration overrides cannot beat a changed user default
 - [x] Harden browser regressions against fixed-bottom install-prompt overlays and hidden Bootstrap dropdown timing by using direct Turbo/form actions in system specs
+- [x] Rework the active workout block header so the block number leads on the left while compact rest controls and `+ S.Set` stay grouped on the right
 - [x] Normalize controller-driven exercise and equipment collections to alphabetical ordering via shared `ordered` scopes, including workout pickers and admin review flows
 - [x] Add a concise contributor-oriented `README.md` covering architecture, core flows, and local development conventions
 

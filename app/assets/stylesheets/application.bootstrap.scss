@@ -831,6 +831,137 @@ select option:checked {
   }
 }
 
+.workout-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  min-height: 56px;
+}
+
+.workout-block-header__label {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.workout-block-number {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.15rem;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1;
+}
+
+.workout-block-meta {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(200, 200, 200, 0.58);
+  white-space: nowrap;
+}
+
+.workout-block-subheading {
+  background: rgba($iron-dark, 0.52);
+}
+
+.workout-block-header__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.workout-block-rest {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.workout-block-rest-btn {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 1px solid rgba($iron-light, 0.95);
+  background: rgba($iron-medium, 0.88);
+  color: rgba(235, 235, 235, 0.9);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+
+  &:hover {
+    border-color: rgba($rust-light, 0.95);
+    background: rgba($rust, 0.18);
+    color: #fff;
+    transform: translateY(-1px);
+  }
+}
+
+.workout-block-rest-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba($iron-light, 0.95);
+  background: rgba($iron-dark, 0.9);
+  color: rgba(248, 248, 248, 0.96);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.workout-block-rest-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(200, 200, 200, 0.62);
+}
+
+.workout-block-superset-btn {
+  border-radius: 999px;
+  min-height: 2rem;
+  padding: 0.3rem 0.8rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+@media (max-width: 576px) {
+  .workout-block-header__actions {
+    gap: 0.45rem;
+  }
+
+  .workout-block-rest-btn {
+    width: 1.85rem;
+    height: 1.85rem;
+    font-size: 0.68rem;
+  }
+
+  .workout-block-rest-display {
+    padding-inline: 0.55rem;
+    font-size: 0.76rem;
+  }
+
+  .workout-block-superset-btn {
+    min-height: 1.85rem;
+    padding: 0.26rem 0.72rem;
+  }
+}
+
 // SortableJS ghost and drag states
 .sortable-ghost {
   opacity: 0.4;
