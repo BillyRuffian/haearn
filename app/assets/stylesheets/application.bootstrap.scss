@@ -395,6 +395,43 @@ select option:checked {
     0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
+.navbar.sticky-top {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+}
+
+// iOS PWA safe-area handling:
+// sticky can be unreliable in standalone iPhone mode, so pin the navbar and
+// offset the page content explicitly.
+@media (display-mode: standalone) and (max-width: 991.98px) {
+  :root {
+    --haearn-mobile-navbar-height: 68px;
+  }
+
+  .navbar.sticky-top {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1030;
+  }
+
+  .navbar {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  main {
+    padding-top: calc(var(--haearn-mobile-navbar-height) + env(safe-area-inset-top));
+  }
+
+  [data-offline-target="indicator"] {
+    top: calc(var(--haearn-mobile-navbar-height) + env(safe-area-inset-top)) !important;
+  }
+}
+
 .navbar-brand {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 1.6rem;
