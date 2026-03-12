@@ -6,28 +6,25 @@ import { Controller } from "@hotwired/stimulus"
 // Connects to data-controller="rest-timer"
 export default class extends Controller {
   static values = {
-    duration: { type: Number, default: 120 },  // Default 2 minutes
+    duration: { type: Number, default: 120 },  // Current global rest duration
+    defaultDuration: { type: Number, default: 120 }, // User-configured default
     autoStart: { type: Boolean, default: false }
   }
   static targets = ["display", "container", "progress", "collapsed"]
 
   connect() {
-    this.totalDuration = this.durationValue
+    this.totalDuration = this.defaultDurationValue
     this.endTime = null
     this.isRunning = false
     this.interval = null
     this.lastAlertAt = 0
     this.lastSetLoggedAt = 0
+    this.temporaryOverrideActive = false
 
-    // Load saved duration from localStorage if available
-    const savedDuration = localStorage.getItem("haearn_rest_duration")
+    const savedDuration = this.savedPreferredDuration()
     if (savedDuration) {
-      const parsed = parseInt(savedDuration, 10)
-      // Only use saved value if it's reasonable (15s to 10min)
-      if (parsed >= 15 && parsed <= 600) {
-        this.totalDuration = parsed
-        this.durationValue = parsed
-      }
+      this.totalDuration = savedDuration
+      this.durationValue = savedDuration
     }
 
     this.initializePanelState()
@@ -66,6 +63,14 @@ export default class extends Controller {
     this.element.removeEventListener("rest-duration-changed", this.durationChangedHandler)
     document.removeEventListener("visibilitychange", this.visibilityHandler)
     window.removeEventListener("pointerdown", this.pointerUnlockHandler)
+  }
+
+  collapsedTargetConnected() {
+    this.syncPanelState()
+  }
+
+  containerTargetConnected() {
+    this.syncPanelState()
   }
 
   restoreTimerState() {
@@ -143,6 +148,7 @@ export default class extends Controller {
 
   skip() {
     this.stop()
+    this.resetTemporaryOverride()
     this.hideTimer()
   }
 
@@ -156,6 +162,7 @@ export default class extends Controller {
     const completionTimestamp = this.endTime || Date.now()
     this.stop()
     this.lastAlertAt = now
+    this.renderCompletionState()
     this.playAlert()
     this.vibrate()
     this.showNotification("Rest Complete!", "Time to lift! 💪")
@@ -168,9 +175,13 @@ export default class extends Controller {
         this.containerTarget.classList.add("timer-fade-out")
         setTimeout(() => {
           this.hideTimer()
+          this.clearCompletionState()
+          this.resetTemporaryOverride()
           this.containerTarget.classList.remove("timer-complete", "timer-fade-out")
         }, 350)
       }, 5000)
+    } else {
+      this.resetTemporaryOverride()
     }
   }
 
@@ -203,6 +214,7 @@ export default class extends Controller {
 
   saveDuration() {
     localStorage.setItem("haearn_rest_duration", this.totalDuration.toString())
+    localStorage.setItem("haearn_rest_duration_default", this.defaultDurationValue.toString())
   }
 
   updateDisplay() {
@@ -218,6 +230,34 @@ export default class extends Controller {
       const percent = (remaining / this.totalDuration) * 100
       this.progressTarget.style.width = `${percent}%`
     }
+  }
+
+  renderCompletionState() {
+    if (this.hasDisplayTarget) {
+      this.displayTarget.textContent = "0:00"
+    }
+
+    if (this.hasProgressTarget) {
+      this.progressTarget.style.width = "100%"
+    }
+  }
+
+  clearCompletionState() {
+    this.updateDisplay()
+  }
+
+  restorePreferredDuration() {
+    const preferredDuration = this.savedPreferredDuration() || this.defaultDurationValue
+    this.totalDuration = preferredDuration
+    this.durationValue = preferredDuration
+    this.updateDisplay()
+  }
+
+  resetTemporaryOverride() {
+    if (!this.temporaryOverrideActive) return
+
+    this.temporaryOverrideActive = false
+    this.restorePreferredDuration()
   }
 
   handleVisibilityChange() {
@@ -256,11 +296,13 @@ export default class extends Controller {
     if (this.hasCollapsedTarget) {
       this.collapsedTarget.classList.remove("is-hidden")
       this.collapsedTarget.setAttribute("aria-hidden", "false")
+      this.collapsedTarget.hidden = false
     }
 
     if (this.hasContainerTarget) {
       this.containerTarget.classList.add("is-hidden")
       this.containerTarget.setAttribute("aria-hidden", "true")
+      this.containerTarget.hidden = true
     }
   }
 
@@ -271,12 +313,41 @@ export default class extends Controller {
       requestAnimationFrame(() => {
         panel.classList.remove("is-hidden")
         panel.setAttribute("aria-hidden", "false")
+        panel.hidden = false
       })
       return
     }
 
     panel.classList.add("is-hidden")
     panel.setAttribute("aria-hidden", "true")
+    panel.hidden = true
+  }
+
+  syncPanelState() {
+    if (!this.hasCollapsedTarget || !this.hasContainerTarget) return
+
+    if (this.isRunning) {
+      this.showTimer()
+    } else {
+      this.hideTimer()
+    }
+  }
+
+  savedPreferredDuration() {
+    const savedDuration = parseInt(localStorage.getItem("haearn_rest_duration"), 10)
+    const savedDefault = parseInt(localStorage.getItem("haearn_rest_duration_default"), 10)
+
+    if (!Number.isFinite(savedDuration) || savedDuration < 15 || savedDuration > 600) {
+      return null
+    }
+
+    if (Number.isFinite(savedDefault)) {
+      return savedDefault === this.defaultDurationValue ? savedDuration : null
+    }
+
+    // Old installs stored only the duration. Only trust it if it already matches
+    // the current server-side default so stale client overrides do not win.
+    return savedDuration === this.defaultDurationValue ? savedDuration : null
   }
 
   // Initialize audio context during user gesture (start/setLogged) so it's
@@ -435,17 +506,10 @@ export default class extends Controller {
     const blockDuration = event?.detail?.restSeconds
     if (blockDuration && blockDuration >= 15 && blockDuration <= 600) {
       this.totalDuration = blockDuration
+      this.temporaryOverrideActive = true
     } else {
-      // Restore global default from localStorage (in case a previous block changed totalDuration)
-      const savedDuration = localStorage.getItem("haearn_rest_duration")
-      if (savedDuration) {
-        const parsed = parseInt(savedDuration, 10)
-        if (parsed >= 15 && parsed <= 600) {
-          this.totalDuration = parsed
-        }
-      } else {
-        this.totalDuration = this.durationValue
-      }
+      this.temporaryOverrideActive = false
+      this.totalDuration = this.savedPreferredDuration() || this.defaultDurationValue
     }
 
     // Stop any existing timer and start fresh

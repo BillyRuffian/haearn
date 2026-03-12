@@ -257,6 +257,7 @@
 
 <!-- Rest Timer (fixed footer bar) -->
 <% if @workout.in_progress? %>
+  <% initial_rest_seconds = Current.user&.default_rest_seconds || User::DEFAULT_REST_SECONDS %>
   <div class="rest-timer-footer">
     <div class="rest-timer-stage rest-timer-collapsed rest-timer-panel" data-rest-timer-target="collapsed">
       <button type="button" 
@@ -274,7 +275,7 @@
         </button>
         
         <div class="rest-timer-center">
-          <span class="rest-timer-display" data-rest-timer-target="display">2:00</span>
+          <span class="rest-timer-display" data-rest-timer-target="display"><%= format_seconds(initial_rest_seconds) %></span>
           <div class="rest-timer-progress">
             <div class="rest-timer-progress-bar" data-rest-timer-target="progress"></div>
           </div>

@@ -36,6 +36,7 @@
         data-controller="<%= body_controllers.join(' ') %>"
         data-offline-show-class="d-block"
         data-rest-timer-duration-value="<%= Current.user&.default_rest_seconds || User::DEFAULT_REST_SECONDS %>"
+        data-rest-timer-default-duration-value="<%= Current.user&.default_rest_seconds || User::DEFAULT_REST_SECONDS %>"
         data-rest-timer-background-alert-enabled="<%= Current.user&.notify_rest_timer_push? ? 'true' : 'false' %>">
     <% if session[:admin_session_id] %>
       <div class="admin-impersonation-banner text-center py-2 small fw-semibold">

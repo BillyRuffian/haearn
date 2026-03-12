@@ -135,6 +135,7 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(response.body).to include('rest-timer-stage')
     expect(response.body).to include('rest-timer-collapsed rest-timer-panel')
     expect(response.body).to include('rest-timer-bar rest-timer-panel is-hidden')
+    expect(response.body).to include('Start Rest Timer')
   end
 
   it 'mounts the rest timer with the user default duration in layout state' do
@@ -148,6 +149,8 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(response).to have_http_status(:ok)
     expect(response.body).to include('data-controller="offline rest-timer"')
     expect(response.body).to include('data-rest-timer-duration-value="150"')
+    expect(response.body).to include('data-rest-timer-default-duration-value="150"')
+    expect(response.body).to include('>2:30<')
   end
 
   it 'uses machine display unit for set-level rows while user preference stays kg' do

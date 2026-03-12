@@ -988,6 +988,10 @@ body.add-set-form-open .workout-fab {
   text-align: center;
 }
 
+.rest-timer-panel.is-hidden {
+  display: none !important;
+}
+
 .rest-timer-start-btn {
   background: transparent;
   border: 1px solid $rust;
@@ -1008,15 +1012,38 @@ body.add-set-form-open .workout-fab {
 
 .rest-timer-bar {
   padding: 0.5rem 1rem;
+  position: relative;
+  overflow: hidden;
 
   &.timer-active {
     border-top-color: $rust;
-    box-shadow: 0 -4px 20px rgba($rust, 0.3);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.28);
   }
 
   &.timer-complete {
-    animation: timerPulse 0.3s ease-in-out infinite;
+    background: linear-gradient(
+      180deg,
+      rgba($forge-orange, 0.18) 0%,
+      rgba($rust-dark, 0.1) 100%
+    ),
+    linear-gradient(
+      120deg,
+      rgba($rust-dark, 0.92) 0%,
+      rgba($rust, 0.95) 28%,
+      rgba($forge-orange, 0.98) 50%,
+      rgba($rust-light, 0.96) 70%,
+      rgba($rust-dark, 0.92) 100%
+    );
+    background-size: 220% 220%;
+    animation: timerPulseFill 1.6s ease-in-out infinite;
     border-top-color: $forge-orange;
+    box-shadow:
+      0 -10px 36px rgba($forge-orange, 0.8),
+      0 -2px 12px rgba($rust-light, 0.55);
+  }
+
+  &.timer-fade-out {
+    animation: timerFadeOut 0.35s ease forwards;
   }
 }
 
@@ -1056,9 +1083,34 @@ body.add-set-form-open .workout-fab {
 
 .rest-timer-progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, $rust 0%, $forge-orange 100%);
+  background: linear-gradient(90deg,
+      rgba($rust-dark, 0.92) 0%,
+      rgba($rust, 0.95) 24%,
+      rgba($forge-orange, 1) 50%,
+      rgba($rust-light, 0.95) 72%,
+      rgba($rust-dark, 0.92) 100%);
+  background-size: 220% 100%;
   border-radius: 2px;
   transition: width 1s linear;
+}
+
+.rest-timer-bar.timer-active .rest-timer-progress-bar {
+  animation: restTimerSweep 2.2s linear infinite;
+}
+
+.rest-timer-bar.timer-complete .rest-timer-progress-bar {
+  background-size: 280% 100%;
+  animation: restTimerCompleteSweep 0.8s linear infinite;
+  box-shadow: 0 0 12px rgba($forge-orange, 0.7);
+}
+
+.rest-timer-bar.timer-complete .rest-timer-progress {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.rest-timer-bar.timer-complete .rest-timer-display {
+  animation: restTimerCompleteFlash 0.8s ease-in-out infinite;
 }
 
 .rest-timer-adjust-btn {
@@ -1119,6 +1171,66 @@ body.add-set-form-open .workout-fab {
   50% {
     border-color: $forge-orange;
     box-shadow: 0 0 40px rgba($forge-orange, 0.6);
+  }
+}
+
+@keyframes timerPulseFill {
+  0%,
+  100% {
+    background-position: 0% 50%;
+    filter: saturate(1);
+  }
+
+  50% {
+    background-position: 100% 50%;
+    filter: saturate(1.25);
+  }
+}
+
+@keyframes restTimerSweep {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: 0 0;
+  }
+}
+
+@keyframes restTimerCompleteSweep {
+  from {
+    background-position: 220% 0;
+  }
+
+  to {
+    background-position: -20% 0;
+  }
+}
+
+@keyframes restTimerCompleteFlash {
+  0%,
+  100% {
+    color: #fff;
+    text-shadow: 0 0 18px rgba($forge-orange, 0.45);
+    transform: scale(1);
+  }
+
+  50% {
+    color: lighten($forge-orange, 18%);
+    text-shadow: 0 0 32px rgba($forge-orange, 0.95);
+    transform: scale(1.04);
+  }
+}
+
+@keyframes timerFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(10px);
   }
 }
 

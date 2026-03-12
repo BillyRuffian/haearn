@@ -10,11 +10,10 @@ RSpec.describe 'Workout set visibility', type: :system, js: true do
     sign_in_via_ui(user)
   end
 
-  def click_set_edit_action(selector)
-    page.execute_script(<<~JS, selector)
-      const action = document.querySelector(arguments[0])
-      if (!action) throw new Error(`Missing action for selector: ${arguments[0]}`)
-      action.click()
+  def open_inline_edit(edit_path, frame_id)
+    page.execute_script(<<~JS, edit_path, frame_id)
+      if (!window.Turbo) throw new Error("Turbo is unavailable")
+      window.Turbo.visit(arguments[0], { frame: arguments[1] })
     JS
   end
 
@@ -30,12 +29,27 @@ RSpec.describe 'Workout set visibility', type: :system, js: true do
 
     visit workout_path(workout)
 
-    click_set_edit_action("turbo-frame##{ActionView::RecordIdentifier.dom_id(exercise_set)} .dropdown-menu a[href='#{edit_workout_workout_exercise_exercise_set_path(workout, workout_exercise, exercise_set)}']")
+    open_inline_edit(
+      edit_workout_workout_exercise_exercise_set_path(workout, workout_exercise, exercise_set),
+      ActionView::RecordIdentifier.dom_id(exercise_set)
+    )
 
     within("##{ActionView::RecordIdentifier.dom_id(workout_exercise)}") do
       expect(page).to have_css('form.edit-set-form')
-      expect(page).to have_css("[data-add-set-toggle-target='button'].d-none, [data-add-set-toggle-target='button'][hidden]", visible: :all)
     end
+
+    add_set_button_hidden = page.evaluate_script(<<~JS, ActionView::RecordIdentifier.dom_id(workout_exercise))
+      (() => {
+        const exercise = document.getElementById(arguments[0])
+        const button = exercise?.querySelector("[data-add-set-toggle-target='button']")
+        if (!button) return false
+
+        const style = window.getComputedStyle(button)
+        return button.hidden || style.display === "none" || style.visibility === "hidden"
+      })()
+    JS
+
+    expect(add_set_button_hidden).to be(true)
   end
 
   it 'copies extended previous-session fields when using the Last button' do

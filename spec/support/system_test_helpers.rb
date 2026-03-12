@@ -14,6 +14,22 @@ module SystemTestHelpers
     visit root_path
     page.driver.browser.manage.add_cookie(name: 'session_id', value: signed_session_id, path: '/')
     visit root_path
+    suppress_install_prompt
+  end
+
+  def suppress_install_prompt
+    return unless page.driver.respond_to?(:execute_script)
+
+    page.execute_script(<<~JS)
+      try {
+        window.localStorage.setItem("haearn-install-dismissed", "true")
+      } catch (_error) {}
+
+      const banner = document.querySelector("[data-install-prompt-target='banner']")
+      if (banner) banner.classList.add("d-none")
+    JS
+  rescue Capybara::NotSupportedByDriverError
+    nil
   end
 
   def reset_offline_storage
