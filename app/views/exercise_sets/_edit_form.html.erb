@@ -1,4 +1,4 @@
-<%= turbo_frame_tag set, data: { add_set_toggle_target: "editingForm" } do %>
+<%= turbo_frame_tag set, data: { controller: "inline-set-edit", add_set_toggle_target: "editingForm" } do %>
   <% input_unit = input_weight_unit_for(workout_exercise) %>
   <%= form_with model: set, 
       url: workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),

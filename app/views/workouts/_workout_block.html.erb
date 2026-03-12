@@ -12,7 +12,7 @@
         <% end %>
       </div>
       <div class="d-flex align-items-center gap-2">
-        <div class="d-flex align-items-center gap-1"
+        <div class="d-flex align-items-center gap-2"
              data-controller="block-rest"
              data-block-rest-url-value="<%= update_block_rest_workout_path(workout) %>"
              data-block-rest-seconds-value="<%= block.rest_seconds %>"
@@ -20,14 +20,16 @@
           <button type="button"
                   class="btn btn-sm btn-outline-secondary"
                   data-action="block-rest#decrease"
-                  title="Decrease rest time">
+                  aria-label="Decrease block rest">
             -15
           </button>
-          <span class="small text-muted text-nowrap" data-block-rest-target="display"><%= format_seconds(block.rest_seconds) %></span>
+          <span class="small text-muted text-nowrap">
+            Rest <span data-block-rest-target="display"><%= format_seconds(block.rest_seconds) %></span>
+          </span>
           <button type="button"
                   class="btn btn-sm btn-outline-secondary"
                   data-action="block-rest#increase"
-                  title="Increase rest time">
+                  aria-label="Increase block rest">
             +15
           </button>
         </div>

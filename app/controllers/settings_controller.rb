@@ -104,11 +104,11 @@ class SettingsController < ApplicationController
   end
 
   def export_gyms
-    @user.gyms.includes(:machines).map do |gym|
+    @user.gyms.ordered.includes(:machines).map do |gym|
       {
         name: gym.name,
         notes: gym.notes,
-        machines: gym.machines.map do |m|
+        machines: gym.machines.ordered.map do |m|
           {
             name: m.name,
             equipment_type: m.equipment_type,
@@ -122,7 +122,7 @@ class SettingsController < ApplicationController
   end
 
   def export_exercises
-    @user.exercises.map do |exercise|
+    @user.exercises.ordered.map do |exercise|
       {
         name: exercise.name,
         exercise_type: exercise.exercise_type,
@@ -225,6 +225,7 @@ class SettingsController < ApplicationController
       .where(workouts: { user_id: @user.id, finished_at: ..Time.current })
       .where(exercise_sets: { is_warmup: false })
       .distinct
+      .ordered
 
     CSV.generate(headers: true) do |csv|
       csv << [

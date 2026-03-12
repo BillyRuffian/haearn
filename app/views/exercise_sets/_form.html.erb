@@ -1,10 +1,20 @@
 <% show_plate_calc = workout_exercise.exercise.has_weight && workout_exercise.machine&.plate_loaded? %>
-<% set = seeded_new_set_for(workout_exercise, set) %>
 <% input_unit = input_weight_unit_for(workout_exercise) %>
-<% initial_weight = set.weight_kg ? input_weight_value_for(set.weight_kg, workout_exercise) : nil %>
 <% quick_log_mode = local_assigns.fetch(:quick_log_mode, false) %>
 <% next_set_number = workout_exercise.exercise_sets.count + 1 %>
+<% set = seeded_new_set_for(workout_exercise, set) %>
+<% initial_weight = set.weight_kg ? input_weight_value_for(set.weight_kg, workout_exercise) : nil %>
 <% prev_set_data = previous_session_set_data(workout_exercise, next_set_number) %>
+
+<% if workout_exercise.exercise.has_weight? %>
+  <% suggester = ProgressionSuggester.new(workout_exercise: workout_exercise, user: Current.user) %>
+  <% if (suggestion_msg = suggester.suggestion_message) %>
+    <div class="d-flex align-items-center gap-2 mt-2 mb-2 small text-success">
+      <i class="bi bi-arrow-up-circle-fill"></i>
+      <span><%= suggestion_msg %></span>
+    </div>
+  <% end %>
+<% end %>
 
 <div <% if show_plate_calc %>data-controller="plate-calculator" 
      data-plate-calculator-weight-value="<%= initial_weight || 0 %>"
@@ -22,7 +32,6 @@
           workout_exercise: workout_exercise,
           input_unit: input_unit,
           weight_value: initial_weight,
-          show_plate_calc: show_plate_calc,
           focus_inputs: true,
           weight_input_data: {
             set_form_target: "weight",
@@ -35,12 +44,10 @@
     <div class="row g-2 align-items-center mt-1">
       <% unless quick_log_mode %>
         <%= render "exercise_sets/warmup_amrap_fields", form: form %>
-        <%= render "exercise_sets/set_type_field",
-            form: form,
-            select_data: { action: "change->set-type-toggle#toggle" } %>
+        <%= render "exercise_sets/set_type_field", form: form, select_data: { action: "change->set-type-toggle#toggle" } %>
         <%= render "exercise_sets/rpe_rir_fields", form: form, focus_inputs: true %>
       <% else %>
-        <%= form.hidden_field :is_warmup, value: set.is_warmup? %>
+        <%= form.hidden_field :is_warmup, value: false %>
       <% end %>
 
       <div class="col-auto">
@@ -55,7 +62,7 @@
         <div class="col-auto">
           <div class="mt-3"
                data-controller="copy-last"
-               data-copy-last-payload-value="<%= prev_set_data.to_json %>">
+               data-copy-last-payload-value="<%= json_escape(prev_set_data.to_json) %>">
             <button type="button" class="btn btn-outline-secondary btn-sm" data-action="copy-last#copy" title="Copy from last session (set <%= next_set_number %>)">
               <i class="bi bi-clipboard me-1"></i>Last
             </button>
@@ -65,14 +72,8 @@
     </div>
 
     <% unless quick_log_mode %>
-    <%# Row 3: Tempo prescription (collapsible) %>
     <%= render "exercise_sets/tempo_fields", form: form, focus_inputs: true %>
-
-    <%# Row 4: Equipment & Outcomes (collapsible) %>
-    <%= render "exercise_sets/tracking_fields",
-        form: form,
-        input_unit: input_unit,
-        focus_inputs: true %>
+    <%= render "exercise_sets/tracking_fields", form: form, input_unit: input_unit, focus_inputs: true %>
     <% end %>
 
   <% end %>

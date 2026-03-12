@@ -56,6 +56,10 @@ export default class extends Controller {
     this.syncVisibility()
   }
 
+  refresh() {
+    requestAnimationFrame(() => this.syncVisibility())
+  }
+
   syncVisibility() {
     if (!this.hasFormTarget || !this.hasButtonTarget) return
 

@@ -1,4 +1,9 @@
 <% content_for(:title) { "Workout Calendar | Haearn" } %>
+<% content_for(:body_class, "workout-calendar-page") %>
+
+<% month_workouts = @workout_days.values.flatten.select { |w| w.started_at.to_date.month == @month.month && w.started_at.to_date.year == @month.year } %>
+<% training_days_count = @workout_days.keys.count { |date| date.month == @month.month && date.year == @month.year } %>
+<% total_month_volume = month_workouts.sum(&:total_volume_kg) %>
 
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
@@ -17,20 +22,29 @@
     <div class="card calendar-shell">
       <div class="card-header d-flex justify-content-between align-items-center calendar-month-header">
         <%= link_to calendar_workouts_path(month: @prev_month.strftime('%Y-%m')),
-            class: "btn btn-sm btn-outline-secondary",
+            class: "btn btn-sm btn-outline-secondary calendar-nav-button",
             data: { turbo_frame: "calendar" } do %>
           <i class="bi bi-chevron-left"></i>
         <% end %>
-        <h4 class="mb-0"><%= @month.strftime('%B %Y') %></h4>
-        <% if @next_month <= Date.current.beginning_of_month + 1.month %>
-          <%= link_to calendar_workouts_path(month: @next_month.strftime('%Y-%m')),
-              class: "btn btn-sm btn-outline-secondary",
-              data: { turbo_frame: "calendar" } do %>
-            <i class="bi bi-chevron-right"></i>
+        <div class="calendar-month-title text-center">
+          <h4 class="mb-1"><%= @month.strftime('%B %Y') %></h4>
+          <div class="calendar-month-meta">
+            <span><%= pluralize(month_workouts.count, "workout") %></span>
+            <span class="calendar-month-meta-separator">•</span>
+            <span><%= pluralize(training_days_count, "training day") %></span>
+          </div>
+        </div>
+        <div class="calendar-nav-slot text-end">
+          <% if @next_month <= Date.current.beginning_of_month + 1.month %>
+            <%= link_to calendar_workouts_path(month: @next_month.strftime('%Y-%m')),
+                class: "btn btn-sm btn-outline-secondary calendar-nav-button",
+                data: { turbo_frame: "calendar" } do %>
+              <i class="bi bi-chevron-right"></i>
+            <% end %>
+          <% else %>
+            <div class="calendar-nav-spacer"></div>
           <% end %>
-        <% else %>
-          <div style="width: 38px;"></div>
-        <% end %>
+        </div>
       </div>
 
       <div class="card-body p-0">
@@ -63,33 +77,35 @@
             <% day_volume = day_workouts.any? ? Current.user.display_weight(day_volume_kg).round : nil %>
             <% day_set_count = day_workouts.sum { |workout| workout.exercise_sets.count } %>
             <div class="calendar-day <%= 'other-month' unless is_current_month %> <%= 'today' if is_today %> <%= 'has-workout' if day_workouts.any? %> <%= activity_level %>">
-              <div class="calendar-day-top">
-                <div class="calendar-date"><%= date.day %></div>
+              <div class="calendar-day-content">
+                <div class="calendar-day-top">
+                  <div class="calendar-date"><%= date.day %></div>
+                  <% if day_workouts.any? %>
+                    <span class="calendar-day-count"><%= workout_count %></span>
+                  <% end %>
+                </div>
                 <% if day_workouts.any? %>
-                  <span class="calendar-day-count"><%= workout_count %></span>
+                  <div class="calendar-day-metrics">
+                    <small class="calendar-day-volume calendar-metric-row">
+                      <span class="calendar-metric-icon"><i class="bi bi-weight"></i></span>
+                      <span><span class="calendar-metric-number"><%= number_to_si(day_volume) %></span> <span class="calendar-metric-unit"><%= Current.user.preferred_unit %></span></span>
+                    </small>
+                    <small class="calendar-day-sets calendar-metric-row">
+                      <span class="calendar-metric-icon"><i class="bi bi-list-ol"></i></span>
+                      <span><span class="calendar-metric-number"><%= day_set_count %></span> <span class="calendar-metric-unit">sets</span></span>
+                    </small>
+                  </div>
+                  <div class="calendar-day-workouts">
+                  <% day_workouts.each do |workout| %>
+                    <span class="calendar-workout-dot">
+                      <span class="workout-indicator <%= workout.in_progress? ? 'in-progress' : 'completed' %>"
+                            title="<%= workout.gym&.name || 'Workout' %> — <%= pluralize(workout.workout_exercises.count, 'exercise') %>, <%= pluralize(workout.exercise_sets.count, 'set') %>">
+                      </span>
+                    </span>
+                  <% end %>
+                  </div>
                 <% end %>
               </div>
-              <% if day_workouts.any? %>
-                <div class="calendar-day-metrics">
-                  <small class="calendar-day-volume calendar-metric-row">
-                    <span class="calendar-metric-icon"><i class="bi bi-weight"></i></span>
-                    <span><span class="calendar-metric-number"><%= number_to_si(day_volume) %></span> <span class="calendar-metric-unit"><%= Current.user.preferred_unit %></span></span>
-                  </small>
-                  <small class="calendar-day-sets calendar-metric-row">
-                    <span class="calendar-metric-icon"><i class="bi bi-list-ol"></i></span>
-                    <span><span class="calendar-metric-number"><%= day_set_count %></span> <span class="calendar-metric-unit">sets</span></span>
-                  </small>
-                </div>
-                <div class="calendar-day-workouts">
-                <% day_workouts.each do |workout| %>
-                  <span class="calendar-workout-dot">
-                    <span class="workout-indicator <%= workout.in_progress? ? 'in-progress' : 'completed' %>"
-                          title="<%= workout.gym&.name || 'Workout' %> — <%= pluralize(workout.workout_exercises.count, 'exercise') %>, <%= pluralize(workout.exercise_sets.count, 'set') %>">
-                    </span>
-                  </span>
-                <% end %>
-                </div>
-              <% end %>
 
               <%= link_to workouts_path(from: date.to_s, to: date.to_s),
                   class: "calendar-day-link",
@@ -105,7 +121,6 @@
     </div>
 
     <!-- Monthly Summary -->
-    <% month_workouts = @workout_days.values.flatten.select { |w| w.started_at.to_date.month == @month.month } %>
     <% if month_workouts.any? %>
       <div class="row g-3 mt-3">
         <div class="col-4">
@@ -119,7 +134,7 @@
         <div class="col-4">
           <div class="card text-center calendar-summary-card">
             <div class="card-body py-2">
-              <div class="h5 mb-0"><%= @workout_days.select { |d, _| d.month == @month.month }.count %></div>
+              <div class="h5 mb-0"><%= training_days_count %></div>
               <small class="text-muted">Training Days</small>
             </div>
           </div>
@@ -128,12 +143,21 @@
           <div class="card text-center calendar-summary-card">
             <div class="card-body py-2">
               <div class="h5 mb-0">
-                <% total_vol = month_workouts.sum(&:total_volume_kg) %>
-                <%= number_with_delimiter(Current.user.display_weight(total_vol).round) %>
+                <%= number_with_delimiter(Current.user.display_weight(total_month_volume).round) %>
               </div>
               <small class="text-muted">Volume (<%= Current.user.preferred_unit %>)</small>
             </div>
           </div>
+        </div>
+      </div>
+    <% else %>
+      <div class="card calendar-empty-state mt-3">
+        <div class="card-body text-center py-4">
+          <div class="calendar-empty-icon mb-2">
+            <i class="bi bi-calendar-x"></i>
+          </div>
+          <h5 class="mb-1">No workouts logged this month</h5>
+          <p class="text-muted mb-0">Start a session and this calendar will light up with your training history.</p>
         </div>
       </div>
     <% end %>

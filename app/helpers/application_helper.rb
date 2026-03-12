@@ -38,11 +38,11 @@ module ApplicationHelper
 
   # Get last weight used for this exercise in this workout
   def last_weight_for(workout_exercise)
-    last_set = workout_exercise.exercise_sets.order(created_at: :desc).first
+    last_set = most_recent_logged_set(workout_exercise.exercise_sets)
     if last_set&.weight_kg
       input_weight_value_for(last_set.weight_kg, workout_exercise)
     elsif workout_exercise.previous_exercise
-      prev_set = workout_exercise.previous_exercise.exercise_sets.order(created_at: :desc).first
+      prev_set = most_recent_logged_set(workout_exercise.previous_exercise.exercise_sets)
       prev_set&.weight_kg ? input_weight_value_for(prev_set.weight_kg, workout_exercise) : nil
     end
   end
@@ -80,33 +80,33 @@ module ApplicationHelper
 
   # Get last reps used for this exercise in this workout
   def last_reps_for(workout_exercise)
-    last_set = workout_exercise.exercise_sets.order(created_at: :desc).first
+    last_set = most_recent_logged_set(workout_exercise.exercise_sets)
     if last_set&.reps
       last_set.reps
     elsif workout_exercise.previous_exercise
-      prev_set = workout_exercise.previous_exercise.exercise_sets.order(created_at: :desc).first
+      prev_set = most_recent_logged_set(workout_exercise.previous_exercise.exercise_sets)
       prev_set&.reps
     end
   end
 
   # Get last duration used for this exercise in this workout
   def last_duration_for(workout_exercise)
-    last_set = workout_exercise.exercise_sets.order(created_at: :desc).first
+    last_set = most_recent_logged_set(workout_exercise.exercise_sets)
     if last_set&.duration_seconds
       last_set.duration_seconds
     elsif workout_exercise.previous_exercise
-      prev_set = workout_exercise.previous_exercise.exercise_sets.order(created_at: :desc).first
+      prev_set = most_recent_logged_set(workout_exercise.previous_exercise.exercise_sets)
       prev_set&.duration_seconds
     end
   end
 
   # Get last distance used for this exercise in this workout
   def last_distance_for(workout_exercise)
-    last_set = workout_exercise.exercise_sets.order(created_at: :desc).first
+    last_set = most_recent_logged_set(workout_exercise.exercise_sets)
     if last_set&.distance_meters
       last_set.distance_meters
     elsif workout_exercise.previous_exercise
-      prev_set = workout_exercise.previous_exercise.exercise_sets.order(created_at: :desc).first
+      prev_set = most_recent_logged_set(workout_exercise.previous_exercise.exercise_sets)
       prev_set&.distance_meters
     end
   end
@@ -117,7 +117,7 @@ module ApplicationHelper
     previous = workout_exercise.previous_exercise
     return nil unless previous
 
-    previous_set = previous.exercise_sets.order(:position, :created_at)[set_number.to_i - 1]
+    previous_set = ordered_session_sets(previous.exercise_sets)[set_number.to_i - 1]
     return nil unless previous_set
 
     previous_set
@@ -139,6 +139,13 @@ module ApplicationHelper
 
     set.assign_attributes(source_set.attributes.slice(*SET_PREFILL_ATTRIBUTE_KEYS))
     set
+  end
+
+  def previous_session_sets_for(workout_exercise)
+    previous_exercise = workout_exercise.previous_exercise
+    return ExerciseSet.none unless previous_exercise
+
+    ordered_session_sets(previous_exercise.exercise_sets)
   end
 
   # Best estimated 1RM (kg) for this exercise + machine combo.
@@ -276,17 +283,25 @@ module ApplicationHelper
   private
 
   def source_set_for_new_form(workout_exercise)
-    current_sets = workout_exercise.exercise_sets.order(:position, :created_at)
-    return current_sets.last if current_sets.exists?
+    current_sets = ordered_session_sets(workout_exercise.exercise_sets)
+    return current_sets.load.last if current_sets.exists?
 
     previous_exercise = workout_exercise.previous_exercise
     return nil unless previous_exercise
 
-    previous_exercise.exercise_sets.order(:position, :created_at).first
+    ordered_session_sets(previous_exercise.exercise_sets).first
   end
 
   def set_prefill_fields_changed?(set)
     (set.changes_to_save.keys & SET_PREFILL_ATTRIBUTE_KEYS).any?
+  end
+
+  def ordered_session_sets(exercise_sets)
+    exercise_sets.reorder(:position, Arel.sql('COALESCE(completed_at, created_at) ASC'), :created_at)
+  end
+
+  def most_recent_logged_set(exercise_sets)
+    exercise_sets.reorder(Arel.sql('COALESCE(completed_at, created_at) DESC'), position: :desc, created_at: :desc).first
   end
 
   def format_input_number(value)

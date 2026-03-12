@@ -109,37 +109,6 @@
   <!-- Workout Stats -->
   <%= render "workouts/stats", workout: @workout %>
 
-  <% if @workout.completed? && @progression_updates.present? %>
-    <div class="card mb-4">
-      <div class="card-body">
-        <h6 class="section-header">
-          <i class="bi bi-arrow-up-circle me-2"></i>Progression Updates
-        </h6>
-        <div class="d-flex flex-column gap-2">
-          <% @progression_updates.each do |update| %>
-            <% we = update[:workout_exercise] %>
-            <% suggestion = update[:suggestion] %>
-            <div class="alert alert-success mb-0 py-2 px-3">
-              <div class="fw-semibold mb-1">
-                <%= we.exercise.name %><% if we.machine %> (<%= we.machine.name %>)<% end %>
-              </div>
-              <div class="small">
-                Ready to progress. Try moving from
-                <strong><%= Current.user.format_weight(suggestion[:current_weight_kg]) %><%= Current.user.preferred_unit %></strong>
-                to
-                <strong><%= Current.user.format_weight(suggestion[:suggested_weight_kg]) %><%= Current.user.preferred_unit %></strong>
-                (+<%= Current.user.format_weight(suggestion[:increase_kg]) %><%= Current.user.preferred_unit %>).
-              </div>
-              <div class="small text-muted mt-1">
-                Why: <%= suggestion[:reasons].join(", ") %>
-              </div>
-            </div>
-          <% end %>
-        </div>
-      </div>
-    </div>
-  <% end %>
-
   <!-- Workout Notes -->
   <% if @workout.in_progress? || @workout.notes.present? %>
     <div class="card mb-4">
@@ -237,6 +206,41 @@
     <% end %>
   </div>
 
+  <% if @progression_updates.present? %>
+    <div class="card mb-4">
+      <div class="card-body">
+        <h6 class="section-header">
+          <i class="bi bi-arrow-up-circle me-2"></i>Progression Updates
+        </h6>
+        <div class="d-flex flex-column gap-3">
+          <% @progression_updates.each do |update| %>
+            <% suggestion = update[:suggestion] %>
+            <% workout_exercise = update[:workout_exercise] %>
+            <div class="border rounded p-3 bg-dark bg-opacity-25">
+              <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+                <div>
+                  <h6 class="mb-1 fw-bold">
+                    <%= workout_exercise.exercise.name %><% if workout_exercise.machine %> (<%= workout_exercise.machine.name %>)<% end %>
+                  </h6>
+                  <p class="mb-1 text-success fw-semibold">Ready to progress.</p>
+                  <p class="mb-0 small text-muted">
+                    You've been <%= suggestion[:reasons].join(", ") %>. Try increasing from
+                    <%= Current.user.format_weight(suggestion[:current_weight_kg]) %><%= Current.user.preferred_unit %>
+                    to
+                    <%= Current.user.format_weight(suggestion[:suggested_weight_kg]) %><%= Current.user.preferred_unit %>.
+                  </p>
+                </div>
+                <div class="small text-muted text-nowrap">
+                  +<%= Current.user.format_weight(suggestion[:increase_kg]) %><%= Current.user.preferred_unit %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
   <!-- Add Exercise Button (active workouts only) -->
   <% if @workout.in_progress? %>
     <%= link_to add_exercise_workout_path(@workout), 
@@ -254,39 +258,35 @@
 <!-- Rest Timer (fixed footer bar) -->
 <% if @workout.in_progress? %>
   <div class="rest-timer-footer">
-    <div class="rest-timer-stage">
-      <!-- Collapsed state: just a button -->
-      <div class="rest-timer-collapsed rest-timer-panel" data-rest-timer-target="collapsed">
-        <button type="button" 
-                class="rest-timer-start-btn"
-                data-action="rest-timer#start"
-                title="Start rest timer">
-          <i class="bi bi-stopwatch me-2"></i>Start Rest Timer
+    <div class="rest-timer-stage rest-timer-collapsed rest-timer-panel" data-rest-timer-target="collapsed">
+      <button type="button" 
+              class="rest-timer-start-btn"
+              data-action="rest-timer#start"
+              title="Start rest timer">
+        <i class="bi bi-stopwatch me-2"></i>Start Rest Timer
+      </button>
+    </div>
+    
+    <div class="rest-timer-stage rest-timer-bar rest-timer-panel is-hidden" data-rest-timer-target="container" aria-hidden="true">
+      <div class="rest-timer-bar-content">
+        <button type="button" class="rest-timer-adjust-btn" data-action="rest-timer#subtract15">
+          -15s
         </button>
-      </div>
-
-      <!-- Expanded state: the timer bar -->
-      <div class="rest-timer-bar rest-timer-panel is-hidden" data-rest-timer-target="container" aria-hidden="true">
-        <div class="rest-timer-bar-content">
-          <button type="button" class="rest-timer-adjust-btn" data-action="rest-timer#subtract15">
-            -15s
-          </button>
-
-          <div class="rest-timer-center">
-            <span class="rest-timer-display" data-rest-timer-target="display"><%= format_seconds(Current.user.default_rest_seconds) %></span>
-            <div class="rest-timer-progress">
-              <div class="rest-timer-progress-bar" data-rest-timer-target="progress"></div>
-            </div>
+        
+        <div class="rest-timer-center">
+          <span class="rest-timer-display" data-rest-timer-target="display">2:00</span>
+          <div class="rest-timer-progress">
+            <div class="rest-timer-progress-bar" data-rest-timer-target="progress"></div>
           </div>
-
-          <button type="button" class="rest-timer-adjust-btn" data-action="rest-timer#add15">
-            +15s
-          </button>
-
-          <button type="button" class="rest-timer-skip-btn" data-action="rest-timer#skip">
-            <i class="bi bi-skip-forward-fill"></i>
-          </button>
         </div>
+        
+        <button type="button" class="rest-timer-adjust-btn" data-action="rest-timer#add15">
+          +15s
+        </button>
+        
+        <button type="button" class="rest-timer-skip-btn" data-action="rest-timer#skip">
+          <i class="bi bi-skip-forward-fill"></i>
+        </button>
       </div>
     </div>
   </div>

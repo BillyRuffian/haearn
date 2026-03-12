@@ -19,7 +19,7 @@ module Admin
 
       @page = [ params.fetch(:page, 1).to_i, 1 ].max
       @total_count = scope.count
-      @exercises = scope.order(:name).offset((@page - 1) * PER_PAGE).limit(PER_PAGE)
+      @exercises = scope.ordered.offset((@page - 1) * PER_PAGE).limit(PER_PAGE)
       @total_pages = (@total_count / PER_PAGE.to_f).ceil
     end
 
@@ -93,14 +93,14 @@ module Admin
       @exercises = Exercise.where.not(user_id: nil)
         .left_joins(:workout_exercises)
         .group('exercises.id')
-        .order('COUNT(workout_exercises.id) DESC')
+        .order(:name)
         .limit(50)
         .select('exercises.*, COUNT(workout_exercises.id) AS usage_count')
     end
 
     def merge
       authorize @exercise
-      @target_exercises = Exercise.where.not(id: @exercise.id).order(:name)
+      @target_exercises = Exercise.where.not(id: @exercise.id).ordered
       @target_exercises = @target_exercises.where('name LIKE ?', "%#{params[:search]}%") if params[:search].present?
       @usage_count = @exercise.workout_exercises.count
       @template_count = TemplateExercise.where(exercise_id: @exercise.id).count

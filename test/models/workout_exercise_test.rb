@@ -162,4 +162,82 @@ class WorkoutExerciseTest < ActiveSupport::TestCase
     @we.bar_type = 'ez_curl'
     assert_equal 'EZ-Curl', @we.bar_type_label
   end
+
+  test 'previous_workout_exercise prefers the latest matching session' do
+    user = users(:one)
+    gym = gyms(:one)
+    exercise = exercises(:one)
+    machine = machines(:one)
+
+    older_workout = Workout.create!(
+      user: user,
+      gym: gym,
+      started_at: 4.days.ago,
+      finished_at: 4.days.ago + 45.minutes
+    )
+    older_block = older_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    older_we = older_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+    latest_workout = Workout.create!(
+      user: user,
+      gym: gym,
+      started_at: 2.days.ago,
+      finished_at: 2.days.ago + 45.minutes
+    )
+    latest_block = latest_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    latest_we = latest_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+    current_workout = Workout.create!(
+      user: user,
+      gym: gym,
+      started_at: Time.current,
+      finished_at: nil
+    )
+    current_block = current_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    current_we = current_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+    assert_equal latest_we, current_we.previous_workout_exercise
+    assert_not_equal older_we, current_we.previous_workout_exercise
+  end
+
+  test 'previous_workout_exercise ignores different machines for the same exercise' do
+    user = users(:one)
+    gym = gyms(:one)
+    exercise = exercises(:one)
+    matching_machine = machines(:one)
+    other_machine = gym.machines.create!(
+      name: 'Different Scope Machine',
+      equipment_type: 'machine',
+      display_unit: 'kg'
+    )
+
+    different_machine_workout = Workout.create!(
+      user: user,
+      gym: gym,
+      started_at: 2.days.ago,
+      finished_at: 2.days.ago + 45.minutes
+    )
+    different_machine_block = different_machine_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    different_machine_block.workout_exercises.create!(exercise: exercise, machine: other_machine, position: 1)
+
+    matching_workout = Workout.create!(
+      user: user,
+      gym: gym,
+      started_at: 1.day.ago,
+      finished_at: 1.day.ago + 45.minutes
+    )
+    matching_block = matching_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    matching_we = matching_block.workout_exercises.create!(exercise: exercise, machine: matching_machine, position: 1)
+
+    current_workout = Workout.create!(
+      user: user,
+      gym: gym,
+      started_at: Time.current,
+      finished_at: nil
+    )
+    current_block = current_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    current_we = current_block.workout_exercises.create!(exercise: exercise, machine: matching_machine, position: 1)
+
+    assert_equal matching_we, current_we.previous_workout_exercise
+  end
 end

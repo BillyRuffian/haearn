@@ -175,11 +175,16 @@ User
 27. **Progression Messaging Timing**: Do not show progression prompts during active set entry. Aggregate and show progression updates together on completed workout pages so logging flow stays uncluttered.
 
 28. **Set Form Prefill Rules**: New set forms should prefill by strict order: (a) if current workout has prior sets for the exercise+machine, copy the immediately previous set; (b) otherwise copy set 1 from the previous finished session for that exact exercise+machine; (c) if no history exists, leave fields blank/default.
+    The visible "Last" workout summary and any "last weight/reps" helper logic must use the most recent completed matching exercise+machine session and completion/position ordering within that session, not raw `created_at`.
     The workout "Last" button should mirror the previous-session set payload too, including warmup/AMRAP and other extended set flags, not just weight/reps.
     Keep add-set and edit-set UIs built from shared exercise-set field partials so advanced set inputs stay aligned across both flows.
     Duplicate-set rest-timer restarts must carry the same block-specific rest duration metadata as normal set submissions.
 
 29. **Rest Timer Defaults & Block Wiring**: The rest timer should bootstrap from the user's configured `default_rest_seconds` unless a block-specific rest override is present. Per-block rest controls must be rendered in workout blocks via `block-rest` so both set submissions and duplicate-set actions can propagate block rest seconds reliably. When workout logging creates a brand new `WorkoutBlock`, rely on `WorkoutBlock` model defaults instead of hardcoding `rest_seconds` in controllers.
+30. **Alphabetical Picker Rule**: When controllers fetch exercise or equipment collections for UI selection, admin review, or user-facing export lists, default to alphabetical ordering through the model `ordered` scopes. If a flow needs a "recent" subset, choose the subset by recency but present that subset alphabetically.
+31. **Exercise Seed Naming Rule**: Global seeded exercises should name the movement, not the equipment, whenever the app already models equipment separately. Keep true movement differences like incline/decline/close-grip, but merge deprecated equipment-prefixed seed aliases into the canonical movement exercise on reseed.
+32. **Workout Show Contracts**: Completed workout pages should not render add-exercise entry points. Active workout blocks must render `block-rest` controls inside each `.workout-block`, the workout page must keep the rest-timer stage-panel markup (`rest-timer-stage`, `rest-timer-panel`) present for smooth transitions, and completed workouts should surface grouped progression updates instead of in-form prompts.
+33. **SQLite Test Harness Rule**: For Minitest in this app, default SQLite-backed test runs to single-process mode and honor `PARALLEL_WORKERS=1` as a real “do not parallelize” setting in `test/test_helper.rb`; otherwise the suite is prone to `SQLite3::BusyException: database is locked`.
 
 ## Equipment Types (Enum)
 
@@ -249,6 +254,9 @@ rails test
 
 # Run system tests
 rails test:system
+
+# In restricted/sandboxed environments where DRb sockets fail, force single-worker Minitest
+PARALLEL_WORKERS=1 bin/rails test
 ```
 
 ## Liniting

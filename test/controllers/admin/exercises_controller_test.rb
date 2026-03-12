@@ -59,8 +59,12 @@ class Admin::ExercisesControllerTest < ActionDispatch::IntegrationTest
 
   test 'admin can view review page' do
     sign_in_as(@admin)
+    Exercise.create!(name: 'Order Review Alpha', exercise_type: 'reps', has_weight: true, primary_muscle_group: 'chest', user: @user)
+    Exercise.create!(name: 'Order Review Beta', exercise_type: 'reps', has_weight: true, primary_muscle_group: 'chest', user: @user)
+
     get review_admin_exercises_path
     assert_response :success
+    assert_operator response.body.index('Order Review Alpha'), :<, response.body.index('Order Review Beta')
   end
 
   test 'admin can filter exercises by source' do

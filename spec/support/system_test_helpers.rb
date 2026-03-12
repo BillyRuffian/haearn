@@ -1,4 +1,10 @@
 module SystemTestHelpers
+  def require_real_browser_js!
+    return if page.driver.respond_to?(:evaluate_async_script)
+
+    skip "JS system specs are unavailable in this environment"
+  end
+
   def sign_in_via_ui(user, password: 'password')
     session = user.sessions.order(:id).first || user.sessions.create!(user_agent: 'System Test Browser', ip_address: '127.0.0.1')
     signed_session_id = ActionDispatch::TestRequest.create.cookie_jar.tap do |cookie_jar|
@@ -11,6 +17,8 @@ module SystemTestHelpers
   end
 
   def reset_offline_storage
+    require_real_browser_js!
+
     page.evaluate_async_script(<<~JS)
       const done = arguments[0]
       try { window.localStorage.removeItem("haearn:last-synced-at") } catch (_error) {}
@@ -23,6 +31,8 @@ module SystemTestHelpers
   end
 
   def seed_offline_pending_item(item)
+    require_real_browser_js!
+
     page.evaluate_async_script(<<~JS, item)
       const payload = arguments[0]
       const done = arguments[1]

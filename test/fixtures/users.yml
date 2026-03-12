@@ -40,15 +40,15 @@ two:
   name: Test User Two
   preferred_unit: lbs
 
-system:
-  email_address: system@example.com
-  password_digest: <%= password_digest %>
-  name: System Test User
-  preferred_unit: kg
-
 admin:
   email_address: admin@example.com
   password_digest: <%= password_digest %>
   name: Admin User
   preferred_unit: kg
   admin: true
+
+system:
+  email_address: system@example.com
+  password_digest: <%= password_digest %>
+  name: System Browser User
+  preferred_unit: kg

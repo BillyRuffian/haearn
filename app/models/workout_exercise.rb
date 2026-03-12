@@ -117,7 +117,7 @@ class WorkoutExercise < ApplicationRecord
       .joins(workout_block: :workout)
       .where('workouts.id != ?', workout.id)
       .where('workouts.finished_at IS NOT NULL')
-      .order(Arel.sql('workouts.started_at DESC'))
+      .order(Arel.sql('workouts.started_at DESC, workout_blocks.position DESC, workout_exercises.position DESC'))
       .first
   end
 

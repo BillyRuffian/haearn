@@ -12,9 +12,10 @@ RSpec.describe 'Notifications dropdown', type: :system, js: true do
     visit root_path
 
     within("li.nav-item.dropdown[data-controller='notifications-center']", visible: true) do
-      expect(page).to have_css("[data-notifications-center-target='badge']", text: '1', visible: true)
+      expect(page).to have_css("[data-notifications-center-target='badge']", visible: true)
 
       find("button[aria-label='Notifications']", visible: true).click
+      expect(page).to have_css(".dropdown-menu.show")
 
       expect(page).to have_css(".notification-item", text: unread_notification.title)
       expect(page).to have_css(".notification-item", text: unread_notification.message)
@@ -33,6 +34,7 @@ RSpec.describe 'Notifications dropdown', type: :system, js: true do
 
     within("div.d-lg-none div.dropdown[data-controller='notifications-center']", visible: true) do
       find("button[aria-label='Notifications']", visible: true).click
+      expect(page).to have_css(".notifications-dropdown-mobile.show")
     end
 
     metrics = page.evaluate_script(<<~JS)

@@ -26,6 +26,19 @@ class WorkoutsController < ApplicationController
     @active_workout = Current.user.active_workout
   end
 
+  def calendar
+    @month = parsed_calendar_month
+    @prev_month = @month.prev_month
+    @next_month = @month.next_month
+    @start_date = @month.beginning_of_month.beginning_of_week(:monday)
+    @end_date = @month.end_of_month.end_of_week(:monday)
+    @workout_days = Current.user.workouts
+      .includes(:gym, :exercise_sets, :workout_exercises)
+      .where(started_at: @start_date.beginning_of_day..@end_date.end_of_day)
+      .order(:started_at)
+      .group_by { |workout| workout.started_at.to_date }
+  end
+
   # GET /workouts/:id
   # Shows workout detail with all exercises, sets, and statistics
   # This is the main workout logging interface
@@ -135,15 +148,21 @@ class WorkoutsController < ApplicationController
         @selected_exercise = Exercise.for_user(Current.user).find(params[:select_exercise])
         @machines = @workout.gym.machines.with_attached_photos.ordered
 
-        @recent_machines = @workout.gym.machines
+        recent_machine_ids = @workout.gym.machines
           .joins(workout_exercises: { workout_block: :workout })
           .where(workout_exercises: { exercise_id: @selected_exercise.id })
           .where(workouts: { user_id: Current.user.id, finished_at: ..Time.current })
-          .select('machines.*, MAX(workouts.started_at) AS last_used_at')
           .group('machines.id')
-          .order('last_used_at DESC')
-          .limit(3)
+          .maximum('workouts.started_at')
+          .sort_by { |_machine_id, last_used_at| last_used_at || Time.at(0) }
+          .reverse
+          .map(&:first)
+          .first(3)
+
+        @recent_machines = @workout.gym.machines
+          .where(id: recent_machine_ids)
           .with_attached_photos
+          .ordered
 
         # If machine_id is also present (coming back from creating a machine), auto-add the exercise
         if params[:machine_id].present?
@@ -159,7 +178,7 @@ class WorkoutsController < ApplicationController
         # Step 1: Show exercise list
         @exercises = Exercise.for_user(Current.user)
         @exercises = @exercises.where('LOWER(name) LIKE LOWER(?)', "%#{params[:search]}%") if params[:search].present?
-        @exercises = @exercises.order(:name).limit(50)
+        @exercises = @exercises.ordered.limit(50)
       end
 
       render :add_exercise
@@ -284,6 +303,14 @@ class WorkoutsController < ApplicationController
 
   def workout_params
     params.require(:workout).permit(:gym_id, :notes)
+  end
+
+  def parsed_calendar_month
+    return Date.current.beginning_of_month if params[:month].blank?
+
+    Date.strptime(params[:month], '%Y-%m').beginning_of_month
+  rescue ArgumentError
+    Date.current.beginning_of_month
   end
 
   def build_progression_updates

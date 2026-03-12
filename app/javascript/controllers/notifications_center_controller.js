@@ -13,12 +13,18 @@ export default class extends Controller {
   connect() {
     this.load()
     this.refreshHandler = this.load.bind(this)
+    this.boundDropdownShown = this.handleDropdownShown.bind(this)
+    this.boundWindowResize = this.positionMobileDropdown.bind(this)
     window.addEventListener("notifications:refresh", this.refreshHandler)
+    this.element.addEventListener("shown.bs.dropdown", this.boundDropdownShown)
+    window.addEventListener("resize", this.boundWindowResize)
     this.startPolling()
   }
 
   disconnect() {
     window.removeEventListener("notifications:refresh", this.refreshHandler)
+    this.element.removeEventListener("shown.bs.dropdown", this.boundDropdownShown)
+    window.removeEventListener("resize", this.boundWindowResize)
     this.stopPolling()
   }
 
@@ -102,6 +108,48 @@ export default class extends Controller {
   showLoading(show) {
     if (!this.hasLoadingTarget) return
     this.loadingTarget.classList.toggle("d-none", !show)
+  }
+
+  handleDropdownShown() {
+    this.positionMobileDropdown()
+  }
+
+  schedulePositionMobileDropdown() {
+    ;[0, 16, 48, 120].forEach((delay) => {
+      window.setTimeout(() => this.positionMobileDropdown(), delay)
+    })
+  }
+
+  positionMobileDropdown() {
+    const menu = this.element.querySelector(".notifications-dropdown-mobile.show, .notifications-dropdown-mobile")
+    if (!menu) return
+
+    if (window.innerWidth >= 576) {
+      menu.style.removeProperty("position")
+      menu.style.removeProperty("left")
+      menu.style.removeProperty("right")
+      menu.style.removeProperty("width")
+      menu.style.removeProperty("max-width")
+      menu.style.removeProperty("transform")
+      menu.style.removeProperty("top")
+      return
+    }
+
+    const toggle = this.element.querySelector("button[aria-label='Notifications']")
+    const toggleRect = toggle?.getBoundingClientRect()
+    const gutter = 6
+    const width = Math.min(448, window.innerWidth - (gutter * 2))
+
+    menu.style.setProperty("position", "fixed", "important")
+    menu.style.setProperty("left", `${gutter}px`, "important")
+    menu.style.setProperty("right", "auto", "important")
+    menu.style.setProperty("width", `${width}px`, "important")
+    menu.style.setProperty("max-width", `${width}px`, "important")
+    menu.style.setProperty("transform", "none", "important")
+
+    if (toggleRect) {
+      menu.style.setProperty("top", `${Math.max(8, toggleRect.bottom + 8)}px`, "important")
+    }
   }
 
   render(notifications) {

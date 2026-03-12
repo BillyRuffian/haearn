@@ -36,6 +36,95 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(response.body).not_to include(add_exercise_workout_path(completed_workout))
   end
 
+  it 'keeps the calendar link visible on the workout history page' do
+    get workouts_path
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('Calendar')
+    expect(response.body).to include(calendar_workouts_path)
+  end
+
+  it 'renders the calendar page with initialized month navigation state' do
+    get calendar_workouts_path
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('Calendar')
+    expect(response.body).to include(Date.current.strftime('%B %Y'))
+    expect(response.body).to include(calendar_workouts_path(month: Date.current.beginning_of_month.prev_month.strftime('%Y-%m')))
+  end
+
+  it 'wires calendar day links back to history with from/to filters preserved in the form' do
+    workout_date = Date.new(2026, 3, 12)
+    user.workouts.create!(
+      gym: gym,
+      started_at: workout_date.noon,
+      finished_at: workout_date.noon + 45.minutes
+    )
+
+    get calendar_workouts_path(month: workout_date.strftime('%Y-%m'))
+
+    expect(response).to have_http_status(:ok)
+    doc = Nokogiri::HTML.parse(response.body)
+    day_links = doc.css(".calendar-day-link").map { |link| link["href"] }
+    expect(day_links).to include(workouts_path(from: workout_date.to_s, to: workout_date.to_s))
+
+    get workouts_path(from: workout_date.to_s, to: workout_date.to_s)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include(%(name="from"))
+    expect(response.body).to include(%(value="#{workout_date}"))
+    expect(response.body).to include(%(name="to"))
+    expect(response.body.scan(%(value="#{workout_date}")).length).to be >= 2
+  end
+
+  it 'renders exercise and equipment pickers in alphabetical order' do
+    workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+    swap_block = workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+
+    alpha_exercise = user.exercises.create!(name: 'Order Check Alpha', exercise_type: 'reps', has_weight: true, primary_muscle_group: 'chest')
+    beta_exercise = user.exercises.create!(name: 'Order Check Beta', exercise_type: 'reps', has_weight: true, primary_muscle_group: 'chest')
+    gamma_exercise = user.exercises.create!(name: 'Order Check Gamma', exercise_type: 'reps', has_weight: true, primary_muscle_group: 'chest')
+
+    alpha_machine = gym.machines.create!(name: 'Order Rig Alpha', equipment_type: 'machine', display_unit: 'kg')
+    beta_machine = gym.machines.create!(name: 'Order Rig Beta', equipment_type: 'machine', display_unit: 'kg')
+    gamma_machine = gym.machines.create!(name: 'Order Rig Gamma', equipment_type: 'machine', display_unit: 'kg')
+
+    workout_exercise = swap_block.workout_exercises.create!(exercise: gamma_exercise, machine: gamma_machine, position: 1)
+
+    previous_workout = user.workouts.create!(gym: gym, started_at: 2.days.ago, finished_at: 2.days.ago + 45.minutes)
+    previous_block = previous_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    previous_block.workout_exercises.create!(exercise: alpha_exercise, machine: beta_machine, position: 1)
+    previous_block.workout_exercises.create!(exercise: alpha_exercise, machine: alpha_machine, position: 2)
+
+    get add_exercise_workout_path(workout, search: 'Order Check')
+
+    expect(response).to have_http_status(:ok)
+    doc = Nokogiri::HTML.parse(response.body)
+    exercise_names = doc.css("turbo-frame#exercise_list .list-group-item strong").map(&:text).select { |name| name.start_with?('Order Check') }
+    expect(exercise_names).to eq([ 'Order Check Alpha', 'Order Check Beta', 'Order Check Gamma' ])
+
+    get add_exercise_workout_path(workout, select_exercise: alpha_exercise.id)
+
+    expect(response).to have_http_status(:ok)
+    doc = Nokogiri::HTML.parse(response.body)
+    machine_names = doc.css("[data-equipment-filter-target='item'] strong").map(&:text).select { |name| name.start_with?('Order Rig') }
+    expect(machine_names).to eq([ 'Order Rig Alpha', 'Order Rig Beta', 'Order Rig Gamma' ])
+
+    get swap_exercise_workout_workout_exercise_path(workout, workout_exercise, search: 'Order Check')
+
+    expect(response).to have_http_status(:ok)
+    doc = Nokogiri::HTML.parse(response.body)
+    exercise_names = doc.css("turbo-frame#exercise_list .list-group-item strong").map(&:text).select { |name| name.start_with?('Order Check') }
+    expect(exercise_names).to eq([ 'Order Check Alpha', 'Order Check Beta', 'Order Check Gamma' ])
+
+    get swap_exercise_workout_workout_exercise_path(workout, workout_exercise, select_exercise: alpha_exercise.id)
+
+    expect(response).to have_http_status(:ok)
+    doc = Nokogiri::HTML.parse(response.body)
+    machine_names = doc.css("[data-equipment-filter-target='item'] strong").map(&:text).select { |name| name.start_with?('Order Rig') }
+    expect(machine_names).to eq([ 'Order Rig Alpha', 'Order Rig Beta', 'Order Rig Gamma' ])
+  end
+
   it 'renders timer stage panels for smooth rest timer transitions' do
     workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
     block = workout.workout_blocks.create!(position: 1, rest_seconds: 90)
@@ -270,6 +359,90 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(payload["set_type"]).to eq("backoff")
     expect(payload["belt"]).to eq(true)
     expect(payload["pain_flag"]).to eq(true)
+  end
+
+  it 'shows the most recent matching session in the Last summary instead of an older heavier session' do
+    machine = gym.machines.create!(
+      name: 'Last Summary Machine',
+      equipment_type: 'machine',
+      display_unit: 'kg'
+    )
+    exercise = user.exercises.create!(
+      name: 'Last Summary Exercise',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'chest'
+    )
+
+    older_workout = user.workouts.create!(gym: gym, started_at: 5.days.ago, finished_at: 5.days.ago + 45.minutes)
+    older_block = older_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    older_we = older_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    older_we.exercise_sets.create!(position: 1, reps: 5, weight_kg: 60, is_warmup: false, completed_at: 5.days.ago + 10.minutes)
+
+    latest_workout = user.workouts.create!(gym: gym, started_at: 2.days.ago, finished_at: 2.days.ago + 45.minutes)
+    latest_block = latest_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    latest_we = latest_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    latest_we.exercise_sets.create!(position: 1, reps: 8, weight_kg: 45, is_warmup: false, completed_at: 2.days.ago + 10.minutes)
+    latest_we.exercise_sets.create!(position: 2, reps: 8, weight_kg: 47.5, is_warmup: false, completed_at: 2.days.ago + 20.minutes)
+
+    workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+    block = workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+    get workout_path(workout)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('Last:')
+    expect(response.body).to include('45kg × 8')
+    expect(response.body).to include('47.5kg × 8')
+    expect(response.body).not_to include('60kg × 5')
+  end
+
+  it 'scopes Last summary and payload to the exact machine' do
+    target_machine = gym.machines.create!(
+      name: 'Scoped Target Machine',
+      equipment_type: 'machine',
+      display_unit: 'kg'
+    )
+    other_machine = gym.machines.create!(
+      name: 'Scoped Other Machine',
+      equipment_type: 'machine',
+      display_unit: 'kg'
+    )
+    exercise = user.exercises.create!(
+      name: 'Scoped Last Exercise',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'chest'
+    )
+
+    other_workout = user.workouts.create!(gym: gym, started_at: 2.days.ago, finished_at: 2.days.ago + 45.minutes)
+    other_block = other_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    other_we = other_block.workout_exercises.create!(exercise: exercise, machine: other_machine, position: 1)
+    other_we.exercise_sets.create!(position: 1, reps: 4, weight_kg: 80, is_warmup: false, completed_at: 2.days.ago + 10.minutes)
+
+    target_workout = user.workouts.create!(gym: gym, started_at: 1.day.ago, finished_at: 1.day.ago + 45.minutes)
+    target_block = target_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    target_we = target_block.workout_exercises.create!(exercise: exercise, machine: target_machine, position: 1)
+    target_we.exercise_sets.create!(position: 1, reps: 10, weight_kg: 42.5, is_warmup: false, completed_at: 1.day.ago + 10.minutes)
+
+    workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+    block = workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    current_we = block.workout_exercises.create!(exercise: exercise, machine: target_machine, position: 1)
+
+    get workout_path(workout)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('42.5kg × 10')
+    expect(response.body).not_to include('80kg × 4')
+
+    doc = Nokogiri::HTML.parse(response.body)
+    payload_node = doc.at_css("#new_set_#{current_we.id} [data-copy-last-payload-value]")
+    expect(payload_node).to be_present
+
+    payload = JSON.parse(payload_node["data-copy-last-payload-value"])
+    expect(payload["weight_value"]).to eq("42.5")
+    expect(payload["reps"]).to eq(10)
   end
 
   it 'shows progression updates only after workout completion' do

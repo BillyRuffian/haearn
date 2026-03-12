@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: March 6, 2026
+> Last Updated: March 12, 2026
 
 ## Overview
 
@@ -14,13 +14,17 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Centralize dashboard page assembly in a dedicated service object to reduce `DashboardController` duplication while preserving existing analytics behavior
 - [x] Extract chart/query calculations from `DashboardController` into dedicated analytics services or query objects
 - [x] Consolidate add-set and edit-set UIs around shared form partials/components to reduce drift
-- [ ] Add focused frontend behavior coverage for critical Stimulus controllers (set logging, add/edit visibility, notifications, offline sync)
+- [x] Add focused frontend behavior coverage for critical Stimulus controllers (set logging, add/edit visibility, notifications, offline sync)
   - [x] Add an initial Capybara system regression for add-set/edit-set visibility behavior
   - [x] Add a browser-level regression for the set-form `Last` button copying extended previous-session fields
   - [x] Add a browser-level regression for the notifications dropdown feed loading and mark-all-read flow
   - [x] Keep the mobile notifications dropdown within the viewport on phone-sized screens
   - [x] Add a browser-level regression for the offline confidence widget queued/error/retry state
   - [x] Add a browser-level regression for set duplicate plus inline edit save/cancel flows
+- [x] Realign workout logging request/view contracts so completed workouts hide add-exercise entry points, active blocks render block-rest controls, rest-timer stage panels stay present, and completed workouts show grouped progression updates
+- [x] Repair shared fixture integrity for `users(:system)` / session-backed browser specs and restore a full green test baseline
+- [x] Make the Minitest harness honor `PARALLEL_WORKERS=1` and default SQLite test runs to single-process mode to avoid `database is locked` failures
+- [x] Normalize controller-driven exercise and equipment collections to alphabetical ordering via shared `ordered` scopes, including workout pickers and admin review flows
 - [x] Add a concise contributor-oriented `README.md` covering architecture, core flows, and local development conventions
 
 ---
@@ -55,6 +59,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
   - Time-based (Planks, Dead hangs)
   - Distance-based (Farmer's walks)
 - [x] 103 exercises seeded
+- [x] Refine the global exercise seed catalog to prefer movement-based names over equipment-prefixed duplicates, with deprecated equipment aliases merged into canonical exercises on reseed
 
 ### 1.4 Dark Theme Styling
 - [x] Create custom Bootstrap variables in `application.bootstrap.scss`:
@@ -140,6 +145,8 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Apply deterministic add-set prefill order (blank with no history; first set from prior session set 1; subsequent sets from immediate prior current set, including warmup/modifier fields)
 - [x] Make the set-form "Last" button copy the full previous-session payload, including warmup/AMRAP and extended tracking flags
 - [x] Hide the per-exercise add-set trigger while any inline set edit form is active in that exercise card
+- [x] Keep "Last" workout references pinned to the most recent completed matching exercise+machine session, using session/set completion order rather than `created_at`
+- [x] Expand regression coverage around "Last" history behavior to include session-order vs `created_at` drift and exact machine scoping across helper, request, and model layers
 
 ### 3.5 Rest Timer (Stimulus)
 - [x] `rest_timer_controller.js`

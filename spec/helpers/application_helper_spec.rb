@@ -73,5 +73,120 @@ RSpec.describe ApplicationHelper, type: :helper do
       expect(data["is_amrap"]).to eq(true)
       expect(data["set_type"]).to eq("backoff")
     end
+
+    it 'uses session completion order rather than set created_at order' do
+      user = users(:one)
+      gym = gyms(:one)
+      machine = gym.machines.create!(name: 'Order Helper Machine', equipment_type: 'machine', display_unit: 'kg')
+      exercise = user.exercises.create!(
+        name: 'Order Helper Exercise',
+        exercise_type: 'reps',
+        has_weight: true,
+        primary_muscle_group: 'chest'
+      )
+
+      previous_workout = user.workouts.create!(gym: gym, started_at: 2.days.ago, finished_at: 2.days.ago + 30.minutes)
+      previous_block = previous_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+      previous_we = previous_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+      first_set = previous_we.exercise_sets.create!(
+        position: 1,
+        weight_kg: 40,
+        reps: 12,
+        completed_at: 2.days.ago + 5.minutes
+      )
+      second_set = previous_we.exercise_sets.create!(
+        position: 2,
+        weight_kg: 47.5,
+        reps: 8,
+        completed_at: 2.days.ago + 15.minutes
+      )
+
+      first_set.update_columns(created_at: Time.current)
+      second_set.update_columns(created_at: 3.days.ago)
+
+      current_workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+      current_block = current_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+      current_we = current_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+      first_payload = helper.previous_session_set_data(current_we, 1)
+      second_payload = helper.previous_session_set_data(current_we, 2)
+
+      expect(first_payload["weight_value"]).to eq("40")
+      expect(first_payload["reps"]).to eq(12)
+      expect(second_payload["weight_value"]).to eq("47.5")
+      expect(second_payload["reps"]).to eq(8)
+    end
+
+    it 'ignores prior sessions for the same exercise on different equipment' do
+      user = users(:one)
+      gym = gyms(:one)
+      target_machine = gym.machines.create!(name: 'Scope Target Machine', equipment_type: 'machine', display_unit: 'kg')
+      other_machine = gym.machines.create!(name: 'Scope Other Machine', equipment_type: 'machine', display_unit: 'kg')
+      exercise = user.exercises.create!(
+        name: 'Scope Helper Exercise',
+        exercise_type: 'reps',
+        has_weight: true,
+        primary_muscle_group: 'chest'
+      )
+
+      previous_workout = user.workouts.create!(gym: gym, started_at: 2.days.ago, finished_at: 2.days.ago + 30.minutes)
+      previous_block = previous_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+      previous_block.workout_exercises.create!(exercise: exercise, machine: other_machine, position: 1).exercise_sets.create!(
+        position: 1,
+        weight_kg: 80,
+        reps: 4,
+        completed_at: 2.days.ago + 5.minutes
+      )
+
+      current_workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+      current_block = current_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+      current_we = current_block.workout_exercises.create!(exercise: exercise, machine: target_machine, position: 1)
+
+      expect(helper.previous_session_set_data(current_we, 1)).to be_nil
+      expect(helper.last_weight_for(current_we)).to be_nil
+      expect(helper.last_reps_for(current_we)).to be_nil
+    end
+  end
+
+  describe '#last_weight_for / #last_reps_for' do
+    it 'uses the most recently completed set from the previous matching session' do
+      user = users(:one)
+      gym = gyms(:one)
+      machine = gym.machines.create!(name: 'Last Helper Machine', equipment_type: 'machine', display_unit: 'kg')
+      exercise = user.exercises.create!(
+        name: 'Last Helper Exercise',
+        exercise_type: 'reps',
+        has_weight: true,
+        primary_muscle_group: 'chest'
+      )
+
+      previous_workout = user.workouts.create!(gym: gym, started_at: 2.days.ago, finished_at: 2.days.ago + 30.minutes)
+      previous_block = previous_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+      previous_we = previous_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+      earlier_completed = previous_we.exercise_sets.create!(
+        position: 1,
+        weight_kg: 60,
+        reps: 5,
+        completed_at: 2.days.ago + 5.minutes
+      )
+      later_completed = previous_we.exercise_sets.create!(
+        position: 2,
+        weight_kg: 47.5,
+        reps: 10,
+        completed_at: 2.days.ago + 10.minutes
+      )
+
+      earlier_completed.update_columns(created_at: Time.current)
+      later_completed.update_columns(created_at: 3.days.ago)
+
+      current_workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+      current_block = current_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+      current_we = current_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+      expect(helper.last_weight_for(current_we)).to eq('47.5')
+      expect(helper.last_reps_for(current_we)).to eq(10)
+    end
   end
 end
