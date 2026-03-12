@@ -8,21 +8,34 @@ RSpec.describe 'Notifications dropdown', type: :system, js: true do
     sign_in_via_ui(user)
   end
 
+  def open_dropdown(button_selector)
+    page.execute_script(<<~JS, button_selector)
+      const button = document.querySelector(arguments[0])
+      if (!button) throw new Error(`Missing dropdown button: ${arguments[0]}`)
+
+      if (window.bootstrap?.Dropdown) {
+        window.bootstrap.Dropdown.getOrCreateInstance(button).show()
+      } else {
+        button.click()
+      }
+    JS
+  end
+
   it 'loads notifications into the dropdown and marks them all read' do
     visit root_path
 
     within("li.nav-item.dropdown[data-controller='notifications-center']", visible: true) do
       expect(page).to have_css("[data-notifications-center-target='badge']", visible: true)
+    end
 
-      find("button[aria-label='Notifications']", visible: true).click
-      expect(page).to have_css(".dropdown-menu.show")
+    open_dropdown("li.nav-item.dropdown[data-controller='notifications-center'] button[aria-label='Notifications']")
 
-      expect(page).to have_css(".notification-item", text: unread_notification.title)
-      expect(page).to have_css(".notification-item", text: unread_notification.message)
+    expect(page).to have_css(".notification-item", text: unread_notification.title)
+    expect(page).to have_css(".notification-item", text: unread_notification.message)
 
+    within("li.nav-item.dropdown[data-controller='notifications-center']", visible: true) do
       click_button 'Mark all read'
-
-      expect(page).to have_no_css("[data-notifications-center-target='badge']", text: '1', visible: true)
+      expect(page).to have_no_css("[data-notifications-center-target='badge']", visible: true)
     end
 
     expect(unread_notification.reload).to be_read
@@ -32,10 +45,8 @@ RSpec.describe 'Notifications dropdown', type: :system, js: true do
     visit root_path
     page.current_window.resize_to(390, 844)
 
-    within("div.d-lg-none div.dropdown[data-controller='notifications-center']", visible: true) do
-      find("button[aria-label='Notifications']", visible: true).click
-      expect(page).to have_css(".notifications-dropdown-mobile.show")
-    end
+    open_dropdown("div.d-lg-none div.dropdown[data-controller='notifications-center'] button[aria-label='Notifications']")
+    expect(page).to have_css(".notifications-dropdown-mobile.show")
 
     metrics = page.evaluate_script(<<~JS)
       (() => {

@@ -4,12 +4,12 @@ require 'rails/test_help'
 require_relative 'test_helpers/session_test_helper'
 
 HAEARN_PARALLEL_WORKERS = begin
-  configured = ENV["PARALLEL_WORKERS"]
+  configured = ENV['PARALLEL_WORKERS']
   adapter = ActiveRecord::Base.connection_db_config&.adapter
 
   if configured.present?
     configured.to_i
-  elsif adapter == "sqlite3"
+  elsif adapter == 'sqlite3'
     1
   else
     :number_of_processors

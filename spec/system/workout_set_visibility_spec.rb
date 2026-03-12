@@ -34,7 +34,7 @@ RSpec.describe 'Workout set visibility', type: :system, js: true do
 
     within("##{ActionView::RecordIdentifier.dom_id(workout_exercise)}") do
       expect(page).to have_css('form.edit-set-form')
-      expect(page).to have_no_button('Add Set')
+      expect(page).to have_css("[data-add-set-toggle-target='button'].d-none, [data-add-set-toggle-target='button'][hidden]", visible: :all)
     end
   end
 
@@ -43,6 +43,7 @@ RSpec.describe 'Workout set visibility', type: :system, js: true do
 
     within("##{ActionView::RecordIdentifier.dom_id(workout_exercise)}") do
       click_button 'Add Set'
+      expect(page).to have_css("[data-copy-last-payload-value]")
       click_button 'Last'
 
       expect(find("input[name='exercise_set[weight_value]']", visible: :all).value).to eq('47.5')

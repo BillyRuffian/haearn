@@ -29,8 +29,11 @@ RSpec.describe 'Workout set lifecycle', type: :system, js: true do
 
     within("##{ActionView::RecordIdentifier.dom_id(workout_exercise)}") do
       expect(page).to have_css(".set-row", count: 2)
-      expect(page).to have_text('42.5', count: 2)
-      expect(page).to have_text('9', count: 2)
+      reps = all(".set-row .reps-display").map(&:text)
+      weights = all(".set-row .weight-display").map { |node| node.text.squish }
+
+      expect(reps).to eq(%w[9 9])
+      expect(weights).to all(include("42.5"))
     end
 
     click_set_dropdown_action("turbo-frame##{ActionView::RecordIdentifier.dom_id(exercise_set)} .dropdown-menu a[href='#{edit_workout_workout_exercise_exercise_set_path(workout, workout_exercise, exercise_set)}']")

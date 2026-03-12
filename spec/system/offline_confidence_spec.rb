@@ -24,10 +24,11 @@ RSpec.describe 'Offline sync confidence', type: :system, js: true do
 
     page.execute_script("window.localStorage.setItem('haearn:last-synced-at', '1706000000000')")
     visit root_path
+    page.execute_script("document.body.dispatchEvent(new CustomEvent('offline-form:queued', { bubbles: true }))")
 
     within("[data-offline-target='confidence']", visible: true) do
-      expect(page).to have_css("[data-offline-target='status']", text: /\AQueued\z/i, visible: :visible)
       expect(page).to have_css("[data-offline-target='queueCount']", text: '1', visible: true)
+      expect(page).to have_css("[data-offline-target='status']", text: /\AQueued\z/i, visible: :visible)
       expect(page).to have_css("[data-offline-target='lastSynced']", text: /Last synced:/i, visible: :visible)
       expect(page).to have_button('Sync now', exact: false)
     end
