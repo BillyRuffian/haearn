@@ -6,7 +6,13 @@ module SystemDriverSupport
   module_function
 
   def js_system_supported?
-    browser_available? && socket_binding_available?
+    js_systems_enabled? && browser_available? && socket_binding_available?
+  end
+
+  def js_systems_enabled?
+    return true unless ENV["CI"] == "true" || ENV["GITHUB_ACTIONS"] == "true"
+
+    ENV["RUN_JS_SYSTEM_SPECS"] == "1"
   end
 
   def browser_available?
@@ -43,7 +49,7 @@ RSpec.configure do |config|
   end
 
   config.before(:each, type: :system, js: true) do
-    skip 'JS system specs are unavailable in this environment' unless SystemDriverSupport.js_system_supported?
+    skip 'JS system specs are disabled in this environment' unless SystemDriverSupport.js_system_supported?
     driven_by :selenium_chromium_headless
   end
 end

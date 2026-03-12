@@ -169,6 +169,7 @@ User
 25. **Regression Testing Direction**: For new regression coverage, prefer RSpec over Minitest. Keep high-risk UI behavior checks in focused request/helper specs (with fixture-backed deterministic setup), and extend this suite whenever regressions are fixed.
     For browser-backed Stimulus regressions, prefer a small Capybara system-spec layer only for the highest-risk interactive flows, and guard JS-only specs so restricted environments can skip cleanly when browser/socket support is unavailable.
     For browser-backed system specs, prefer isolated `users(:system)` fixture data plus committed session-cookie sign-in so Selenium sees deterministic records without leaking active-workout state into request/service specs.
+    In CI, only run JS system specs from an explicit browser-focused job (`RUN_JS_SYSTEM_SPECS=1`); keep the default test job on request/helper/model coverage so headless environment drift does not fail the main suite.
 
 26. **Core Safety Net Baseline**: Keep a small RSpec request-suite that always covers core user flows (auth gating, workout lifecycle, settings updates), push endpoints (subscription + rest-timer dedupe), and admin audit-log access/filtering to catch high-impact regressions early.
 

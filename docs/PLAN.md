@@ -24,6 +24,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Realign workout logging request/view contracts so completed workouts hide add-exercise entry points, active blocks render block-rest controls, rest-timer stage panels stay present, and completed workouts show grouped progression updates
 - [x] Repair shared fixture integrity for `users(:system)` / session-backed browser specs and restore a full green test baseline
 - [x] Make the Minitest harness honor `PARALLEL_WORKERS=1` and default SQLite test runs to single-process mode to avoid `database is locked` failures
+- [x] Gate JS system specs behind explicit CI opt-in (`RUN_JS_SYSTEM_SPECS=1`) so the default GitHub Actions test job stays deterministic while a dedicated browser job can still run them
 - [x] Normalize controller-driven exercise and equipment collections to alphabetical ordering via shared `ordered` scopes, including workout pickers and admin review flows
 - [x] Add a concise contributor-oriented `README.md` covering architecture, core flows, and local development conventions
 
