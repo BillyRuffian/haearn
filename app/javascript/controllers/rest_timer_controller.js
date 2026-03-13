@@ -19,7 +19,6 @@ export default class extends Controller {
     this.interval = null
     this.lastAlertAt = 0
     this.lastSetLoggedAt = 0
-    this.temporaryOverrideActive = false
 
     const savedDuration = this.savedPreferredDuration()
     if (savedDuration) {
@@ -40,9 +39,11 @@ export default class extends Controller {
     this.setLoggedHandler = this.setLogged.bind(this)
     window.addEventListener("set-logged", this.setLoggedHandler)
 
-    // Listen for block rest duration changes
-    this.durationChangedHandler = this.handleDurationChanged.bind(this)
-    this.element.addEventListener("rest-duration-changed", this.durationChangedHandler)
+    // Turbo swaps can replace the workout-page panel targets while this
+    // layout-mounted controller stays connected.
+    this.turboSyncHandler = () => this.schedulePanelSync()
+    document.addEventListener("turbo:load", this.turboSyncHandler)
+    document.addEventListener("turbo:render", this.turboSyncHandler)
 
     // Re-sync timer when page becomes visible (for backgrounded PWA)
     this.visibilityHandler = this.handleVisibilityChange.bind(this)
@@ -59,18 +60,31 @@ export default class extends Controller {
       clearInterval(this.interval)
       this.interval = null
     }
+    if (this.panelSyncFrame) {
+      cancelAnimationFrame(this.panelSyncFrame)
+      this.panelSyncFrame = null
+    }
+    if (this.panelSyncTimeout) {
+      clearTimeout(this.panelSyncTimeout)
+      this.panelSyncTimeout = null
+    }
+    if (this.panelSyncLateTimeout) {
+      clearTimeout(this.panelSyncLateTimeout)
+      this.panelSyncLateTimeout = null
+    }
     window.removeEventListener("set-logged", this.setLoggedHandler)
-    this.element.removeEventListener("rest-duration-changed", this.durationChangedHandler)
+    document.removeEventListener("turbo:load", this.turboSyncHandler)
+    document.removeEventListener("turbo:render", this.turboSyncHandler)
     document.removeEventListener("visibilitychange", this.visibilityHandler)
     window.removeEventListener("pointerdown", this.pointerUnlockHandler)
   }
 
   collapsedTargetConnected() {
-    this.syncPanelState()
+    this.schedulePanelSync()
   }
 
   containerTargetConnected() {
-    this.syncPanelState()
+    this.schedulePanelSync()
   }
 
   restoreTimerState() {
@@ -148,7 +162,6 @@ export default class extends Controller {
 
   skip() {
     this.stop()
-    this.resetTemporaryOverride()
     this.hideTimer()
   }
 
@@ -176,12 +189,9 @@ export default class extends Controller {
         setTimeout(() => {
           this.hideTimer()
           this.clearCompletionState()
-          this.resetTemporaryOverride()
           this.containerTarget.classList.remove("timer-complete", "timer-fade-out")
         }, 350)
       }, 5000)
-    } else {
-      this.resetTemporaryOverride()
     }
   }
 
@@ -244,20 +254,6 @@ export default class extends Controller {
 
   clearCompletionState() {
     this.updateDisplay()
-  }
-
-  restorePreferredDuration() {
-    const preferredDuration = this.savedPreferredDuration() || this.defaultDurationValue
-    this.totalDuration = preferredDuration
-    this.durationValue = preferredDuration
-    this.updateDisplay()
-  }
-
-  resetTemporaryOverride() {
-    if (!this.temporaryOverrideActive) return
-
-    this.temporaryOverrideActive = false
-    this.restorePreferredDuration()
   }
 
   handleVisibilityChange() {
@@ -331,6 +327,22 @@ export default class extends Controller {
     } else {
       this.hideTimer()
     }
+  }
+
+  schedulePanelSync() {
+    if (this.panelSyncFrame) {
+      cancelAnimationFrame(this.panelSyncFrame)
+    }
+    if (this.panelSyncTimeout) {
+      clearTimeout(this.panelSyncTimeout)
+    }
+    if (this.panelSyncLateTimeout) {
+      clearTimeout(this.panelSyncLateTimeout)
+    }
+
+    this.panelSyncFrame = requestAnimationFrame(() => this.syncPanelState())
+    this.panelSyncTimeout = setTimeout(() => this.syncPanelState(), 0)
+    this.panelSyncLateTimeout = setTimeout(() => this.syncPanelState(), 60)
   }
 
   savedPreferredDuration() {
@@ -473,20 +485,6 @@ export default class extends Controller {
     return Notification.permission
   }
 
-  // Handle block rest duration change from block-rest controller
-  // Updates the default display but does NOT save to localStorage
-  // (block-specific durations are per-block, not global defaults)
-  handleDurationChanged(event) {
-    const newDuration = event.detail?.seconds
-    if (newDuration && newDuration >= 15 && newDuration <= 600) {
-      this.totalDuration = newDuration
-      this.durationValue = newDuration
-      if (!this.isRunning) {
-        this.updateDisplay()
-      }
-    }
-  }
-
   // Stimulus callback when durationValue changes (e.g. via data attribute)
   durationValueChanged() {
     // Only update totalDuration if we're not currently running
@@ -497,20 +495,10 @@ export default class extends Controller {
     }
   }
 
-  // Called when a set is logged - auto-start the timer
-  // Uses the block-specific rest time if the set came from a block with custom rest
+  // Called when a set is logged - auto-start the timer from the user's timer default
   setLogged(event) {
     this.lastSetLoggedAt = Date.now()
-
-    // Check if the event carries a block-specific duration
-    const blockDuration = event?.detail?.restSeconds
-    if (blockDuration && blockDuration >= 15 && blockDuration <= 600) {
-      this.totalDuration = blockDuration
-      this.temporaryOverrideActive = true
-    } else {
-      this.temporaryOverrideActive = false
-      this.totalDuration = this.savedPreferredDuration() || this.defaultDurationValue
-    }
+    this.totalDuration = this.savedPreferredDuration() || this.defaultDurationValue
 
     // Stop any existing timer and start fresh
     this.stop()

@@ -190,7 +190,6 @@ Rails.application.routes.draw do
       post :copy
       patch :reorder_blocks
       get :share_text
-      patch :update_block_rest
     end
     resources :workout_exercises, only: [ :show, :edit, :update, :destroy ] do
       resources :exercise_sets, only: [ :create, :edit, :update, :destroy ] do

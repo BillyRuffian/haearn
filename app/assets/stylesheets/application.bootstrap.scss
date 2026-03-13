@@ -815,6 +815,10 @@ select option:checked {
 .workout-block {
   overflow: hidden;
 
+  &:has(.dropdown-menu.show) {
+    overflow: visible;
+  }
+
   .card-header {
     background: linear-gradient(135deg, $iron-medium 0%, $iron-dark 100%);
     border-bottom: 1px solid $iron-light;
@@ -875,60 +879,6 @@ select option:checked {
   flex-wrap: wrap;
 }
 
-.workout-block-rest {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.workout-block-rest-btn {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 999px;
-  border: 1px solid rgba($iron-light, 0.95);
-  background: rgba($iron-medium, 0.88);
-  color: rgba(235, 235, 235, 0.9);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
-
-  &:hover {
-    border-color: rgba($rust-light, 0.95);
-    background: rgba($rust, 0.18);
-    color: #fff;
-    transform: translateY(-1px);
-  }
-}
-
-.workout-block-rest-display {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.2rem 0.65rem;
-  border-radius: 999px;
-  border: 1px solid rgba($iron-light, 0.95);
-  background: rgba($iron-dark, 0.9);
-  color: rgba(248, 248, 248, 0.96);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.workout-block-rest-label {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 0.66rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(200, 200, 200, 0.62);
-}
-
 .workout-block-superset-btn {
   border-radius: 999px;
   min-height: 2rem;
@@ -943,17 +893,6 @@ select option:checked {
 @media (max-width: 576px) {
   .workout-block-header__actions {
     gap: 0.45rem;
-  }
-
-  .workout-block-rest-btn {
-    width: 1.85rem;
-    height: 1.85rem;
-    font-size: 0.68rem;
-  }
-
-  .workout-block-rest-display {
-    padding-inline: 0.55rem;
-    font-size: 0.76rem;
   }
 
   .workout-block-superset-btn {
@@ -1126,6 +1065,12 @@ body.add-set-form-open .workout-fab {
   transform: scale(0.9);
 }
 
+body.add-set-form-open .rest-timer-footer {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
+}
+
 // Rest Timer Footer Bar UI
 .rest-timer-footer {
   position: fixed;
@@ -1136,6 +1081,7 @@ body.add-set-form-open .workout-fab {
   background: linear-gradient(180deg, rgba(20, 20, 22, 0.98) 0%, rgba(10, 10, 12, 0.98) 100%);
   border-top: 1px solid rgba($rust, 0.3);
   backdrop-filter: blur(10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
 
   // On large screens, bottom nav is hidden so timer sits at bottom
   @media (min-width: 992px) {
@@ -2056,6 +2002,13 @@ body.add-set-form-open .workout-fab {
   border-top: 1px solid $iron-light;
   z-index: 1030;
   padding-bottom: env(safe-area-inset-bottom);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+body.add-set-form-open .bottom-nav {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(16px);
 }
 
 .bottom-nav-container {
@@ -2177,6 +2130,7 @@ body.add-set-form-open .workout-fab {
 
   // Ensure the container with an open dropdown renders above sibling elements
   &:has(.dropdown-menu.show) {
+    overflow: visible;
     z-index: 100;
   }
 }

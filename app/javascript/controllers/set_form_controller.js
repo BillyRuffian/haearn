@@ -16,16 +16,7 @@ export default class extends Controller {
 
   handleSubmitEnd(event) {
     if (event.detail.success) {
-      // Find the block's rest seconds from the nearest workout-block ancestor
-      const block = this.element.closest(".workout-block")
-      const blockRestController = block?.querySelector("[data-controller~='block-rest']")
-      const restSeconds = blockRestController ? parseInt(blockRestController.dataset.blockRestSecondsValue, 10) : null
-
-      // Dispatch custom event for rest timer with block-specific rest duration
-      window.dispatchEvent(new CustomEvent("set-logged", {
-        bubbles: true,
-        detail: { restSeconds }
-      }))
+      window.dispatchEvent(new CustomEvent("set-logged", { bubbles: true }))
     }
   }
 

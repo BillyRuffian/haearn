@@ -3,9 +3,18 @@ require 'rails_helper'
 RSpec.describe 'Rest timer panel', type: :system, js: true do
   let(:user) { users(:system) }
   let(:workout) { workouts(:active_logging) }
+  let(:workout_exercise) { workout_exercises(:active_logging) }
+  let(:exercise_set) { exercise_sets(:active_logging_first_set) }
 
   before do
     sign_in_via_ui(user)
+  end
+
+  def open_inline_edit(edit_path, frame_id)
+    page.execute_script(<<~JS, edit_path, frame_id)
+      if (!window.Turbo) throw new Error("Turbo is unavailable")
+      window.Turbo.visit(arguments[0], { frame: arguments[1] })
+    JS
   end
 
   it 'swaps between the start panel and countdown panel with the active sweep styling' do
@@ -69,18 +78,15 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
     end
   end
 
-  it 'uses a block-specific rest override for auto-started timers without making it the new global default' do
+  it 'uses the user default for auto-started timers after logging a set' do
     visit workout_path(workout)
 
     page.execute_script(<<~JS)
-      window.dispatchEvent(new CustomEvent("set-logged", {
-        bubbles: true,
-        detail: { restSeconds: 105 }
-      }))
+      window.dispatchEvent(new CustomEvent("set-logged", { bubbles: true }))
     JS
 
     within('.rest-timer-footer') do
-      expect(page).to have_css("[data-rest-timer-target='display']", text: '1:45', visible: true)
+      expect(page).to have_css("[data-rest-timer-target='display']", text: '1:30', visible: true)
       find('.rest-timer-skip-btn').click
       expect(page).to have_button('Start Rest Timer')
       click_button 'Start Rest Timer'
@@ -128,5 +134,58 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
     expect(completion_styles["progressOpacity"].to_f).to be < 0.1
     expect(completion_styles["progressAnimation"]).to include("restTimerCompleteSweep")
     expect(completion_styles["displayAnimation"]).to include("restTimerCompleteFlash")
+  end
+
+  it 'hides the timer footer, add-exercise button, and mobile toolbar while add or edit set forms are active' do
+    visit workout_path(workout)
+
+    within("##{ActionView::RecordIdentifier.dom_id(workout_exercise)}") do
+      click_button 'Add Set'
+      expect(page).to have_css('form.add-set-form')
+    end
+
+    expect(page).to have_no_css('.rest-timer-footer', visible: true)
+    expect(page).to have_no_css('.workout-fab', visible: true)
+    expect(page).to have_no_css('.bottom-nav', visible: true)
+
+    visit workout_path(workout)
+    open_inline_edit(
+      edit_workout_workout_exercise_exercise_set_path(workout, workout_exercise, exercise_set),
+      ActionView::RecordIdentifier.dom_id(exercise_set)
+    )
+
+    expect(page).to have_css('form.edit-set-form')
+    expect(page).to have_no_css('.rest-timer-footer', visible: true)
+    expect(page).to have_no_css('.workout-fab', visible: true)
+    expect(page).to have_no_css('.bottom-nav', visible: true)
+  end
+
+  it 'keeps only the running timer panel visible after navigating away and back' do
+    visit workout_path(workout)
+
+    within('.rest-timer-footer') do
+      click_button 'Start Rest Timer'
+      expect(page).to have_no_button('Start Rest Timer')
+      expect(page).to have_css("[data-rest-timer-target='display']", visible: true)
+    end
+
+    visit root_path
+    visit workout_path(workout)
+
+    within('.rest-timer-footer') do
+      expect(page).to have_no_button('Start Rest Timer')
+      expect(page).to have_css("[data-rest-timer-target='display']", text: /\A1:\d{2}\z/, visible: true)
+    end
+
+    visible_panel_count = page.evaluate_script(<<~JS)
+      (() => {
+        return Array.from(document.querySelectorAll(".rest-timer-panel")).filter((panel) => {
+          const style = window.getComputedStyle(panel)
+          return !panel.hidden && style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0"
+        }).length
+      })()
+    JS
+
+    expect(visible_panel_count).to eq(1)
   end
 end

@@ -206,7 +206,7 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(response.body).to include('edit-set-form')
   end
 
-  it 'renders block rest controls and persists block rest updates' do
+  it 'does not render block-specific rest controls in workout headers' do
     workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
     block = workout.workout_blocks.create!(position: 1, rest_seconds: 90)
     block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
@@ -214,13 +214,8 @@ RSpec.describe 'Workout UI regressions', type: :request do
     get workout_path(workout)
 
     expect(response).to have_http_status(:ok)
-    expect(response.body).to include('data-controller="block-rest"')
-    expect(response.body).to include(update_block_rest_workout_path(workout))
-
-    patch update_block_rest_workout_path(workout), params: { block_id: block.id, rest_seconds: 120 }, as: :json
-
-    expect(response).to have_http_status(:ok)
-    expect(block.reload.rest_seconds).to eq(120)
+    expect(response.body).not_to include('data-controller="block-rest"')
+    expect(response.body).not_to include('workout-block-rest')
   end
 
   it 'prefills add-set fields from prior context using ordered rules' do

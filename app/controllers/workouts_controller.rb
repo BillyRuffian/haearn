@@ -2,7 +2,7 @@
 # Supports workout blocks for organizing exercises and enabling supersets
 # Each workout has a start time, optional finish time, gym, and multiple workout blocks
 class WorkoutsController < ApplicationController
-  before_action :set_workout, only: %i[show edit update destroy finish continue_workout add_exercise reorder_blocks share_text update_block_rest]
+  before_action :set_workout, only: %i[show edit update destroy finish continue_workout add_exercise reorder_blocks share_text]
 
   # GET /workouts
   # Lists all workouts with optional filters (gym, date range)
@@ -236,19 +236,6 @@ class WorkoutsController < ApplicationController
     end
 
     head :ok
-  rescue ActiveRecord::RecordNotFound
-    head :not_found
-  rescue ActiveRecord::RecordInvalid
-    head :unprocessable_entity
-  end
-
-  def update_block_rest
-    block = @workout.workout_blocks.find(params[:block_id])
-    rest_seconds = params[:rest_seconds].to_i
-    return head :unprocessable_entity unless rest_seconds.between?(15, 600)
-
-    block.update!(rest_seconds: rest_seconds)
-    render json: { ok: true, rest_seconds: block.rest_seconds }
   rescue ActiveRecord::RecordNotFound
     head :not_found
   rescue ActiveRecord::RecordInvalid

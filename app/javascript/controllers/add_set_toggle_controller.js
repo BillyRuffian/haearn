@@ -28,7 +28,7 @@ export default class extends Controller {
   disconnect() {
     window.removeEventListener("set-logged", this.boundHide)
     this.observer?.disconnect()
-    this.setFabVisibility(false)
+    this.syncPageSetFormState()
   }
 
   show() {
@@ -66,14 +66,20 @@ export default class extends Controller {
     const editingActive = this.editingActive()
     this.formTarget.classList.toggle("d-none", !this.addFormOpen)
     this.buttonTarget.classList.toggle("d-none", this.addFormOpen || editingActive)
-    this.setFabVisibility(this.addFormOpen || editingActive)
+    this.syncPageSetFormState()
   }
 
   editingActive() {
     return this.element.querySelector("[data-add-set-toggle-target='editingForm']") !== null
   }
 
-  setFabVisibility(hidden) {
-    document.body.classList.toggle("add-set-form-open", hidden)
+  syncPageSetFormState() {
+    requestAnimationFrame(() => {
+      const hasActiveSetForm = document.querySelector(
+        ".workout-show-page [data-add-set-toggle-target='form']:not(.d-none), .workout-show-page form.edit-set-form"
+      ) !== null
+
+      document.body.classList.toggle("add-set-form-open", hasActiveSetForm)
+    })
   }
 }

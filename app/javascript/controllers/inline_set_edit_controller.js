@@ -4,10 +4,12 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   connect() {
     this.toggleExerciseCard(true)
+    this.syncGlobalFormState()
   }
 
   disconnect() {
     this.toggleExerciseCard(false)
+    this.syncGlobalFormState()
   }
 
   toggleExerciseCard(editingActive) {
@@ -21,5 +23,15 @@ export default class extends Controller {
 
     addSetButton.classList.toggle("d-none", editingActive)
     addSetButton.toggleAttribute("hidden", editingActive)
+  }
+
+  syncGlobalFormState() {
+    requestAnimationFrame(() => {
+      const hasActiveSetForm = document.querySelector(
+        ".workout-show-page [data-add-set-toggle-target='form']:not(.d-none), .workout-show-page form.edit-set-form"
+      ) !== null
+
+      document.body.classList.toggle("add-set-form-open", hasActiveSetForm)
+    })
   }
 }

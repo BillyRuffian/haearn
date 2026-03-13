@@ -87,7 +87,13 @@
               <li>
                 <%= link_to "Edit", edit_workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
                     class: "dropdown-item",
-                    data: { turbo_frame: dom_id(set) } %>
+                    data: {
+                      controller: "frame-visit",
+                      action: "click->frame-visit#visit",
+                      turbo_frame: dom_id(set),
+                      frame_visit_url_value: edit_workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
+                      frame_visit_frame_value: dom_id(set)
+                    } %>
               </li>
               <li>
                 <%= button_to "Duplicate", duplicate_workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
