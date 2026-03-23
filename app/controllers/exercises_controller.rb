@@ -145,11 +145,11 @@ class ExercisesController < ApplicationController
       .where(exercise_id: @exercise.id)
       .includes(:machine, :exercise_sets, workout_block: :workout)
       .joins(workout_block: :workout)
-      .order(Arel.sql('workouts.started_at DESC'))
+      .order(Arel.sql('workouts.finished_at DESC, workouts.started_at DESC'))
 
-    # Filter by specific machine if requested
+    # If a machine is supplied, use it as the initially selected history tab
+    # while still loading cross-machine history for this exercise.
     if params[:machine_id].present?
-      @workout_exercises = @workout_exercises.where(machine_id: params[:machine_id])
       @selected_machine = Machine.find_by(id: params[:machine_id])
     end
 

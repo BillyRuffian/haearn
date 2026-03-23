@@ -2387,6 +2387,29 @@ html.turbo-loading {
   }
 }
 
+// iPhone/PWA safe area for modal close controls.
+// Prevents modal headers and close buttons from colliding with the status/notch region.
+@media (display-mode: standalone) and (max-width: 991.98px) {
+  .modal.show .modal-dialog,
+  .modal.fade.show .modal-dialog {
+    margin-top: max(0.5rem, env(safe-area-inset-top));
+  }
+
+  .modal-header {
+    padding-top: calc(var(--bs-modal-header-padding-y) + env(safe-area-inset-top));
+  }
+
+  .modal-fullscreen-sm-down .modal-header,
+  .modal-fullscreen .modal-header {
+    padding-top: calc(var(--bs-modal-header-padding-y) + env(safe-area-inset-top));
+  }
+
+  .modal-header .btn-close {
+    margin-top: 0;
+    align-self: flex-start;
+  }
+}
+
 // Dropdown transitions
 .dropdown-menu {
   transition:

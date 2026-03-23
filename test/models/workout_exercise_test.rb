@@ -240,4 +240,40 @@ class WorkoutExerciseTest < ActiveSupport::TestCase
 
     assert_equal matching_we, current_we.previous_workout_exercise
   end
+
+  test 'previous_workout_exercise uses workout completion chronology rather than start time' do
+    user = users(:one)
+    gym = gyms(:one)
+    exercise = exercises(:one)
+    machine = machines(:one)
+
+    later_finished_workout = Workout.create!(
+      user: user,
+      gym: gym,
+      started_at: 3.days.ago,
+      finished_at: 1.day.ago
+    )
+    later_finished_block = later_finished_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    later_finished_we = later_finished_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+    later_started_workout = Workout.create!(
+      user: user,
+      gym: gym,
+      started_at: 2.days.ago,
+      finished_at: 2.days.ago + 45.minutes
+    )
+    later_started_block = later_started_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    later_started_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+    current_workout = Workout.create!(
+      user: user,
+      gym: gym,
+      started_at: Time.current,
+      finished_at: nil
+    )
+    current_block = current_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    current_we = current_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+    assert_equal later_finished_we, current_we.previous_workout_exercise
+  end
 end

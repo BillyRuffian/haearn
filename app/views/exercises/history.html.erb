@@ -30,17 +30,7 @@
     </div>
   </div>
 
-  <% if @selected_machine %>
-    <div class="alert alert-info mb-4 d-flex justify-content-between align-items-center">
-      <div>
-        <i class="bi bi-funnel me-2"></i>
-        <strong>Filtered by machine:</strong> <%= @selected_machine.name %>
-      </div>
-      <%= link_to history_exercise_path(@exercise), class: "btn btn-sm btn-outline-primary" do %>
-        <i class="bi bi-x-circle me-1"></i>Show All
-      <% end %>
-    </div>
-  <% end %>
+  <% active_machine_tab = @selected_machine if @selected_machine && @by_machine&.key?(@selected_machine) %>
 
   <% if @workout_exercises.any? %>
     <% unique_workout_count = @workout_exercises.map { |we| we.workout_block.workout_id }.uniq.count %>
@@ -266,13 +256,13 @@
     <% if @by_machine.keys.compact.any? %>
       <ul class="nav nav-tabs mb-3" role="tablist">
         <li class="nav-item" role="presentation">
-          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#all-machines" type="button">
+          <button class="nav-link <%= 'active' unless active_machine_tab %>" data-bs-toggle="tab" data-bs-target="#all-machines" type="button">
             All (<%= @workout_exercises.count %>)
           </button>
         </li>
         <% @by_machine.keys.compact.each_with_index do |machine, idx| %>
           <li class="nav-item" role="presentation">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#machine-<%= machine.id %>" type="button">
+            <button class="nav-link <%= 'active' if active_machine_tab == machine %>" data-bs-toggle="tab" data-bs-target="#machine-<%= machine.id %>" type="button">
               <%= machine.name %> (<%= @by_machine[machine].count %>)
             </button>
           </li>
@@ -287,12 +277,12 @@
       </ul>
 
       <div class="tab-content">
-        <div class="tab-pane fade show active" id="all-machines" role="tabpanel">
+        <div class="tab-pane fade <%= 'show active' unless active_machine_tab %>" id="all-machines" role="tabpanel">
           <%= render partial: "history_sessions", locals: { workout_exercises: @workout_exercises, prs: @prs, show_prs: unique_workout_count >= 2 } %>
         </div>
         <% @by_machine.keys.compact.each do |machine| %>
           <% machine_workout_count = @by_machine[machine].map { |we| we.workout_block.workout_id }.uniq.count %>
-          <div class="tab-pane fade" id="machine-<%= machine.id %>" role="tabpanel">
+          <div class="tab-pane fade <%= 'show active' if active_machine_tab == machine %>" id="machine-<%= machine.id %>" role="tabpanel">
             <%= render partial: "history_sessions", locals: { workout_exercises: @by_machine[machine], prs: @prs_by_machine[machine], show_prs: machine_workout_count >= 2 } %>
           </div>
         <% end %>

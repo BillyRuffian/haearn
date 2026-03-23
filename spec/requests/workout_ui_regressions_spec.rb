@@ -443,6 +443,121 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(payload["reps"]).to eq(10)
   end
 
+  it 'preserves completion chronology in the exercise history view' do
+    machine = gym.machines.create!(
+      name: 'History Chronology Machine',
+      equipment_type: 'machine',
+      display_unit: 'kg'
+    )
+    exercise = user.exercises.create!(
+      name: 'History Chronology Exercise',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'chest'
+    )
+
+    later_finished_workout = user.workouts.create!(
+      gym: gym,
+      started_at: 3.days.ago,
+      finished_at: 1.day.ago
+    )
+    later_finished_block = later_finished_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    later_finished_we = later_finished_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    later_finished_first = later_finished_we.exercise_sets.create!(
+      position: 1,
+      reps: 12,
+      weight_kg: 40,
+      is_warmup: false,
+      completed_at: 1.day.ago - 15.minutes
+    )
+    later_finished_second = later_finished_we.exercise_sets.create!(
+      position: 2,
+      reps: 8,
+      weight_kg: 47.5,
+      is_warmup: false,
+      completed_at: 1.day.ago - 5.minutes
+    )
+    later_finished_first.update_columns(created_at: Time.current)
+    later_finished_second.update_columns(created_at: 4.days.ago)
+
+    later_started_workout = user.workouts.create!(
+      gym: gym,
+      started_at: 2.days.ago,
+      finished_at: 2.days.ago + 45.minutes
+    )
+    later_started_block = later_started_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    later_started_we = later_started_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    later_started_we.exercise_sets.create!(
+      position: 1,
+      reps: 6,
+      weight_kg: 60,
+      is_warmup: false,
+      completed_at: 2.days.ago + 20.minutes
+    )
+
+    get history_exercise_path(exercise, machine_id: machine.id)
+
+    expect(response).to have_http_status(:ok)
+
+    body = response.body
+    later_finished_index = body.index('40kg × 12')
+    later_finished_second_index = body.index('47.5kg × 8')
+    later_started_index = body.index('60kg × 6')
+
+    expect(later_finished_index).to be < later_started_index
+    expect(later_finished_second_index).to be < later_started_index
+    expect(later_finished_index).to be < later_finished_second_index
+  end
+
+  it 'uses machine_id as the active history tab without hiding other machine tabs' do
+    current_machine = gym.machines.create!(
+      name: 'Current History Machine',
+      equipment_type: 'machine',
+      display_unit: 'kg'
+    )
+    other_machine = gym.machines.create!(
+      name: 'Other History Machine',
+      equipment_type: 'machine',
+      display_unit: 'kg'
+    )
+    exercise = user.exercises.create!(
+      name: 'Tabbed History Exercise',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'chest'
+    )
+
+    current_workout = user.workouts.create!(gym: gym, started_at: 2.days.ago, finished_at: 2.days.ago + 45.minutes)
+    current_block = current_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    current_block.workout_exercises.create!(exercise: exercise, machine: current_machine, position: 1).exercise_sets.create!(
+      position: 1,
+      reps: 8,
+      weight_kg: 50,
+      is_warmup: false,
+      completed_at: 2.days.ago + 10.minutes
+    )
+
+    other_workout = user.workouts.create!(gym: gym, started_at: 1.day.ago, finished_at: 1.day.ago + 45.minutes)
+    other_block = other_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    other_block.workout_exercises.create!(exercise: exercise, machine: other_machine, position: 1).exercise_sets.create!(
+      position: 1,
+      reps: 10,
+      weight_kg: 42.5,
+      is_warmup: false,
+      completed_at: 1.day.ago + 10.minutes
+    )
+
+    get history_exercise_path(exercise, machine_id: current_machine.id)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("Current History Machine (1)")
+    expect(response.body).to include("Other History Machine (1)")
+    expect(response.body).to include(%(nav-link active" data-bs-toggle="tab" data-bs-target="#machine-#{current_machine.id}"))
+    expect(response.body).to include(%(tab-pane fade show active" id="machine-#{current_machine.id}"))
+    expect(response.body).to include('42.5kg × 10')
+    expect(response.body).to include('50kg × 8')
+  end
+
   it 'shows progression updates only after workout completion' do
     allow_any_instance_of(ProgressionSuggester).to receive(:suggest).and_return(
       {

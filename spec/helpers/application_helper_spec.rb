@@ -118,6 +118,55 @@ RSpec.describe ApplicationHelper, type: :helper do
       expect(second_payload["reps"]).to eq(8)
     end
 
+    it 'uses the most recently finished matching session rather than the most recently started one' do
+      user = users(:one)
+      gym = gyms(:one)
+      machine = gym.machines.create!(name: 'Chronology Helper Machine', equipment_type: 'machine', display_unit: 'kg')
+      exercise = user.exercises.create!(
+        name: 'Chronology Helper Exercise',
+        exercise_type: 'reps',
+        has_weight: true,
+        primary_muscle_group: 'chest'
+      )
+
+      longer_session = user.workouts.create!(
+        gym: gym,
+        started_at: 3.days.ago,
+        finished_at: 1.day.ago
+      )
+      longer_block = longer_session.workout_blocks.create!(position: 1, rest_seconds: 90)
+      longer_we = longer_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+      longer_we.exercise_sets.create!(
+        position: 1,
+        weight_kg: 52.5,
+        reps: 7,
+        completed_at: 1.day.ago - 10.minutes
+      )
+
+      later_started_session = user.workouts.create!(
+        gym: gym,
+        started_at: 2.days.ago,
+        finished_at: 2.days.ago + 45.minutes
+      )
+      later_started_block = later_started_session.workout_blocks.create!(position: 1, rest_seconds: 90)
+      later_started_we = later_started_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+      later_started_we.exercise_sets.create!(
+        position: 1,
+        weight_kg: 47.5,
+        reps: 10,
+        completed_at: 2.days.ago + 20.minutes
+      )
+
+      current_workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+      current_block = current_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+      current_we = current_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+      payload = helper.previous_session_set_data(current_we, 1)
+
+      expect(payload["weight_value"]).to eq("52.5")
+      expect(payload["reps"]).to eq(7)
+    end
+
     it 'ignores prior sessions for the same exercise on different equipment' do
       user = users(:one)
       gym = gyms(:one)
