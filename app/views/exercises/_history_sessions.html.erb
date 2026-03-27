@@ -1,5 +1,15 @@
+<% ordered_workout_exercises = Array(workout_exercises).sort_by do |we|
+     workout = we.workout_block.workout
+     [
+       workout.started_at || Time.at(0),
+       workout.finished_at || Time.at(0),
+       we.workout_block.position || 0,
+       we.position || 0
+     ]
+   end.reverse %>
+
 <div class="list-group">
-  <% workout_exercises.each do |we| %>
+  <% ordered_workout_exercises.each do |we| %>
     <% workout = we.workout_block.workout %>
     <% work_sets = we.exercise_sets.reject(&:is_warmup).sort_by { |set| [set.completed_at || set.created_at, set.position || 0, set.created_at] } %>
     <% session_volume = work_sets.sum { |s| (s.weight_kg || 0) * (s.reps || 0) } %>
