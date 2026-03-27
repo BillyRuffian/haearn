@@ -443,6 +443,52 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(payload["reps"]).to eq(10)
   end
 
+  it 'prefers earlier matching sets from the current workout over an older finished session' do
+    machine = gym.machines.create!(
+      name: 'Current Workout Last Machine',
+      equipment_type: 'machine',
+      display_unit: 'kg'
+    )
+    exercise = user.exercises.create!(
+      name: 'Current Workout Last Exercise',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'glutes'
+    )
+
+    previous_workout = user.workouts.create!(gym: gym, started_at: 4.days.ago, finished_at: 4.days.ago + 45.minutes)
+    previous_block = previous_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    previous_we = previous_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    previous_we.exercise_sets.create!(position: 1, reps: 15, weight_kg: 60, is_warmup: false, completed_at: 4.days.ago + 10.minutes)
+    previous_we.exercise_sets.create!(position: 2, reps: 12, weight_kg: 60, is_warmup: false, completed_at: 4.days.ago + 20.minutes)
+
+    workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+    first_block = workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    first_we = first_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    first_we.exercise_sets.create!(position: 1, reps: 15, weight_kg: 80, is_warmup: false, completed_at: Time.current - 20.minutes)
+    first_we.exercise_sets.create!(position: 2, reps: 15, weight_kg: 80, is_warmup: false, completed_at: Time.current - 10.minutes)
+    first_we.exercise_sets.create!(position: 3, reps: 15, weight_kg: 80, is_warmup: false, completed_at: Time.current - 5.minutes)
+
+    current_block = workout.workout_blocks.create!(position: 2, rest_seconds: 90)
+    current_we = current_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+    get workout_path(workout)
+
+    expect(response).to have_http_status(:ok)
+    doc = Nokogiri::HTML.parse(response.body)
+    current_card = doc.at_css("##{ActionView::RecordIdentifier.dom_id(current_we)}")
+    expect(current_card).to be_present
+    expect(current_card.text).to include('80kg × 15')
+    expect(current_card.text).not_to include('60kg × 12')
+
+    payload_node = doc.at_css("#new_set_#{current_we.id} [data-copy-last-payload-value]")
+    expect(payload_node).to be_present
+
+    payload = JSON.parse(payload_node["data-copy-last-payload-value"])
+    expect(payload["weight_value"]).to eq("80")
+    expect(payload["reps"]).to eq(15)
+  end
+
   it 'preserves completion chronology in the exercise history view' do
     machine = gym.machines.create!(
       name: 'History Chronology Machine',

@@ -156,6 +156,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Order previous matching exercise+machine session selection by workout completion chronology (`finished_at`) rather than workout start time
 - [x] Keep exercise history views ordered by workout completion chronology and per-session set completion chronology, not raw `started_at` / `created_at`
 - [x] Treat `machine_id` on exercise history as the initially active tab, while still rendering tabs and session details for other machines used on that exercise
+- [x] Prefer an earlier matching exercise+machine already logged in the current workout over an older finished session when rendering `Last` data and seeding new-set defaults
 
 ### 3.5 Rest Timer (Stimulus)
 - [x] `rest_timer_controller.js`

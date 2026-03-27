@@ -178,6 +178,7 @@ User
 27. **Progression Messaging Timing**: Do not show progression prompts during active set entry. Aggregate and show progression updates together on completed workout pages so logging flow stays uncluttered.
 
 28. **Set Form Prefill Rules**: New set forms should prefill by strict order: (a) if current workout has prior sets for the exercise+machine, copy the immediately previous set; (b) otherwise copy set 1 from the previous finished session for that exact exercise+machine; (c) if no history exists, leave fields blank/default.
+    If the same exercise+machine already appears earlier elsewhere in the current workout, treat that earlier matching workout-exercise as the current-workout history source before falling back to a previous finished session.
     The visible "Last" workout summary, exercise history view, and any "last weight/reps" helper logic must use the most recent completed matching exercise+machine session and completion/position ordering within that session, not raw `started_at` / `created_at`. In exercise history, `machine_id` should choose the initially active tab when present, but should not hide other machine tabs or cross-machine history.
     The workout "Last" button should mirror the previous-session set payload too, including warmup/AMRAP and other extended set flags, not just weight/reps.
     Keep add-set and edit-set UIs built from shared exercise-set field partials so advanced set inputs stay aligned across both flows.

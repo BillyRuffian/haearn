@@ -237,5 +237,54 @@ RSpec.describe ApplicationHelper, type: :helper do
       expect(helper.last_weight_for(current_we)).to eq('47.5')
       expect(helper.last_reps_for(current_we)).to eq(10)
     end
+
+    it 'prefers the most recent matching exercise already logged in the current workout' do
+      user = users(:one)
+      gym = gyms(:one)
+      machine = gym.machines.create!(name: 'Current Workout Helper Machine', equipment_type: 'machine', display_unit: 'kg')
+      exercise = user.exercises.create!(
+        name: 'Current Workout Helper Exercise',
+        exercise_type: 'reps',
+        has_weight: true,
+        primary_muscle_group: 'glutes'
+      )
+
+      previous_workout = user.workouts.create!(gym: gym, started_at: 4.days.ago, finished_at: 4.days.ago + 30.minutes)
+      previous_block = previous_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+      previous_we = previous_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+      previous_we.exercise_sets.create!(
+        position: 1,
+        weight_kg: 60,
+        reps: 15,
+        completed_at: 4.days.ago + 5.minutes
+      )
+
+      current_workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+      first_block = current_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+      first_we = first_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+      first_we.exercise_sets.create!(
+        position: 1,
+        weight_kg: 80,
+        reps: 15,
+        completed_at: Time.current - 10.minutes
+      )
+      first_we.exercise_sets.create!(
+        position: 2,
+        weight_kg: 80,
+        reps: 12,
+        completed_at: Time.current - 5.minutes
+      )
+
+      current_block = current_workout.workout_blocks.create!(position: 2, rest_seconds: 90)
+      current_we = current_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+      payload = helper.previous_session_set_data(current_we, 1)
+
+      expect(payload["weight_value"]).to eq("80")
+      expect(payload["reps"]).to eq(15)
+      expect(helper.last_weight_for(current_we)).to eq("80")
+      expect(helper.last_reps_for(current_we)).to eq(12)
+      expect(helper.previous_session_sets_for(current_we).map(&:reps)).to eq([15, 12])
+    end
   end
 end
