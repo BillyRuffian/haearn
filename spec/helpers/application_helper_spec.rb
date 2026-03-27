@@ -284,7 +284,7 @@ RSpec.describe ApplicationHelper, type: :helper do
       expect(payload["reps"]).to eq(15)
       expect(helper.last_weight_for(current_we)).to eq("80")
       expect(helper.last_reps_for(current_we)).to eq(12)
-      expect(helper.previous_session_sets_for(current_we).map(&:reps)).to eq([15, 12])
+      expect(helper.previous_session_sets_for(current_we).map(&:reps)).to eq([ 15, 12 ])
     end
   end
 end
