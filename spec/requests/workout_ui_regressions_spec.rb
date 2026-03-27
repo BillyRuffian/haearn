@@ -489,7 +489,7 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(payload["reps"]).to eq(15)
   end
 
-  it 'preserves completion chronology in the exercise history view' do
+  it 'preserves visible workout-date chronology in the exercise history view' do
     machine = gym.machines.create!(
       name: 'History Chronology Machine',
       equipment_type: 'machine',
@@ -502,43 +502,73 @@ RSpec.describe 'Workout UI regressions', type: :request do
       primary_muscle_group: 'chest'
     )
 
-    later_finished_workout = user.workouts.create!(
+    march_thirteenth_workout = user.workouts.create!(
       gym: gym,
-      started_at: 3.days.ago,
-      finished_at: 1.day.ago
+      started_at: Time.zone.local(2026, 3, 13, 12, 0, 0),
+      finished_at: nil
     )
-    later_finished_block = later_finished_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
-    later_finished_we = later_finished_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
-    later_finished_first = later_finished_we.exercise_sets.create!(
+    march_thirteenth_block = march_thirteenth_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    march_thirteenth_we = march_thirteenth_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    march_thirteenth_first = march_thirteenth_we.exercise_sets.create!(
       position: 1,
       reps: 12,
       weight_kg: 40,
       is_warmup: false,
-      completed_at: 1.day.ago - 15.minutes
+      completed_at: Time.zone.local(2026, 3, 13, 12, 15, 0)
     )
-    later_finished_second = later_finished_we.exercise_sets.create!(
+    march_thirteenth_second = march_thirteenth_we.exercise_sets.create!(
       position: 2,
       reps: 8,
       weight_kg: 47.5,
       is_warmup: false,
-      completed_at: 1.day.ago - 5.minutes
+      completed_at: Time.zone.local(2026, 3, 13, 12, 25, 0)
     )
-    later_finished_first.update_columns(created_at: Time.current)
-    later_finished_second.update_columns(created_at: 4.days.ago)
+    march_thirteenth_first.update_columns(created_at: Time.current)
+    march_thirteenth_second.update_columns(created_at: 4.days.ago)
 
-    later_started_workout = user.workouts.create!(
+    march_sixth_workout = user.workouts.create!(
       gym: gym,
-      started_at: 2.days.ago,
-      finished_at: 2.days.ago + 45.minutes
+      started_at: Time.zone.local(2026, 3, 6, 12, 0, 0),
+      finished_at: nil
     )
-    later_started_block = later_started_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
-    later_started_we = later_started_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
-    later_started_we.exercise_sets.create!(
+    march_sixth_block = march_sixth_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    march_sixth_we = march_sixth_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    march_sixth_we.exercise_sets.create!(
       position: 1,
       reps: 6,
       weight_kg: 60,
       is_warmup: false,
-      completed_at: 2.days.ago + 20.minutes
+      completed_at: Time.zone.local(2026, 3, 6, 12, 20, 0)
+    )
+
+    february_eleventh_workout = user.workouts.create!(
+      gym: gym,
+      started_at: Time.zone.local(2026, 2, 11, 12, 0, 0),
+      finished_at: Time.zone.local(2026, 2, 11, 13, 0, 0)
+    )
+    february_eleventh_block = february_eleventh_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    february_eleventh_we = february_eleventh_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    february_eleventh_we.exercise_sets.create!(
+      position: 1,
+      reps: 15,
+      weight_kg: 60,
+      is_warmup: false,
+      completed_at: Time.zone.local(2026, 2, 11, 12, 15, 0)
+    )
+
+    february_third_workout = user.workouts.create!(
+      gym: gym,
+      started_at: Time.zone.local(2026, 2, 3, 12, 0, 0),
+      finished_at: Time.zone.local(2026, 2, 3, 13, 0, 0)
+    )
+    february_third_block = february_third_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    february_third_we = february_third_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    february_third_we.exercise_sets.create!(
+      position: 1,
+      reps: 15,
+      weight_kg: 50,
+      is_warmup: false,
+      completed_at: Time.zone.local(2026, 2, 3, 12, 15, 0)
     )
 
     get history_exercise_path(exercise, machine_id: machine.id)
@@ -546,13 +576,16 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(response).to have_http_status(:ok)
 
     body = response.body
-    later_finished_index = body.index('40kg × 12')
-    later_finished_second_index = body.index('47.5kg × 8')
-    later_started_index = body.index('60kg × 6')
+    march_thirteenth_index = body.index('Friday, March 13, 2026')
+    march_sixth_index = body.index('Friday, March 6, 2026')
+    february_eleventh_index = body.index('Wednesday, February 11, 2026')
+    february_third_index = body.index('Tuesday, February 3, 2026')
+    march_thirteenth_second_index = body.index('47.5kg × 8')
 
-    expect(later_finished_index).to be < later_started_index
-    expect(later_finished_second_index).to be < later_started_index
-    expect(later_finished_index).to be < later_finished_second_index
+    expect(march_thirteenth_index).to be < march_sixth_index
+    expect(march_sixth_index).to be < february_eleventh_index
+    expect(february_eleventh_index).to be < february_third_index
+    expect(march_thirteenth_index).to be < march_thirteenth_second_index
   end
 
   it 'uses machine_id as the active history tab without hiding other machine tabs' do

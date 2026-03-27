@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: March 23, 2026
+> Last Updated: March 27, 2026
 
 ## Overview
 
@@ -154,7 +154,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Keep "Last" workout references pinned to the most recent completed matching exercise+machine session, using session/set completion order rather than `created_at`
 - [x] Expand regression coverage around "Last" history behavior to include session-order vs `created_at` drift and exact machine scoping across helper, request, and model layers
 - [x] Order previous matching exercise+machine session selection by workout completion chronology (`finished_at`) rather than workout start time
-- [x] Keep exercise history views ordered by workout completion chronology and per-session set completion chronology, not raw `started_at` / `created_at`
+- [x] Keep exercise history views ordered by the visible workout date (`started_at`) and per-session set completion chronology, not raw `created_at`
 - [x] Treat `machine_id` on exercise history as the initially active tab, while still rendering tabs and session details for other machines used on that exercise
 - [x] Prefer an earlier matching exercise+machine already logged in the current workout over an older finished session when rendering `Last` data and seeding new-set defaults
 

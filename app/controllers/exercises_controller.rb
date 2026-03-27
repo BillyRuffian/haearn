@@ -145,7 +145,7 @@ class ExercisesController < ApplicationController
       .where(exercise_id: @exercise.id)
       .includes(:machine, :exercise_sets, workout_block: :workout)
       .joins(workout_block: :workout)
-      .order(Arel.sql('workouts.finished_at DESC, workouts.started_at DESC'))
+      .order(Arel.sql('workouts.started_at DESC, workouts.finished_at DESC'))
 
     # If a machine is supplied, use it as the initially selected history tab
     # while still loading cross-machine history for this exercise.
