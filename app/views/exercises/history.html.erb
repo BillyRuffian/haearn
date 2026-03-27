@@ -252,8 +252,10 @@
       </div>
     </div>
 
-    <!-- Group by Equipment if multiple equipment used -->
-    <% if @by_machine.keys.compact.any? %>
+    <% history_bucket_count = @by_machine.keys.compact.count + (@by_machine[nil]&.any? ? 1 : 0) %>
+
+    <!-- Group by Equipment only when multiple distinct history buckets exist -->
+    <% if history_bucket_count > 1 %>
       <ul class="nav nav-tabs mb-3" role="tablist">
         <li class="nav-item" role="presentation">
           <button class="nav-link <%= 'active' unless active_machine_tab %>" data-bs-toggle="tab" data-bs-target="#all-machines" type="button">

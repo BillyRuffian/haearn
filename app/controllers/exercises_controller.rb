@@ -141,11 +141,14 @@ class ExercisesController < ApplicationController
   # Displays PRs overall and per-machine, with detailed graphs
   def history
     # Load all instances of this exercise across all user's workouts
-    @workout_exercises = Current.user.workout_exercises
+    history_workout_exercises = Current.user.workout_exercises
       .where(exercise_id: @exercise.id)
       .includes(:machine, :exercise_sets, workout_block: :workout)
       .joins(workout_block: :workout)
       .order(Arel.sql('workouts.started_at DESC, workouts.finished_at DESC'))
+      .to_a
+
+    @workout_exercises = sort_history_workout_exercises(history_workout_exercises)
 
     # If a machine is supplied, use it as the initially selected history tab
     # while still loading cross-machine history for this exercise.
@@ -170,7 +173,9 @@ class ExercisesController < ApplicationController
     end
 
     # Group by machine if applicable
-    @by_machine = @workout_exercises.group_by(&:machine)
+    @by_machine = @workout_exercises
+      .group_by(&:machine)
+      .transform_values { |workout_exercises| sort_history_workout_exercises(workout_exercises) }
 
     # Calculate PRs per machine for accurate PR badges in each tab
     @prs_by_machine = {}
@@ -277,5 +282,18 @@ class ExercisesController < ApplicationController
 
   def exercise_params
     params.require(:exercise).permit(:name, :exercise_type, :has_weight, :description, :primary_muscle_group, :form_cues)
+  end
+
+  def sort_history_workout_exercises(workout_exercises)
+    Array(workout_exercises).sort_by do |workout_exercise|
+      workout = workout_exercise.workout_block.workout
+
+      [
+        workout.started_at || Time.at(0),
+        workout.finished_at || Time.at(0),
+        workout_exercise.workout_block.position || 0,
+        workout_exercise.position || 0
+      ]
+    end.reverse
   end
 end

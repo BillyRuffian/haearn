@@ -489,7 +489,7 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(payload["reps"]).to eq(15)
   end
 
-  it 'preserves visible workout-date chronology in the exercise history view' do
+  it 'preserves visible workout-date chronology in the exercise history list' do
     machine = gym.machines.create!(
       name: 'History Chronology Machine',
       equipment_type: 'machine',
@@ -575,17 +575,56 @@ RSpec.describe 'Workout UI regressions', type: :request do
 
     expect(response).to have_http_status(:ok)
 
-    body = response.body
-    march_thirteenth_index = body.index('Friday, March 13, 2026')
-    march_sixth_index = body.index('Friday, March 6, 2026')
-    february_eleventh_index = body.index('Wednesday, February 11, 2026')
-    february_third_index = body.index('Tuesday, February 3, 2026')
-    march_thirteenth_second_index = body.index('47.5kg × 8')
+    doc = Nokogiri::HTML.parse(response.body)
+    history_root = doc.at_css("#machine-#{machine.id}.tab-pane.show.active") || doc
+    visible_dates = history_root.css('.history-session h6').map do |heading|
+      heading.text.gsub(/\s+PR\b/, '').squish
+    end
 
-    expect(march_thirteenth_index).to be < march_sixth_index
-    expect(march_sixth_index).to be < february_eleventh_index
-    expect(february_eleventh_index).to be < february_third_index
-    expect(march_thirteenth_index).to be < march_thirteenth_second_index
+    expect(visible_dates.first(4)).to eq(
+      [
+        'Friday, March 13, 2026',
+        'Friday, March 6, 2026',
+        'Wednesday, February 11, 2026',
+        'Tuesday, February 3, 2026'
+      ]
+    )
+  end
+
+  it 'does not render redundant All and machine tabs when only one machine history bucket exists' do
+    machine = gym.machines.create!(
+      name: 'Single Bucket Machine',
+      equipment_type: 'machine',
+      display_unit: 'kg'
+    )
+    exercise = user.exercises.create!(
+      name: 'Single Bucket Exercise',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'glutes'
+    )
+
+    workout = user.workouts.create!(
+      gym: gym,
+      started_at: Time.zone.local(2026, 3, 13, 12, 0, 0),
+      finished_at: Time.zone.local(2026, 3, 13, 13, 0, 0)
+    )
+    block = workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    workout_exercise = block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    workout_exercise.exercise_sets.create!(
+      position: 1,
+      reps: 12,
+      weight_kg: 80,
+      is_warmup: false,
+      completed_at: Time.zone.local(2026, 3, 13, 12, 15, 0)
+    )
+
+    get history_exercise_path(exercise, machine_id: machine.id)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).not_to include('data-bs-target="#all-machines"')
+    expect(response.body).not_to include("data-bs-target=\"#machine-#{machine.id}\"")
+    expect(response.body.scan('Friday, March 13, 2026').length).to eq(1)
   end
 
   it 'uses machine_id as the active history tab without hiding other machine tabs' do
