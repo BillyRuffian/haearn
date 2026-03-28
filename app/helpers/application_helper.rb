@@ -297,18 +297,27 @@ module ApplicationHelper
   end
 
   def latest_matching_exercise_in_current_workout(workout_exercise)
+    current_workout_position = [
+      workout_exercise.workout_block.position || 0,
+      workout_exercise.position || 0
+    ]
+
     matching_exercises = workout_exercise.workout.workout_exercises
       .includes(:exercise_sets, :workout_block)
       .where(exercise_id: workout_exercise.exercise_id, machine_id: workout_exercise.machine_id)
       .where.not(id: workout_exercise.id)
-      .select { |we| we.exercise_sets.exists? }
+      .select do |we|
+        exercise_position = [ we.workout_block.position || 0, we.position || 0 ]
+
+        (exercise_position <=> current_workout_position) == -1 && we.exercise_sets.exists?
+      end
 
     matching_exercises.max_by do |we|
       latest_set = most_recent_logged_set(we.exercise_sets)
       [
-        latest_set&.completed_at || latest_set&.created_at || Time.at(0),
         we.workout_block.position,
-        we.position
+        we.position,
+        latest_set&.completed_at || latest_set&.created_at || Time.at(0)
       ]
     end
   end
@@ -318,7 +327,7 @@ module ApplicationHelper
   end
 
   def ordered_session_sets(exercise_sets)
-    exercise_sets.reorder(:position, Arel.sql('COALESCE(completed_at, created_at) ASC'), :created_at)
+    exercise_sets.reorder(Arel.sql('COALESCE(completed_at, created_at) ASC'), :position, :created_at)
   end
 
   def most_recent_logged_set(exercise_sets)

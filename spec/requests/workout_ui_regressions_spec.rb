@@ -489,6 +489,61 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(payload["reps"]).to eq(15)
   end
 
+  it 'uses the nearest earlier matching exercise in the current workout instead of a later matching block' do
+    machine = gym.machines.create!(
+      name: 'Equivalent Set UI Machine',
+      equipment_type: 'machine',
+      display_unit: 'kg'
+    )
+    exercise = user.exercises.create!(
+      name: 'Equivalent Set UI Exercise',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'glutes'
+    )
+
+    workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+
+    earlier_block = workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    earlier_we = earlier_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    earlier_we.exercise_sets.create!(
+      position: 1,
+      reps: 15,
+      weight_kg: 80,
+      is_warmup: false,
+      completed_at: Time.current - 20.minutes
+    )
+
+    current_block = workout.workout_blocks.create!(position: 2, rest_seconds: 90)
+    current_we = current_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+    later_block = workout.workout_blocks.create!(position: 3, rest_seconds: 90)
+    later_we = later_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    later_we.exercise_sets.create!(
+      position: 1,
+      reps: 10,
+      weight_kg: 60,
+      is_warmup: false,
+      completed_at: Time.current - 5.minutes
+    )
+
+    get workout_path(workout)
+
+    expect(response).to have_http_status(:ok)
+    doc = Nokogiri::HTML.parse(response.body)
+    current_card = doc.at_css("##{ActionView::RecordIdentifier.dom_id(current_we)}")
+    expect(current_card).to be_present
+    expect(current_card.text).to include('80kg × 15')
+    expect(current_card.text).not_to include('60kg × 10')
+
+    payload_node = doc.at_css("#new_set_#{current_we.id} [data-copy-last-payload-value]")
+    expect(payload_node).to be_present
+
+    payload = JSON.parse(payload_node["data-copy-last-payload-value"])
+    expect(payload["weight_value"]).to eq("80")
+    expect(payload["reps"]).to eq(15)
+  end
+
   it 'preserves visible workout-date chronology in the exercise history list' do
     machine = gym.machines.create!(
       name: 'History Chronology Machine',

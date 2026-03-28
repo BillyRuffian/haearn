@@ -286,5 +286,48 @@ RSpec.describe ApplicationHelper, type: :helper do
       expect(helper.last_reps_for(current_we)).to eq(12)
       expect(helper.previous_session_sets_for(current_we).map(&:reps)).to eq([ 15, 12 ])
     end
+
+    it 'uses the nearest earlier matching exercise in the current workout, not a later one' do
+      user = users(:one)
+      gym = gyms(:one)
+      machine = gym.machines.create!(name: 'Equivalent Set Machine', equipment_type: 'machine', display_unit: 'kg')
+      exercise = user.exercises.create!(
+        name: 'Equivalent Set Exercise',
+        exercise_type: 'reps',
+        has_weight: true,
+        primary_muscle_group: 'glutes'
+      )
+
+      current_workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+
+      earlier_block = current_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+      earlier_we = earlier_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+      earlier_we.exercise_sets.create!(
+        position: 1,
+        weight_kg: 80,
+        reps: 15,
+        completed_at: Time.current - 15.minutes
+      )
+
+      current_block = current_workout.workout_blocks.create!(position: 2, rest_seconds: 90)
+      current_we = current_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+      later_block = current_workout.workout_blocks.create!(position: 3, rest_seconds: 90)
+      later_we = later_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+      later_we.exercise_sets.create!(
+        position: 1,
+        weight_kg: 60,
+        reps: 10,
+        completed_at: Time.current - 5.minutes
+      )
+
+      payload = helper.previous_session_set_data(current_we, 1)
+
+      expect(payload["weight_value"]).to eq("80")
+      expect(payload["reps"]).to eq(15)
+      expect(helper.last_weight_for(current_we)).to eq("80")
+      expect(helper.last_reps_for(current_we)).to eq(15)
+      expect(helper.previous_session_sets_for(current_we).map(&:reps)).to eq([ 15 ])
+    end
   end
 end
