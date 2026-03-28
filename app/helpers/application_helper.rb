@@ -337,7 +337,7 @@ module ApplicationHelper
     previous_workout.workout_exercises
       .includes(:exercise_sets, :workout_block)
       .where(exercise_id: workout_exercise.exercise_id, machine_id: workout_exercise.machine_id)
-      .sort_by { |we| [we.workout_block.position || 0, we.position || 0] }
+      .sort_by { |we| [ we.workout_block.position || 0, we.position || 0 ] }
       .flat_map { |we| ordered_session_sets(we.exercise_sets) }
   end
 
