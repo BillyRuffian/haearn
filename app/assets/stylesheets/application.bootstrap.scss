@@ -870,6 +870,15 @@ select option:checked {
   background: rgba($iron-dark, 0.52);
 }
 
+.workout-block--superset {
+  border-color: rgba($rust, 0.45);
+  box-shadow: inset 0 0 0 1px rgba($rust, 0.12);
+
+  .workout-block-subheading {
+    background: linear-gradient(90deg, rgba($rust, 0.16) 0%, rgba($iron-dark, 0.72) 100%);
+  }
+}
+
 .workout-block-header__actions {
   display: flex;
   align-items: center;
@@ -955,6 +964,14 @@ select option:checked {
       background: rgba(#cd7f32, 0.1);
     }
   }
+}
+
+.superset-sequence-badge {
+  background: rgba($rust, 0.18);
+  color: lighten($rust, 18%);
+  border: 1px solid rgba($rust, 0.45);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.04em;
 }
 
 .set-row {

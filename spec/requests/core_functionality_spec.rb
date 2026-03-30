@@ -122,4 +122,58 @@ RSpec.describe 'Core functionality', type: :request do
     expect(response).to redirect_to(workout_path(workout))
     expect(movable_exercise.reload.workout_block.rest_seconds).to eq(150)
   end
+
+  it 'adds a superset exercise into the existing block instead of creating a new block' do
+    sign_in_as(user)
+
+    workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+    first_exercise = user.exercises.create!(
+      name: 'Superset Press',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'chest'
+    )
+    second_exercise = user.exercises.create!(
+      name: 'Superset Row',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'back'
+    )
+    machine = gym.machines.create!(
+      name: 'Superset Stack',
+      equipment_type: 'machine',
+      display_unit: 'kg'
+    )
+
+    post add_exercise_workout_path(workout), params: {
+      exercise_id: first_exercise.id,
+      machine_id: machine.id
+    }
+
+    expect(response).to redirect_to(workout_path(workout))
+    original_block = workout.reload.workout_blocks.sole
+
+    get add_exercise_workout_path(workout, to_block: original_block.id)
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('Add to Superset')
+    expect(response.body).to include("to_block=#{original_block.id}")
+
+    expect do
+      post add_exercise_workout_path(workout, to_block: original_block.id), params: {
+        exercise_id: second_exercise.id,
+        machine_id: machine.id
+      }
+    end.not_to change(workout.reload.workout_blocks, :count)
+
+    expect(response).to redirect_to(workout_path(workout))
+    expect(original_block.reload.workout_exercises.order(:position).pluck(:exercise_id)).to eq([ first_exercise.id, second_exercise.id ])
+
+    get workout_path(workout)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body.scan(/id="#{ActionView::RecordIdentifier.dom_id(original_block)}"/).length).to eq(1)
+    expect(response.body).to include('Superset · 2 exercises')
+    expect(response.body).to include('A1')
+    expect(response.body).to include('A2')
+  end
 end

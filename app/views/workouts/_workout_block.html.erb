@@ -1,4 +1,5 @@
-<div class="card mb-3 workout-block" id="<%= dom_id(block) %>" data-block-id="<%= block.id %>">
+<% is_superset = block.superset? %>
+<div class="card mb-3 workout-block <%= 'workout-block--superset' if is_superset %>" id="<%= dom_id(block) %>" data-block-id="<%= block.id %>">
   <% if workout.in_progress? %>
     <div class="drag-handle workout-block-header px-3 py-2 border-bottom bg-dark bg-opacity-25">
       <div class="workout-block-header__label">
@@ -16,14 +17,15 @@
       </div>
     </div>
 
-    <% if block.superset? %>
+    <% if is_superset %>
       <div class="workout-block-subheading px-3 py-2 border-bottom">
-        <span class="workout-block-meta">Superset · <%= pluralize(block.workout_exercises.count, "exercise") %></span>
+        <span class="workout-block-meta">
+          <i class="bi bi-arrow-repeat me-1"></i>Superset · <%= pluralize(block.workout_exercises.count, "exercise") %>
+        </span>
       </div>
     <% end %>
   <% end %>
   <% block.workout_exercises.order(:position).each_with_index do |workout_exercise, index| %>
-    <% is_superset = block.workout_exercises.count > 1 %>
     <%= render "workout_exercise", 
         workout_exercise: workout_exercise, 
         workout: workout,
