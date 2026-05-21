@@ -1,7 +1,7 @@
 // Haearn Service Worker
 // Provides offline support and caching for the PWA
 
-const CACHE_VERSION = 'haearn-v1';
+const CACHE_VERSION = 'haearn-v2';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 
@@ -9,6 +9,11 @@ const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const APP_SHELL = [
   '/',
   '/manifest.json',
+  '/favicon.svg',
+  '/favicon.ico',
+  '/apple-touch-icon.png',
+  '/web-app-manifest-192x192.png',
+  '/web-app-manifest-512x512.png',
   '/icon.png',
   '/icon.svg'
 ];
