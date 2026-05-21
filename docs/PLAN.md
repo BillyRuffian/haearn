@@ -11,6 +11,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Add versioned public icon URLs so iPhone home-screen installs refresh swapped favicon/PWA assets instead of reusing stale caches
 - [x] Swap in the new favicon/PWA icon set and realign the app manifest plus cached shell icon paths
 - [x] Make add/swap exercise setup flows iPhone-safe so top Back/Cancel controls clear status-bar/browser chrome and bottom action rows clear the home-indicator area
 - [x] Add machine retirement so equipment can be hidden from future workout selection without removing historical workout references

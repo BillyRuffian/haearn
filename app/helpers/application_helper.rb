@@ -36,6 +36,16 @@ module ApplicationHelper
     end
   end
 
+  # Public assets such as favicons are not fingerprinted, so append a file-mtime
+  # version to force refreshes on iOS home-screen icon caches after replacements.
+  def versioned_public_asset_path(path)
+    normalized_path = path.to_s.start_with?('/') ? path.to_s : "/#{path}"
+    asset_path = Rails.root.join('public', normalized_path.delete_prefix('/'))
+    return normalized_path unless asset_path.exist?
+
+    "#{normalized_path}?v=#{asset_path.mtime.to_i}"
+  end
+
   # Get last weight used for this exercise in this workout
   def last_weight_for(workout_exercise)
     last_set = most_recent_logged_set(workout_exercise.exercise_sets)

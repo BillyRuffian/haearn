@@ -27,6 +27,18 @@ RSpec.describe ApplicationHelper, type: :helper do
     end
   end
 
+  describe '#versioned_public_asset_path' do
+    it 'adds a file mtime query string for existing public assets' do
+      result = helper.versioned_public_asset_path('/favicon.ico')
+
+      expect(result).to match(%r{\A/favicon\.ico\?v=\d+\z})
+    end
+
+    it 'leaves missing public assets untouched' do
+      expect(helper.versioned_public_asset_path('/missing-icon.png')).to eq('/missing-icon.png')
+    end
+  end
+
   describe '#previous_session_set_data' do
     it 'returns converted weight plus extended flags from the matching previous set' do
       user = users(:one)

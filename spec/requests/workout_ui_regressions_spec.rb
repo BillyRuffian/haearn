@@ -175,6 +175,25 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(response.body.scan('Back to exercises').length).to be >= 1
   end
 
+  it 'renders versioned favicon and PWA icon URLs so iOS home-screen refreshes can bust caches' do
+    get root_path
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to match(%r{href="/favicon\.svg\?v=\d+"})
+    expect(response.body).to match(%r{href="/apple-touch-icon\.png\?v=\d+"})
+
+    get pwa_manifest_path(format: :json)
+
+    expect(response).to have_http_status(:ok)
+    manifest = JSON.parse(response.body)
+    icon_sources = manifest.fetch('icons').map { |icon| icon.fetch('src') }
+    shortcut_sources = manifest.fetch('shortcuts').flat_map { |shortcut| shortcut.fetch('icons').map { |icon| icon.fetch('src') } }
+
+    expect(icon_sources).to include(a_string_matching(%r{\A/web-app-manifest-192x192\.png\?v=\d+\z}))
+    expect(icon_sources).to include(a_string_matching(%r{\A/web-app-manifest-512x512\.png\?v=\d+\z}))
+    expect(shortcut_sources).to all(match(%r{\A/web-app-manifest-192x192\.png\?v=\d+\z}))
+  end
+
   it 'uses machine display unit for set-level rows while user preference stays kg' do
     user.update!(preferred_unit: 'kg')
     machine = gym.machines.create!(

@@ -198,6 +198,7 @@ User
 32. **Workout Show Contracts**: Completed workout pages should not render add-exercise entry points. The workout page must keep the rest-timer stage-panel markup (`rest-timer-stage`, `rest-timer-panel`) present for smooth transitions, and completed workouts should surface grouped progression updates instead of in-form prompts.
 33. **SQLite Test Harness Rule**: For Minitest in this app, default SQLite-backed test runs to single-process mode and honor `PARALLEL_WORKERS=1` as a real “do not parallelize” setting in `test/test_helper.rb`; otherwise the suite is prone to `SQLite3::BusyException: database is locked`.
 34. **Weight Round-Trip Rule**: Preserve higher internal kg precision when normalizing lb-entered exercise weights and machine conversions; round for display/input formatting, not at the first conversion step, so whole-pound entries render back exactly.
+35. **PWA Icon Refresh Rule**: iPhone home-screen installs aggressively cache `apple-touch-icon` and manifest icon URLs. When replacing favicon/PWA icon assets under `public/`, expose them through versioned URLs in the layout/manifest so refreshed branding is treated as a new resource.
 
 ## Equipment Types (Enum)
 
