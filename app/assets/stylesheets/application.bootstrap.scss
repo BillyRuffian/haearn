@@ -1186,6 +1186,25 @@ select option:checked {
   }
 }
 
+.modal-body--safe-actions {
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+}
+
+.modal-step-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  margin-top: auto;
+  background: linear-gradient(180deg, rgba($iron-dark, 0.02) 0%, rgba($iron-dark, 0.94) 28%, rgba($iron-medium, 0.98) 100%);
+  border-top: 1px solid rgba($iron-light, 0.9);
+  padding-bottom: calc(0.85rem + env(safe-area-inset-bottom)) !important;
+  box-shadow: 0 -14px 28px rgba(0, 0, 0, 0.32);
+}
+
+.mobile-safe-page-actions {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 // Floating Action Button for Add Exercise
 .workout-fab {
   position: fixed;
@@ -2527,6 +2546,28 @@ html.turbo-loading {
   &.show .modal-dialog {
     transform: translateY(0) scale(1);
     opacity: 1;
+  }
+}
+
+@media (max-width: 576px) {
+  .modal-body--safe-actions {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+
+  .modal-step-actions {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  .mobile-safe-page-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    padding-bottom: calc(0.85rem + env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, rgba($iron-dark, 0.02) 0%, rgba($iron-dark, 0.94) 35%, rgba($iron-medium, 0.98) 100%);
+    border-top: 1px solid rgba($iron-light, 0.9);
   }
 }
 

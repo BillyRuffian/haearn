@@ -21,7 +21,7 @@
           <% end %>
         </div>
 
-        <div class="modal-body p-0">
+        <div class="modal-body p-0 modal-body--safe-actions">
           <% if @selected_exercise %>
             <!-- Step 2: Equipment Selection -->
             <div class="p-3 border-bottom">
@@ -74,7 +74,7 @@
               </div>
             <% end %>
 
-            <div class="p-3 d-flex gap-2">
+            <div class="modal-step-actions p-3 d-flex gap-2">
               <%= link_to swap_exercise_workout_workout_exercise_path(@workout, @workout_exercise), class: "btn btn-outline-secondary btn-sm" do %>
                 <i class="bi bi-arrow-left me-1"></i>Back to exercises
               <% end %>

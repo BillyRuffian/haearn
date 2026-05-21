@@ -153,6 +153,26 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(response.body).to include('>2:30<')
   end
 
+  it 'renders iPhone-safe modal action trays for add and swap exercise flows' do
+    workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+    block = workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    workout_exercise = block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+    get add_exercise_workout_path(workout, select_exercise: exercise.id)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('modal-body--safe-actions')
+    expect(response.body).to include('modal-step-actions')
+    expect(response.body).to include('Back to exercises')
+
+    get swap_exercise_workout_workout_exercise_path(workout, workout_exercise, select_exercise: exercise.id)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('modal-body--safe-actions')
+    expect(response.body).to include('modal-step-actions')
+    expect(response.body.scan('Back to exercises').length).to be >= 1
+  end
+
   it 'uses machine display unit for set-level rows while user preference stays kg' do
     user.update!(preferred_unit: 'kg')
     machine = gym.machines.create!(

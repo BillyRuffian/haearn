@@ -21,7 +21,7 @@
     <div class="card-body">
       <%= render "form", exercise: @exercise, return_to: @return_to %>
 
-      <div class="d-flex gap-2 mt-3">
+      <div class="mobile-safe-page-actions d-flex gap-2 mt-3">
         <% if @return_to.present? %>
           <%= link_to "Cancel", safe_return_to(@return_to, fallback: exercises_path), class: "btn btn-outline-secondary" %>
         <% else %>

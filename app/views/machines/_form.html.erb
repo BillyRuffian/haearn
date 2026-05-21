@@ -72,7 +72,7 @@
   </div>
 
   <div class="col-12">
-    <div class="d-flex gap-2">
+    <div class="mobile-safe-page-actions d-flex gap-2">
       <%= form.submit machine.persisted? ? "Update" : "Add Machine", class: "btn btn-primary" %>
       <% if machine.persisted? %>
         <%= link_to "Cancel", gym_path(gym), class: "btn btn-outline-secondary", data: { turbo_frame: dom_id(machine) } %>
