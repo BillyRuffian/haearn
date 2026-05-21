@@ -39,12 +39,10 @@ module ApplicationHelper
   # Get last weight used for this exercise in this workout
   def last_weight_for(workout_exercise)
     last_set = most_recent_logged_set(workout_exercise.exercise_sets)
-    if last_set&.weight_kg
-      input_weight_value_for(last_set.weight_kg, workout_exercise)
-    elsif workout_exercise.previous_exercise
-      prev_set = most_recent_logged_set(workout_exercise.previous_exercise.exercise_sets)
-      prev_set&.weight_kg ? input_weight_value_for(prev_set.weight_kg, workout_exercise) : nil
-    end
+    return input_weight_value_for(last_set.weight_kg, workout_exercise) if last_set&.weight_kg
+
+    prev_set = most_recent_logged_set(previous_session_sets_for(workout_exercise))
+    prev_set&.weight_kg ? input_weight_value_for(prev_set.weight_kg, workout_exercise) : nil
   end
 
   # Unit used for weight input on a workout exercise.
@@ -85,43 +83,31 @@ module ApplicationHelper
   # Get last reps used for this exercise in this workout
   def last_reps_for(workout_exercise)
     last_set = most_recent_logged_set(workout_exercise.exercise_sets)
-    if last_set&.reps
-      last_set.reps
-    elsif workout_exercise.previous_exercise
-      prev_set = most_recent_logged_set(workout_exercise.previous_exercise.exercise_sets)
-      prev_set&.reps
-    end
+    return last_set.reps if last_set&.reps
+
+    most_recent_logged_set(previous_session_sets_for(workout_exercise))&.reps
   end
 
   # Get last duration used for this exercise in this workout
   def last_duration_for(workout_exercise)
     last_set = most_recent_logged_set(workout_exercise.exercise_sets)
-    if last_set&.duration_seconds
-      last_set.duration_seconds
-    elsif workout_exercise.previous_exercise
-      prev_set = most_recent_logged_set(workout_exercise.previous_exercise.exercise_sets)
-      prev_set&.duration_seconds
-    end
+    return last_set.duration_seconds if last_set&.duration_seconds
+
+    most_recent_logged_set(previous_session_sets_for(workout_exercise))&.duration_seconds
   end
 
   # Get last distance used for this exercise in this workout
   def last_distance_for(workout_exercise)
     last_set = most_recent_logged_set(workout_exercise.exercise_sets)
-    if last_set&.distance_meters
-      last_set.distance_meters
-    elsif workout_exercise.previous_exercise
-      prev_set = most_recent_logged_set(workout_exercise.previous_exercise.exercise_sets)
-      prev_set&.distance_meters
-    end
+    return last_set.distance_meters if last_set&.distance_meters
+
+    most_recent_logged_set(previous_session_sets_for(workout_exercise))&.distance_meters
   end
 
   # Get previous session data for the next set number so "Copy Last" can prefill.
   # Returns values in the same unit expected by the current input form.
   def previous_session_set_data(workout_exercise, set_number)
-    previous = workout_exercise.previous_exercise
-    return nil unless previous
-
-    previous_set = ordered_session_sets(previous.exercise_sets)[set_number.to_i - 1]
+    previous_set = previous_session_sets_for(workout_exercise).to_a[set_number.to_i - 1]
     return nil unless previous_set
 
     previous_set
@@ -146,10 +132,13 @@ module ApplicationHelper
   end
 
   def previous_session_sets_for(workout_exercise)
-    previous_exercise = workout_exercise.previous_exercise
-    return ExerciseSet.none unless previous_exercise
+    current_workout_source = current_workout_history_source_for(workout_exercise)
+    return ordered_session_sets(current_workout_source.exercise_sets) if current_workout_source
 
-    ordered_session_sets(previous_exercise.exercise_sets)
+    previous_session_sources = latest_finished_session_sources_for(workout_exercise)
+    return ExerciseSet.none unless previous_session_sources.exists?
+
+    ordered_session_sets(ExerciseSet.where(workout_exercise_id: previous_session_sources.select(:id)))
   end
 
   # Best estimated 1RM (kg) for this exercise + machine combo.
@@ -290,10 +279,15 @@ module ApplicationHelper
     current_sets = ordered_session_sets(workout_exercise.exercise_sets)
     return current_sets.load.last if current_sets.exists?
 
-    previous_exercise = workout_exercise.previous_exercise
-    return nil unless previous_exercise
+    current_workout_source = current_workout_history_source_for(workout_exercise)
+    if current_workout_source
+      return ordered_session_sets(current_workout_source.exercise_sets).load.last
+    end
 
-    ordered_session_sets(previous_exercise.exercise_sets).first
+    previous_session_sources = latest_finished_session_sources_for(workout_exercise)
+    return nil unless previous_session_sources.exists?
+
+    ordered_session_sets(ExerciseSet.where(workout_exercise_id: previous_session_sources.select(:id))).first
   end
 
   def set_prefill_fields_changed?(set)
@@ -306,6 +300,41 @@ module ApplicationHelper
 
   def most_recent_logged_set(exercise_sets)
     exercise_sets.reorder(Arel.sql('COALESCE(completed_at, created_at) DESC'), position: :desc, created_at: :desc).first
+  end
+
+  def current_workout_history_source_for(workout_exercise)
+    workout_exercise.workout.workout_exercises
+      .joins(:workout_block)
+      .where(exercise_id: workout_exercise.exercise_id, machine_id: workout_exercise.machine_id)
+      .where.not(id: workout_exercise.id)
+      .where(
+        'workout_blocks.position < :block_position OR (workout_blocks.position = :block_position AND workout_exercises.position < :exercise_position)',
+        block_position: workout_exercise.workout_block.position,
+        exercise_position: workout_exercise.position
+      )
+      .order(Arel.sql('workout_blocks.position DESC, workout_exercises.position DESC'))
+      .first
+  end
+
+  def latest_finished_session_sources_for(workout_exercise)
+    matching_history = Current.user.workout_exercises
+      .joins(workout_block: :workout)
+      .where(exercise_id: workout_exercise.exercise_id, machine_id: workout_exercise.machine_id)
+      .where.not(workouts: { id: workout_exercise.workout.id })
+      .where.not(workouts: { finished_at: nil })
+
+    latest_workout_id = matching_history
+      .reorder(Arel.sql('workouts.finished_at DESC, workouts.started_at DESC, workout_blocks.position DESC, workout_exercises.position DESC'))
+      .limit(1)
+      .pick('workouts.id')
+
+    return WorkoutExercise.none unless latest_workout_id
+
+    Current.user.workout_exercises
+      .joins(:workout_block)
+      .where(exercise_id: workout_exercise.exercise_id, machine_id: workout_exercise.machine_id)
+      .where(workout_blocks: { workout_id: latest_workout_id })
+      .order(Arel.sql('workout_blocks.position ASC, workout_exercises.position ASC'))
   end
 
   def format_input_number(value)

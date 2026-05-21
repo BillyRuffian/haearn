@@ -163,6 +163,7 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(response).to have_http_status(:ok)
     expect(response.body).to include('modal-body--safe-actions')
     expect(response.body).to include('modal-step-actions')
+    expect(response.body).to include('modal-header--safe-top')
     expect(response.body).to include('Back to exercises')
 
     get swap_exercise_workout_workout_exercise_path(workout, workout_exercise, select_exercise: exercise.id)
@@ -170,6 +171,7 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(response).to have_http_status(:ok)
     expect(response.body).to include('modal-body--safe-actions')
     expect(response.body).to include('modal-step-actions')
+    expect(response.body).to include('modal-header--safe-top')
     expect(response.body.scan('Back to exercises').length).to be >= 1
   end
 

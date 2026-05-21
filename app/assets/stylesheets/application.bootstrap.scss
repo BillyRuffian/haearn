@@ -1190,6 +1190,14 @@ select option:checked {
   padding-bottom: calc(1rem + env(safe-area-inset-bottom));
 }
 
+.modal-content--safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.modal-header--safe-top {
+  padding-top: calc(1rem + env(safe-area-inset-top));
+}
+
 .modal-step-actions {
   position: sticky;
   bottom: 0;
@@ -1203,6 +1211,10 @@ select option:checked {
 
 .mobile-safe-page-actions {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+.setup-flow-toplink {
+  padding-top: env(safe-area-inset-top);
 }
 
 // Floating Action Button for Add Exercise
@@ -2550,6 +2562,14 @@ html.turbo-loading {
 }
 
 @media (max-width: 576px) {
+  .modal-content--safe-top {
+    padding-top: 0;
+  }
+
+  .modal-header--safe-top {
+    padding-top: calc(1rem + env(safe-area-inset-top));
+  }
+
   .modal-body--safe-actions {
     padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
   }
@@ -2568,6 +2588,14 @@ html.turbo-loading {
     padding-bottom: calc(0.85rem + env(safe-area-inset-bottom));
     background: linear-gradient(180deg, rgba($iron-dark, 0.02) 0%, rgba($iron-dark, 0.94) 35%, rgba($iron-medium, 0.98) 100%);
     border-top: 1px solid rgba($iron-light, 0.9);
+  }
+
+  .setup-flow-page {
+    padding-top: calc(1rem + env(safe-area-inset-top));
+  }
+
+  .setup-flow-toplink {
+    padding-top: 0;
   }
 }
 
