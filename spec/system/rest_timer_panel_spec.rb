@@ -136,6 +136,35 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
     expect(completion_styles["displayAnimation"]).to include("restTimerCompleteFlash")
   end
 
+  it 'plays countdown pips for the final four seconds before the completion tune' do
+    visit workout_path(workout)
+
+    within('.rest-timer-footer') do
+      click_button 'Start Rest Timer'
+    end
+
+    page.execute_script(<<~JS)
+      window.__restTimerCueLog = []
+      const controllerElement = document.querySelector("[data-controller~='rest-timer']")
+      const controller = window.Stimulus?.getControllerForElementAndIdentifier(controllerElement, "rest-timer")
+      if (!controller) throw new Error("Missing rest-timer controller")
+
+      controller.playCountdownPip = () => window.__restTimerCueLog.push("pip")
+      controller.playAlert = () => window.__restTimerCueLog.push("alert")
+      controller.vibrate = () => {}
+      controller.showNotification = () => {}
+      controller.persistInAppNotification = () => Promise.resolve()
+
+      controller.endTime = Date.now() + 4100
+      controller.saveTimerState()
+    JS
+
+    expect(page).to have_css("[data-rest-timer-target='display']", text: '0:00', visible: true, wait: 6)
+
+    cue_log = page.evaluate_script("window.__restTimerCueLog")
+    expect(cue_log).to eq([ 'pip', 'pip', 'pip', 'pip', 'alert' ])
+  end
+
   it 'hides the timer footer, add-exercise button, and mobile toolbar while add or edit set forms are active' do
     visit workout_path(workout)
 

@@ -59,6 +59,48 @@ RSpec.describe 'Core functionality', type: :request do
     expect(response.body).not_to include('workout-fab')
   end
 
+  it 'round-trips whole-pound exercise weights without rendering float drift' do
+    sign_in_as(user)
+    user.update!(preferred_unit: 'lbs')
+
+    exercise = user.exercises.create!(
+      name: 'Round Trip Press',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'chest'
+    )
+    machine = gym.machines.create!(
+      name: 'Round Trip Rack',
+      equipment_type: 'machine',
+      display_unit: nil
+    )
+
+    workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+    block = workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    workout_exercise = block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+    post workout_workout_exercise_exercise_sets_path(workout, workout_exercise), params: {
+      exercise_set: {
+        weight_value: '165',
+        reps: '5',
+        is_warmup: '0'
+      }
+    }
+
+    expect(response).to redirect_to(workout_path(workout))
+
+    logged_set = workout_exercise.exercise_sets.order(:id).last
+    expect(logged_set.weight_kg.to_f).to be_within(0.000001).of(74.842741)
+
+    get workout_path(workout)
+    expect(response.body).to include('165')
+    expect(response.body).not_to include('164.99')
+
+    get edit_workout_workout_exercise_exercise_set_path(workout, workout_exercise, logged_set)
+    expect(response.body).to include('value="165"')
+    expect(response.body).not_to include('164.99')
+  end
+
   it 'updates key settings preferences' do
     sign_in_as(user)
 
@@ -172,8 +214,51 @@ RSpec.describe 'Core functionality', type: :request do
 
     expect(response).to have_http_status(:ok)
     expect(response.body.scan(/id="#{ActionView::RecordIdentifier.dom_id(original_block)}"/).length).to eq(1)
-    expect(response.body).to include('Superset · 2 exercises')
+    expect(response.body).to include('Superset A')
+    expect(response.body).to include('Alternate A1 and A2, then rest.')
+    expect(response.body).to include('workout-block--superset')
+    expect(response.body).to include('workout-block-superset-link')
     expect(response.body).to include('A1')
     expect(response.body).to include('A2')
+  end
+
+  it 'excludes retired equipment from future workout machine selection while preserving history on the gym page' do
+    sign_in_as(user)
+
+    active_machine = gym.machines.create!(
+      name: 'Active Selector Machine',
+      equipment_type: 'machine',
+      display_unit: 'kg'
+    )
+    retired_machine = gym.machines.create!(
+      name: 'Retired Selector Machine',
+      equipment_type: 'machine',
+      display_unit: 'kg',
+      retired_at: Time.current
+    )
+    exercise = user.exercises.create!(
+      name: 'Retired Machine Test Exercise',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'chest'
+    )
+
+    workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+
+    get add_exercise_workout_path(workout, select_exercise: exercise.id)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('Active Selector Machine')
+    expect(response.body).not_to include('Retired Selector Machine')
+
+    get gym_path(gym)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('Retired Equipment')
+    expect(response.body).to include('Retired Selector Machine')
+    expect(response.body).to include('Retired')
+    expect(response.body).to include('Active Selector Machine')
+    expect(active_machine.reload.active?).to eq(true)
+    expect(retired_machine.reload.retired?).to eq(true)
   end
 end

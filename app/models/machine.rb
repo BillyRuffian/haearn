@@ -9,6 +9,7 @@
 #  name           :string
 #  notes          :text
 #  pin_setting    :string
+#  retired_at     :datetime
 #  seat_setting   :string
 #  weight_ratio   :decimal(, )
 #  created_at     :datetime         not null
@@ -17,7 +18,8 @@
 #
 # Indexes
 #
-#  index_machines_on_gym_id  (gym_id)
+#  index_machines_on_gym_id      (gym_id)
+#  index_machines_on_retired_at  (retired_at)
 #
 # Foreign Keys
 #
@@ -55,6 +57,8 @@ class Machine < ApplicationRecord
   validate :acceptable_photos
 
   scope :ordered, -> { order(:name) }
+  scope :active, -> { where(retired_at: nil) }
+  scope :retired, -> { where.not(retired_at: nil) }
   scope :with_setup_memory, -> { where.not(seat_setting: [ nil, '' ]).or(where.not(pin_setting: [ nil, '' ])).or(where.not(handle_setting: [ nil, '' ])) }
 
   # Calculate the actual weight lifted for cable/pulley machines
@@ -95,6 +99,14 @@ class Machine < ApplicationRecord
     parts << "Pin #{pin_setting}" if pin_setting.present?
     parts << "Handle #{handle_setting}" if handle_setting.present?
     parts.join(' · ')
+  end
+
+  def retired?
+    retired_at.present?
+  end
+
+  def active?
+    !retired?
   end
 
   private

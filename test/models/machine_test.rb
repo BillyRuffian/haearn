@@ -9,6 +9,7 @@
 #  name           :string
 #  notes          :text
 #  pin_setting    :string
+#  retired_at     :datetime
 #  seat_setting   :string
 #  weight_ratio   :decimal(, )
 #  created_at     :datetime         not null
@@ -17,7 +18,8 @@
 #
 # Indexes
 #
-#  index_machines_on_gym_id  (gym_id)
+#  index_machines_on_gym_id      (gym_id)
+#  index_machines_on_retired_at  (retired_at)
 #
 # Foreign Keys
 #

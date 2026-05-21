@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: March 27, 2026
+> Last Updated: May 21, 2026
 
 ## Overview
 
@@ -11,6 +11,10 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Add machine retirement so equipment can be hidden from future workout selection without removing historical workout references
+- [x] Clarify active-workout superset presentation so grouped exercises read as one alternating block rather than unrelated standalone entries
+- [x] Add final-seconds countdown pips ahead of the rest-timer completion tune, with browser-level regression coverage for the cue order
+- [x] Preserve higher internal kg precision so lb-entered exercise weights round-trip cleanly in forms and set displays
 - [x] Centralize dashboard page assembly in a dedicated service object to reduce `DashboardController` duplication while preserving existing analytics behavior
 - [x] Extract chart/query calculations from `DashboardController` into dedicated analytics services or query objects
 - [x] Consolidate add-set and edit-set UIs around shared form partials/components to reduce drift

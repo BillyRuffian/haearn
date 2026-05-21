@@ -146,9 +146,9 @@ class WorkoutsController < ApplicationController
       # Step 2: If exercise selected, show machine picker
       if params[:select_exercise].present?
         @selected_exercise = Exercise.for_user(Current.user).find(params[:select_exercise])
-        @machines = @workout.gym.machines.with_attached_photos.ordered
+        @machines = @workout.gym.machines.active.with_attached_photos.ordered
 
-        recent_machine_ids = @workout.gym.machines
+        recent_machine_ids = @workout.gym.machines.active
           .joins(workout_exercises: { workout_block: :workout })
           .where(workout_exercises: { exercise_id: @selected_exercise.id })
           .where(workouts: { user_id: Current.user.id, finished_at: ..Time.current })
@@ -159,14 +159,14 @@ class WorkoutsController < ApplicationController
           .map(&:first)
           .first(3)
 
-        @recent_machines = @workout.gym.machines
+        @recent_machines = @workout.gym.machines.active
           .where(id: recent_machine_ids)
           .with_attached_photos
           .ordered
 
         # If machine_id is also present (coming back from creating a machine), auto-add the exercise
         if params[:machine_id].present?
-          @selected_machine = @workout.gym.machines.find_by(id: params[:machine_id])
+          @selected_machine = @workout.gym.machines.active.find_by(id: params[:machine_id])
           if @selected_machine
             # Directly add the exercise with the selected machine
             params[:exercise_id] = @selected_exercise.id

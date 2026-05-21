@@ -144,6 +144,8 @@ Rails.application.routes.draw do
     resources :machines do
       member do
         delete :delete_photo
+        patch :retire
+        patch :reactivate
       end
     end
   end

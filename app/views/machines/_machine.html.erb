@@ -1,10 +1,13 @@
 <%= turbo_frame_tag machine do %>
-  <div class="card mb-2">
+  <div class="card mb-2 <%= 'border-secondary bg-dark-subtle' if machine.retired? %>">
     <div class="card-body py-2">
       <div class="d-flex justify-content-between align-items-center">
         <div class="flex-grow-1 min-w-0">
           <div class="d-flex align-items-start flex-wrap gap-1">
             <strong><%= machine.name %></strong>
+            <% if machine.retired? %>
+              <span class="badge bg-dark text-warning-emphasis border border-warning-subtle">Retired</span>
+            <% end %>
             <span class="badge equipment-badge-<%= machine.equipment_type %> badge-sm">
               <%= equipment_icon(machine.equipment_type) %>
               <%= machine.equipment_type.titleize %>
@@ -45,6 +48,15 @@
           <% end %>
           <%= link_to edit_gym_machine_path(gym, machine), class: "btn btn-sm btn-outline-secondary", data: { turbo_frame: "_top" } do %>
             <i class="bi bi-pencil"></i>
+          <% end %>
+          <% if machine.retired? %>
+            <%= button_to reactivate_gym_machine_path(gym, machine), method: :patch, class: "btn btn-sm btn-outline-success", data: { turbo_frame: "_top", turbo_confirm: "Reactivate #{machine.name}?" } do %>
+              <i class="bi bi-arrow-counterclockwise"></i>
+            <% end %>
+          <% else %>
+            <%= button_to retire_gym_machine_path(gym, machine), method: :patch, class: "btn btn-sm btn-outline-warning", data: { turbo_frame: "_top", turbo_confirm: "Retire #{machine.name}? It will stay in history but won't appear in future equipment pickers." } do %>
+              <i class="bi bi-archive"></i>
+            <% end %>
           <% end %>
           <%= button_to gym_machine_path(gym, machine), method: :delete, class: "btn btn-sm btn-outline-danger", data: { turbo_confirm: "Delete #{machine.name}?" } do %>
             <i class="bi bi-trash"></i>

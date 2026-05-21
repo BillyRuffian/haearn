@@ -107,27 +107,14 @@ class User < ApplicationRecord
   def display_weight(kg_value)
     return nil if kg_value.nil?
 
-    if preferred_unit == 'lbs'
-      (kg_value * 2.20462).round(2)  # 1 kg = 2.20462 lbs
-    else
-      kg_value.round(2)
-    end
+    WeightConverter.from_kg(kg_value, preferred_unit)
   end
 
   # Format weight for display, showing decimals only when not a whole number
   # @param kg_value [Numeric] weight in kilograms
   # @return [String] formatted weight (e.g., "100" or "100.5" or "100.25")
   def format_weight(kg_value)
-    value = display_weight(kg_value)
-    return nil if value.nil?
-
-    if value == value.to_i
-      value.to_i.to_s
-    elsif value == value.round(1)
-      format('%.1f', value)
-    else
-      format('%.2f', value)
-    end
+    WeightConverter.display(kg_value, user: self)
   end
 
   # Convert weight from user's input unit to kg for database storage
@@ -136,11 +123,7 @@ class User < ApplicationRecord
   def normalize_weight(value)
     return nil if value.nil?
 
-    if preferred_unit == 'lbs'
-      (value / 2.20462).round(2)  # Convert lbs to kg
-    else
-      value.to_f.round(2)
-    end
+    WeightConverter.to_kg(value, preferred_unit)
   end
 
   # Alias for normalize_weight (more intuitive name for conversion)

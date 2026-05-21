@@ -41,8 +41,8 @@ module ApplicationHelper
     last_set = most_recent_logged_set(workout_exercise.exercise_sets)
     if last_set&.weight_kg
       input_weight_value_for(last_set.weight_kg, workout_exercise)
-    elsif (reference_sets = reference_session_sets_for(workout_exercise)).any?
-      prev_set = most_recent_logged_set(reference_sets)
+    elsif workout_exercise.previous_exercise
+      prev_set = most_recent_logged_set(workout_exercise.previous_exercise.exercise_sets)
       prev_set&.weight_kg ? input_weight_value_for(prev_set.weight_kg, workout_exercise) : nil
     end
   end
@@ -58,8 +58,12 @@ module ApplicationHelper
   def input_weight_value_for(kg_value, workout_exercise)
     return nil if kg_value.nil?
 
-    display_value = if workout_exercise&.machine&.display_unit.present?
-      WeightConverter.kg_to_machine(kg_value, workout_exercise.machine)
+    display_value = if workout_exercise&.machine.present?
+      WeightConverter.kg_to_machine(
+        kg_value,
+        workout_exercise.machine,
+        fallback_unit: Current.user.preferred_unit
+      )
     else
       WeightConverter.from_kg(kg_value, Current.user.preferred_unit)
     end
@@ -83,8 +87,8 @@ module ApplicationHelper
     last_set = most_recent_logged_set(workout_exercise.exercise_sets)
     if last_set&.reps
       last_set.reps
-    elsif (reference_sets = reference_session_sets_for(workout_exercise)).any?
-      prev_set = most_recent_logged_set(reference_sets)
+    elsif workout_exercise.previous_exercise
+      prev_set = most_recent_logged_set(workout_exercise.previous_exercise.exercise_sets)
       prev_set&.reps
     end
   end
@@ -94,8 +98,8 @@ module ApplicationHelper
     last_set = most_recent_logged_set(workout_exercise.exercise_sets)
     if last_set&.duration_seconds
       last_set.duration_seconds
-    elsif (reference_sets = reference_session_sets_for(workout_exercise)).any?
-      prev_set = most_recent_logged_set(reference_sets)
+    elsif workout_exercise.previous_exercise
+      prev_set = most_recent_logged_set(workout_exercise.previous_exercise.exercise_sets)
       prev_set&.duration_seconds
     end
   end
@@ -105,8 +109,8 @@ module ApplicationHelper
     last_set = most_recent_logged_set(workout_exercise.exercise_sets)
     if last_set&.distance_meters
       last_set.distance_meters
-    elsif (reference_sets = reference_session_sets_for(workout_exercise)).any?
-      prev_set = most_recent_logged_set(reference_sets)
+    elsif workout_exercise.previous_exercise
+      prev_set = most_recent_logged_set(workout_exercise.previous_exercise.exercise_sets)
       prev_set&.distance_meters
     end
   end
@@ -114,10 +118,10 @@ module ApplicationHelper
   # Get previous session data for the next set number so "Copy Last" can prefill.
   # Returns values in the same unit expected by the current input form.
   def previous_session_set_data(workout_exercise, set_number)
-    reference_sets = reference_session_sets_for(workout_exercise)
-    return nil if reference_sets.empty?
+    previous = workout_exercise.previous_exercise
+    return nil unless previous
 
-    previous_set = reference_sets[set_number.to_i - 1]
+    previous_set = ordered_session_sets(previous.exercise_sets)[set_number.to_i - 1]
     return nil unless previous_set
 
     previous_set
@@ -142,7 +146,10 @@ module ApplicationHelper
   end
 
   def previous_session_sets_for(workout_exercise)
-    reference_session_sets_for(workout_exercise)
+    previous_exercise = workout_exercise.previous_exercise
+    return ExerciseSet.none unless previous_exercise
+
+    ordered_session_sets(previous_exercise.exercise_sets)
   end
 
   # Best estimated 1RM (kg) for this exercise + machine combo.
@@ -281,64 +288,12 @@ module ApplicationHelper
 
   def source_set_for_new_form(workout_exercise)
     current_sets = ordered_session_sets(workout_exercise.exercise_sets)
-    return current_sets.last if current_sets.any?
+    return current_sets.load.last if current_sets.exists?
 
-    reference_session_sets_for(workout_exercise).first
-  end
+    previous_exercise = workout_exercise.previous_exercise
+    return nil unless previous_exercise
 
-  def reference_session_sets_for(workout_exercise)
-    if (current_workout_exercise = latest_matching_exercise_in_current_workout(workout_exercise))
-      ordered_session_sets(current_workout_exercise.exercise_sets)
-    else
-      previous_finished_session_sets_for(workout_exercise)
-    end
-  end
-
-  def latest_matching_exercise_in_current_workout(workout_exercise)
-    current_workout_position = [
-      workout_exercise.workout_block.position || 0,
-      workout_exercise.position || 0
-    ]
-
-    matching_exercises = workout_exercise.workout.workout_exercises
-      .includes(:exercise_sets, :workout_block)
-      .where(exercise_id: workout_exercise.exercise_id, machine_id: workout_exercise.machine_id)
-      .where.not(id: workout_exercise.id)
-      .select do |we|
-        exercise_position = [ we.workout_block.position || 0, we.position || 0 ]
-
-        (exercise_position <=> current_workout_position) == -1 && we.exercise_sets.exists?
-      end
-
-    matching_exercises.max_by do |we|
-      latest_set = most_recent_logged_set(we.exercise_sets)
-      [
-        we.workout_block.position,
-        we.position,
-        latest_set&.completed_at || latest_set&.created_at || Time.at(0)
-      ]
-    end
-  end
-
-  def previous_finished_session_sets_for(workout_exercise)
-    previous_workout = workout_exercise.workout.user.workouts
-      .completed
-      .joins(workout_blocks: :workout_exercises)
-      .where(workout_exercises: {
-        exercise_id: workout_exercise.exercise_id,
-        machine_id: workout_exercise.machine_id
-      })
-      .where.not(id: workout_exercise.workout.id)
-      .order(finished_at: :desc, started_at: :desc)
-      .first
-
-    return [] unless previous_workout
-
-    previous_workout.workout_exercises
-      .includes(:exercise_sets, :workout_block)
-      .where(exercise_id: workout_exercise.exercise_id, machine_id: workout_exercise.machine_id)
-      .sort_by { |we| [ we.workout_block.position || 0, we.position || 0 ] }
-      .flat_map { |we| ordered_session_sets(we.exercise_sets) }
+    ordered_session_sets(previous_exercise.exercise_sets).first
   end
 
   def set_prefill_fields_changed?(set)
@@ -346,19 +301,11 @@ module ApplicationHelper
   end
 
   def ordered_session_sets(exercise_sets)
-    Array(exercise_sets)
-      .reject(&:new_record?)
-      .sort_by do |set|
-      [
-        set.completed_at || set.created_at || Time.at(0),
-        set.position || 0,
-        set.created_at || Time.at(0)
-      ]
-    end
+    exercise_sets.reorder(:position, Arel.sql('COALESCE(completed_at, created_at) ASC'), :created_at)
   end
 
   def most_recent_logged_set(exercise_sets)
-    ordered_session_sets(exercise_sets).last
+    exercise_sets.reorder(Arel.sql('COALESCE(completed_at, created_at) DESC'), position: :desc, created_at: :desc).first
   end
 
   def format_input_number(value)

@@ -11,7 +11,8 @@ class GymsController < ApplicationController
   end
 
   def show
-    @machines = @gym.machines.ordered
+    @machines = @gym.machines.active.ordered
+    @retired_machines = @gym.machines.retired.ordered
     @new_machine = @gym.machines.build(display_unit: Current.user.preferred_unit)
 
     # If this is a Turbo Frame request for the gym card, return just the partial

@@ -3,7 +3,7 @@
 # Display units allow tracking what the machine shows vs what weight is actually lifted
 class MachinesController < ApplicationController
   before_action :set_gym
-  before_action :set_machine, only: %i[show edit update destroy delete_photo]
+  before_action :set_machine, only: %i[show edit update destroy delete_photo retire reactivate]
 
   # Redirects to gym show page (machines are displayed there)
   def index
@@ -72,6 +72,16 @@ class MachinesController < ApplicationController
       format.turbo_stream { render turbo_stream: turbo_stream.remove(@machine) }
       format.html { redirect_to gym_path(@gym), notice: 'Equipment deleted.' }
     end
+  end
+
+  def retire
+    @machine.update!(retired_at: Time.current)
+    redirect_to gym_path(@gym), notice: "#{@machine.name} retired. It will stay in history but won't appear in future equipment pickers."
+  end
+
+  def reactivate
+    @machine.update!(retired_at: nil)
+    redirect_to gym_path(@gym), notice: "#{@machine.name} is active again."
   end
 
   # DELETE /gyms/:gym_id/machines/:id/delete_photo?photo_id=X

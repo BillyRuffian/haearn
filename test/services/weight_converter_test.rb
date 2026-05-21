@@ -9,6 +9,11 @@ class WeightConverterTest < ActiveSupport::TestCase
     assert_in_delta 45.36, result, 0.01
   end
 
+  test 'to_kg preserves enough precision for clean lb round-trips' do
+    result = WeightConverter.to_kg(165, 'lbs')
+    assert_in_delta 74.842741, result, 0.000001
+  end
+
   test 'to_kg returns kg unchanged' do
     result = WeightConverter.to_kg(100, 'kg')
     assert_equal 100.0, result
@@ -66,6 +71,13 @@ class WeightConverterTest < ActiveSupport::TestCase
     assert_in_delta 45.36, result, 0.01
   end
 
+  test 'machine_to_kg falls back to provided unit when machine display unit is blank' do
+    machine = Machine.new(display_unit: nil)
+    result = WeightConverter.machine_to_kg(165, machine, fallback_unit: 'lbs')
+
+    assert_in_delta 74.842741, result, 0.000001
+  end
+
   test 'machine_to_kg applies weight ratio for cables' do
     machine = Machine.new(display_unit: 'kg', weight_ratio: 0.5, equipment_type: 'cables')
     result = WeightConverter.machine_to_kg(100, machine)
@@ -90,6 +102,13 @@ class WeightConverterTest < ActiveSupport::TestCase
     machine = Machine.new(display_unit: 'lbs')
     result = WeightConverter.kg_to_machine(45.36, machine)
     assert_in_delta 100.0, result, 0.1
+  end
+
+  test 'kg_to_machine falls back to provided unit when machine display unit is blank' do
+    machine = Machine.new(display_unit: nil)
+    result = WeightConverter.kg_to_machine(74.842741, machine, fallback_unit: 'lbs')
+
+    assert_equal 165.0, result
   end
 
   test 'kg_to_machine reverses weight ratio' do
@@ -132,6 +151,13 @@ class WeightConverterTest < ActiveSupport::TestCase
     user = User.new(preferred_unit: 'lbs')
     result = WeightConverter.display(45.36, user: user)
     assert_equal '100', result  # 45.36 kg ≈ 100 lbs
+  end
+
+  test 'display rounds a precise kg value back to the original whole lb input' do
+    user = User.new(preferred_unit: 'lbs')
+    precise_kg = WeightConverter.to_kg(165, 'lbs')
+
+    assert_equal '165', WeightConverter.display(precise_kg, user: user)
   end
 
   test 'display handles nil' do

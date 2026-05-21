@@ -114,9 +114,9 @@ class WorkoutExercisesController < ApplicationController
     else
       if params[:select_exercise].present?
         @selected_exercise = Exercise.for_user(Current.user).find(params[:select_exercise])
-        @machines = @workout.gym.machines.with_attached_photos.ordered
+        @machines = @workout.gym.machines.active.with_attached_photos.ordered
 
-        recent_machine_ids = @workout.gym.machines
+        recent_machine_ids = @workout.gym.machines.active
           .joins(workout_exercises: { workout_block: :workout })
           .where(workout_exercises: { exercise_id: @selected_exercise.id })
           .where(workouts: { user_id: Current.user.id, finished_at: ..Time.current })
@@ -127,7 +127,7 @@ class WorkoutExercisesController < ApplicationController
           .map(&:first)
           .first(3)
 
-        @recent_machines = @workout.gym.machines
+        @recent_machines = @workout.gym.machines.active
           .where(id: recent_machine_ids)
           .with_attached_photos
           .ordered
@@ -150,7 +150,8 @@ class WorkoutExercisesController < ApplicationController
     if @workout_exercise.machine.present?
       working_weight_kg = WeightConverter.machine_to_kg(
         params[:working_weight].to_f,
-        @workout_exercise.machine
+        @workout_exercise.machine,
+        fallback_unit: Current.user.preferred_unit
       )
     elsif params[:working_weight].present?
       working_weight_kg = WeightConverter.to_kg(
@@ -233,7 +234,7 @@ class WorkoutExercisesController < ApplicationController
   # Refreshes persistent_notes from new exercise+machine history
   def perform_swap
     exercise = Exercise.for_user(Current.user).find(params[:exercise_id])
-    machine = @workout.gym.machines.find(params[:machine_id])
+    machine = @workout.gym.machines.active.find(params[:machine_id])
 
     @workout_exercise.update!(
       exercise: exercise,

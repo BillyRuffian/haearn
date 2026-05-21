@@ -50,4 +50,13 @@ class ApplicationHelperTest < ActionView::TestCase
     assert_equal '45.36', set_weight_display_for(45.36, workout_exercise)
     assert_equal 'kg', set_weight_unit_for(workout_exercise)
   end
+
+  test 'input_weight_value_for round-trips a whole lb value without showing float drift' do
+    Current.user.update!(preferred_unit: 'lbs')
+    workout_exercise = OpenStruct.new(machine: nil)
+    precise_kg = WeightConverter.to_kg(165, 'lbs')
+
+    assert_equal '165', input_weight_value_for(precise_kg, workout_exercise)
+    assert_equal '165', set_weight_display_for(precise_kg, workout_exercise)
+  end
 end

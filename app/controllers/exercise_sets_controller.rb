@@ -207,7 +207,8 @@ class ExerciseSetsController < ApplicationController
       if @workout_exercise.machine.present?
         permitted[:weight_kg] = WeightConverter.machine_to_kg(
           permitted[:weight_value].to_f,
-          @workout_exercise.machine
+          @workout_exercise.machine,
+          fallback_unit: Current.user.preferred_unit
         )
       else
         # Otherwise use user's preferred unit

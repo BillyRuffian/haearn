@@ -114,7 +114,8 @@ class SettingsController < ApplicationController
             equipment_type: m.equipment_type,
             weight_ratio: m.weight_ratio,
             display_unit: m.display_unit,
-            notes: m.notes
+            notes: m.notes,
+            retired_at: m.retired_at
           }
         end
       }

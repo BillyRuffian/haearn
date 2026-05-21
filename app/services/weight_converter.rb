@@ -16,8 +16,8 @@
 # - Stored in database as 50kg
 #
 # Usage:
-#   WeightConverter.to_kg(100, "lbs")  # => 45.36
-#   WeightConverter.from_kg(45.36, "lbs")  # => 100.0
+#   WeightConverter.to_kg(100, "lbs")  # => 45.359237
+#   WeightConverter.from_kg(45.359237, "lbs")  # => 100.0
 #   WeightConverter.convert(100, from: "lbs", to: "kg")  # => 45.36
 #
 # With machine weight ratios (for cable pulleys):
@@ -26,23 +26,27 @@
 #
 class WeightConverter
   # Conversion constants
-  KG_TO_LBS = 2.20462  # 1 kg = 2.20462 lbs
-  LBS_TO_KG = 1 / KG_TO_LBS  # 1 lb = 0.453592 kg
+  KG_TO_LBS = BigDecimal('2.2046226218487757') # Exact inverse of 0.45359237
+  LBS_TO_KG = BigDecimal('0.45359237') # 1 lb = 0.45359237 kg
+  STORAGE_SCALE = 6
+  DISPLAY_SCALE = 2
 
   class << self
     # Convert a value to kilograms
     # @param value [Numeric] the weight value
     # @param from_unit [String] "kg" or "lbs"
-    # @return [Float, nil] weight in kg
+    # @return [Float, nil] weight in kg, rounded for storage precision
     def to_kg(value, from_unit = 'kg')
       return nil if value.nil?
 
-      case from_unit.to_s.downcase
+      converted = case from_unit.to_s.downcase
       when 'lbs'
-        (value.to_f * LBS_TO_KG).round(2)
+        decimal(value) * LBS_TO_KG
       else
-        value.to_f.round(2)
+        decimal(value)
       end
+
+      round_storage(converted)
     end
 
     # Convert a value from kilograms to another unit
@@ -52,12 +56,14 @@ class WeightConverter
     def from_kg(kg_value, to_unit = 'kg')
       return nil if kg_value.nil?
 
-      case to_unit.to_s.downcase
+      converted = case to_unit.to_s.downcase
       when 'lbs'
-        (kg_value.to_f * KG_TO_LBS).round(2)
+        decimal(kg_value) * KG_TO_LBS
       else
-        kg_value.to_f.round(2)
+        decimal(kg_value)
       end
+
+      round_display(converted)
     end
 
     # Convert between any two units
@@ -67,7 +73,7 @@ class WeightConverter
     # @return [Float, nil] converted weight
     def convert(value, from:, to:)
       return nil if value.nil?
-      return value.to_f.round(2) if from == to
+      return round_display(decimal(value)) if from == to
 
       kg_value = to_kg(value, from)
       from_kg(kg_value, to)
@@ -87,18 +93,19 @@ class WeightConverter
     #
     # @param displayed_value [Numeric] weight shown on machine
     # @param machine [Machine] the machine record
+    # @param fallback_unit [String] unit to use when the machine has no display unit
     # @return [Float, nil] actual weight being lifted in kg
-    def machine_to_kg(displayed_value, machine)
+    def machine_to_kg(displayed_value, machine, fallback_unit: 'kg')
       return nil if displayed_value.nil?
       return to_kg(displayed_value, 'kg') if machine.nil?
 
       # First convert from machine's display unit to kg
-      unit = machine.display_unit || 'kg'
+      unit = machine.display_unit.presence || fallback_unit
       kg_value = to_kg(displayed_value, unit)
 
       # Then apply weight ratio for cables
       if machine.weight_ratio.present?
-        kg_value = (kg_value * machine.weight_ratio).round(2)
+        kg_value = round_storage(decimal(kg_value) * decimal(machine.weight_ratio))
       end
 
       kg_value
@@ -118,19 +125,20 @@ class WeightConverter
     #
     # @param kg_value [Numeric] actual weight in kg
     # @param machine [Machine] the machine record
+    # @param fallback_unit [String] unit to use when the machine has no display unit
     # @return [Float, nil] weight to set on machine
-    def kg_to_machine(kg_value, machine)
+    def kg_to_machine(kg_value, machine, fallback_unit: 'kg')
       return nil if kg_value.nil?
       return from_kg(kg_value, 'kg') if machine.nil?
 
       # First reverse the weight ratio
-      value = kg_value.to_f
+      value = decimal(kg_value)
       if machine.weight_ratio.present? && machine.weight_ratio > 0
-        value = value / machine.weight_ratio
+        value /= decimal(machine.weight_ratio)
       end
 
       # Then convert to machine's display unit
-      unit = machine.display_unit || 'kg'
+      unit = machine.display_unit.presence || fallback_unit
       from_kg(value, unit)
     end
 
@@ -180,6 +188,18 @@ class WeightConverter
       else
         Kernel.format('%.2f', rounded)
       end
+    end
+
+    def decimal(value)
+      BigDecimal(value.to_s)
+    end
+
+    def round_storage(value)
+      value.round(STORAGE_SCALE).to_f
+    end
+
+    def round_display(value)
+      value.round(DISPLAY_SCALE).to_f
     end
   end
 end

@@ -814,6 +814,7 @@ select option:checked {
 // Workout page styles
 .workout-block {
   overflow: hidden;
+  position: relative;
 
   &:has(.dropdown-menu.show) {
     overflow: visible;
@@ -822,6 +823,20 @@ select option:checked {
   .card-header {
     background: linear-gradient(135deg, $iron-medium 0%, $iron-dark 100%);
     border-bottom: 1px solid $iron-light;
+  }
+}
+
+.workout-block--superset {
+  border-color: rgba($rust, 0.7);
+  background:
+    linear-gradient(180deg, rgba($rust, 0.08) 0%, rgba($iron-dark, 0.98) 18%, rgba($iron-medium, 0.96) 100%);
+  box-shadow:
+    0 0 0 1px rgba($rust, 0.12),
+    0 14px 34px rgba(0, 0, 0, 0.28);
+
+  .card-header {
+    background: linear-gradient(135deg, rgba($rust, 0.24) 0%, rgba($iron-medium, 0.98) 35%, rgba($iron-dark, 1) 100%);
+    border-bottom-color: rgba($rust, 0.35);
   }
 }
 
@@ -848,6 +863,7 @@ select option:checked {
   align-items: center;
   gap: 0.55rem;
   min-width: 0;
+  flex-wrap: wrap;
 }
 
 .workout-block-number {
@@ -855,6 +871,21 @@ select option:checked {
   font-size: 1.15rem;
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.92);
+  line-height: 1;
+}
+
+.workout-block-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba($rust, 0.45);
+  background: rgba($rust, 0.12);
+  color: rgba(255, 237, 226, 0.94);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   line-height: 1;
 }
 
@@ -870,13 +901,21 @@ select option:checked {
   background: rgba($iron-dark, 0.52);
 }
 
-.workout-block--superset {
-  border-color: rgba($rust, 0.45);
-  box-shadow: inset 0 0 0 1px rgba($rust, 0.12);
+.workout-block-subheading--superset {
+  background: linear-gradient(90deg, rgba($rust, 0.12) 0%, rgba($iron-dark, 0.62) 100%);
+}
 
-  .workout-block-subheading {
-    background: linear-gradient(90deg, rgba($rust, 0.16) 0%, rgba($iron-dark, 0.72) 100%);
-  }
+.workout-block-subheading__content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.workout-block-instruction {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.84rem;
+  font-weight: 600;
 }
 
 .workout-block-header__actions {
@@ -899,6 +938,86 @@ select option:checked {
   gap: 0.3rem;
 }
 
+.workout-block-superset-link {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 0.4rem 1rem 0.15rem;
+  margin-top: -0.2rem;
+  z-index: 1;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 3rem;
+    right: 3rem;
+    top: 50%;
+    border-top: 1px dashed rgba($rust, 0.38);
+    transform: translateY(-50%);
+  }
+
+  span {
+    position: relative;
+    padding: 0.1rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid rgba($rust, 0.25);
+    background: rgba($iron-dark, 0.96);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+}
+
+.workout-exercise-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.workout-exercise-title-copy {
+  min-width: 0;
+}
+
+.workout-exercise--superset-item {
+  position: relative;
+  background: linear-gradient(180deg, rgba($rust, 0.03) 0%, rgba($iron-dark, 0) 100%);
+
+  .card-body {
+    padding-top: 0.85rem;
+  }
+}
+
+.workout-exercise-superset-slot {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.12rem;
+  min-width: 3.5rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgba($rust, 0.38);
+  background: linear-gradient(180deg, rgba($rust, 0.22) 0%, rgba($iron-medium, 0.92) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.workout-exercise-superset-slot__label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.15rem;
+  letter-spacing: 0.08em;
+  color: #fff;
+  line-height: 1;
+}
+
+.workout-exercise-superset-slot__hint {
+  color: rgba(255, 237, 226, 0.72);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
 @media (max-width: 576px) {
   .workout-block-header__actions {
     gap: 0.45rem;
@@ -907,6 +1026,34 @@ select option:checked {
   .workout-block-superset-btn {
     min-height: 1.85rem;
     padding: 0.26rem 0.72rem;
+  }
+
+  .workout-block-subheading__content {
+    gap: 0.45rem;
+  }
+
+  .workout-block-instruction {
+    width: 100%;
+    font-size: 0.76rem;
+  }
+
+  .workout-block-superset-link::before {
+    left: 1.25rem;
+    right: 1.25rem;
+  }
+
+  .workout-exercise-title-wrap {
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+
+  .workout-exercise-superset-slot {
+    min-width: 3rem;
+    padding: 0.35rem 0.5rem;
+  }
+
+  .workout-exercise-superset-slot__label {
+    font-size: 1rem;
   }
 }
 
@@ -964,14 +1111,6 @@ select option:checked {
       background: rgba(#cd7f32, 0.1);
     }
   }
-}
-
-.superset-sequence-badge {
-  background: rgba($rust, 0.18);
-  color: lighten($rust, 18%);
-  border: 1px solid rgba($rust, 0.45);
-  font-family: 'JetBrains Mono', monospace;
-  letter-spacing: 0.04em;
 }
 
 .set-row {
@@ -2401,29 +2540,6 @@ html.turbo-loading {
 
   &.show {
     opacity: 0.7;
-  }
-}
-
-// iPhone/PWA safe area for modal close controls.
-// Prevents modal headers and close buttons from colliding with the status/notch region.
-@media (display-mode: standalone) and (max-width: 991.98px) {
-  .modal.show .modal-dialog,
-  .modal.fade.show .modal-dialog {
-    margin-top: max(0.5rem, env(safe-area-inset-top));
-  }
-
-  .modal-header {
-    padding-top: calc(var(--bs-modal-header-padding-y) + env(safe-area-inset-top));
-  }
-
-  .modal-fullscreen-sm-down .modal-header,
-  .modal-fullscreen .modal-header {
-    padding-top: calc(var(--bs-modal-header-padding-y) + env(safe-area-inset-top));
-  }
-
-  .modal-header .btn-close {
-    margin-top: 0;
-    align-self: flex-start;
   }
 }
 

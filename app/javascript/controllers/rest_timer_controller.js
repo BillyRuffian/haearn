@@ -19,6 +19,7 @@ export default class extends Controller {
     this.interval = null
     this.lastAlertAt = 0
     this.lastSetLoggedAt = 0
+    this.lastCountdownCueSecond = null
 
     const savedDuration = this.savedPreferredDuration()
     if (savedDuration) {
@@ -131,9 +132,11 @@ export default class extends Controller {
 
     // Use shorter interval for responsive UI, but rely on timestamps for accuracy
     this.interval = setInterval(() => {
-      this.updateDisplay()
+      const remaining = this.remaining
+      this.updateDisplayFor(remaining)
+      this.playCountdownCueIfNeeded(remaining)
 
-      if (this.remaining <= 0) {
+      if (remaining <= 0) {
         this.complete()
       }
     }, 100) // Update frequently for smooth countdown
@@ -142,6 +145,7 @@ export default class extends Controller {
   start() {
     if (this.isRunning) return
 
+    this.resetCountdownCueState()
     this.isRunning = true
     this.endTime = Date.now() + (this.totalDuration * 1000)
     this.saveTimerState()
@@ -155,6 +159,7 @@ export default class extends Controller {
       clearInterval(this.interval)
       this.interval = null
     }
+    this.resetCountdownCueState()
     this.isRunning = false
     this.endTime = null
     this.clearTimerState()
@@ -228,8 +233,10 @@ export default class extends Controller {
   }
 
   updateDisplay() {
-    const remaining = this.remaining
+    this.updateDisplayFor(this.remaining)
+  }
 
+  updateDisplayFor(remaining) {
     if (this.hasDisplayTarget) {
       const mins = Math.floor(remaining / 60)
       const secs = remaining % 60
@@ -259,10 +266,12 @@ export default class extends Controller {
   handleVisibilityChange() {
     if (document.visibilityState === "visible" && this.isRunning) {
       // Force immediate update when app comes back to foreground
-      this.updateDisplay()
+      const remaining = this.remaining
+      this.updateDisplayFor(remaining)
+      this.playCountdownCueIfNeeded(remaining)
 
       // Check if timer completed while backgrounded
-      if (this.remaining <= 0) {
+      if (remaining <= 0) {
         this.complete()
       }
     }
@@ -417,6 +426,55 @@ export default class extends Controller {
     } catch (e) {
       console.log("Audio not available:", e)
     }
+  }
+
+  playCountdownCueIfNeeded(remaining) {
+    if (remaining > 4 || remaining <= 0) {
+      this.lastCountdownCueSecond = null
+      return
+    }
+
+    if (remaining === this.lastCountdownCueSecond) {
+      return
+    }
+
+    this.lastCountdownCueSecond = remaining
+    this.playCountdownPip()
+  }
+
+  playCountdownPip() {
+    try {
+      if (!this.audioContext) {
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
+      }
+
+      if (this.audioContext.state === "suspended") {
+        this.audioContext.resume().catch(() => {})
+      }
+
+      const oscillator = this.audioContext.createOscillator()
+      const gainNode = this.audioContext.createGain()
+      const now = this.audioContext.currentTime
+
+      oscillator.connect(gainNode)
+      gainNode.connect(this.audioContext.destination)
+
+      oscillator.frequency.value = 880
+      oscillator.type = "sine"
+
+      gainNode.gain.setValueAtTime(0, now)
+      gainNode.gain.linearRampToValueAtTime(0.22, now + 0.01)
+      gainNode.gain.linearRampToValueAtTime(0, now + 0.12)
+
+      oscillator.start(now)
+      oscillator.stop(now + 0.12)
+    } catch (e) {
+      console.log("Countdown audio not available:", e)
+    }
+  }
+
+  resetCountdownCueState() {
+    this.lastCountdownCueSecond = null
   }
 
   vibrate() {

@@ -1,9 +1,16 @@
 <% is_superset = block.superset? %>
+<% superset_group_label = is_superset ? "#{(block.position + 64).chr}" : nil %>
 <div class="card mb-3 workout-block <%= 'workout-block--superset' if is_superset %>" id="<%= dom_id(block) %>" data-block-id="<%= block.id %>">
   <% if workout.in_progress? %>
     <div class="drag-handle workout-block-header px-3 py-2 border-bottom bg-dark bg-opacity-25">
       <div class="workout-block-header__label">
         <span class="workout-block-number">#<%= block.position %></span>
+        <% if is_superset %>
+          <span class="workout-block-kicker">
+            <i class="bi bi-arrow-repeat"></i>
+            Superset <%= superset_group_label %>
+          </span>
+        <% end %>
       </div>
 
       <div class="workout-block-header__actions">
@@ -18,10 +25,11 @@
     </div>
 
     <% if is_superset %>
-      <div class="workout-block-subheading px-3 py-2 border-bottom">
-        <span class="workout-block-meta">
-          <i class="bi bi-arrow-repeat me-1"></i>Superset · <%= pluralize(block.workout_exercises.count, "exercise") %>
-        </span>
+      <div class="workout-block-subheading workout-block-subheading--superset px-3 py-2 border-bottom">
+        <div class="workout-block-subheading__content">
+          <span class="workout-block-meta"><%= pluralize(block.workout_exercises.count, "exercise") %></span>
+          <span class="workout-block-instruction">Alternate <%= superset_group_label %>1 and <%= superset_group_label %>2, then rest.</span>
+        </div>
       </div>
     <% end %>
   <% end %>
@@ -29,6 +37,13 @@
     <%= render "workout_exercise", 
         workout_exercise: workout_exercise, 
         workout: workout,
-        superset_label: is_superset ? "#{(block.position + 64).chr}#{index + 1}" : nil %>
+        superset_label: is_superset ? "#{superset_group_label}#{index + 1}" : nil,
+        superset_position: index + 1,
+        superset_count: block.workout_exercises.count %>
+    <% if is_superset && index < block.workout_exercises.count - 1 %>
+      <div class="workout-block-superset-link" aria-hidden="true">
+        <span>Switch</span>
+      </div>
+    <% end %>
   <% end %>
 </div>
