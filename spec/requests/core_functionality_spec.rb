@@ -261,4 +261,23 @@ RSpec.describe 'Core functionality', type: :request do
     expect(active_machine.reload.active?).to eq(true)
     expect(retired_machine.reload.retired?).to eq(true)
   end
+
+  it 'refreshes the gym equipment panel over Turbo Stream when retiring equipment' do
+    sign_in_as(user)
+
+    machine = gym.machines.create!(
+      name: 'Turbo Retire Machine',
+      equipment_type: 'machine',
+      display_unit: 'kg'
+    )
+
+    patch retire_gym_machine_path(gym, machine), headers: { 'ACCEPT' => 'text/vnd.turbo-stream.html' }
+
+    expect(response).to have_http_status(:ok)
+    expect(response.media_type).to eq('text/vnd.turbo-stream.html')
+    expect(response.body).to include('action="replace" target="gym_machines_panel"')
+    expect(response.body).to include('Turbo Retire Machine')
+    expect(response.body).to include('Retired Equipment')
+    expect(machine.reload.retired?).to eq(true)
+  end
 end

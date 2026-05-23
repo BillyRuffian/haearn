@@ -76,12 +76,44 @@ class MachinesController < ApplicationController
 
   def retire
     @machine.update!(retired_at: Time.current)
-    redirect_to gym_path(@gym), notice: "#{@machine.name} retired. It will stay in history but won't appear in future equipment pickers."
+
+    respond_to do |format|
+      format.turbo_stream do
+        prepare_gym_machines_panel
+        render turbo_stream: turbo_stream.replace(
+          'gym_machines_panel',
+          partial: 'gyms/machines_panel',
+          locals: {
+            gym: @gym,
+            machines: @machines,
+            retired_machines: @retired_machines,
+            new_machine: @new_machine
+          }
+        )
+      end
+      format.html { redirect_to gym_path(@gym), notice: "#{@machine.name} retired. It will stay in history but won't appear in future equipment pickers." }
+    end
   end
 
   def reactivate
     @machine.update!(retired_at: nil)
-    redirect_to gym_path(@gym), notice: "#{@machine.name} is active again."
+
+    respond_to do |format|
+      format.turbo_stream do
+        prepare_gym_machines_panel
+        render turbo_stream: turbo_stream.replace(
+          'gym_machines_panel',
+          partial: 'gyms/machines_panel',
+          locals: {
+            gym: @gym,
+            machines: @machines,
+            retired_machines: @retired_machines,
+            new_machine: @new_machine
+          }
+        )
+      end
+      format.html { redirect_to gym_path(@gym), notice: "#{@machine.name} is active again." }
+    end
   end
 
   # DELETE /gyms/:gym_id/machines/:id/delete_photo?photo_id=X
@@ -125,5 +157,11 @@ class MachinesController < ApplicationController
 
   def build_machine_with_defaults
     @gym.machines.build(display_unit: Current.user.preferred_unit)
+  end
+
+  def prepare_gym_machines_panel
+    @machines = @gym.machines.active.ordered
+    @retired_machines = @gym.machines.retired.ordered
+    @new_machine = build_machine_with_defaults
   end
 end

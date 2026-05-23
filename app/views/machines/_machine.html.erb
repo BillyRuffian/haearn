@@ -50,11 +50,11 @@
             <i class="bi bi-pencil"></i>
           <% end %>
           <% if machine.retired? %>
-            <%= button_to reactivate_gym_machine_path(gym, machine), method: :patch, class: "btn btn-sm btn-outline-success", data: { turbo_frame: "_top", turbo_confirm: "Reactivate #{machine.name}?" } do %>
+            <%= button_to reactivate_gym_machine_path(gym, machine), method: :patch, class: "btn btn-sm btn-outline-success", data: { turbo_confirm: "Reactivate #{machine.name}?" } do %>
               <i class="bi bi-arrow-counterclockwise"></i>
             <% end %>
           <% else %>
-            <%= button_to retire_gym_machine_path(gym, machine), method: :patch, class: "btn btn-sm btn-outline-warning", data: { turbo_frame: "_top", turbo_confirm: "Retire #{machine.name}? It will stay in history but won't appear in future equipment pickers." } do %>
+            <%= button_to retire_gym_machine_path(gym, machine), method: :patch, class: "btn btn-sm btn-outline-warning", data: { turbo_confirm: "Retire #{machine.name}? It will stay in history but won't appear in future equipment pickers." } do %>
               <i class="bi bi-archive"></i>
             <% end %>
           <% end %>
