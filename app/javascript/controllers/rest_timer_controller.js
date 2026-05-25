@@ -20,6 +20,8 @@ export default class extends Controller {
     this.lastAlertAt = 0
     this.lastSetLoggedAt = 0
     this.lastCountdownCueSecond = null
+    this.audioContext = null
+    this.audioUnlocked = false
 
     const savedDuration = this.savedPreferredDuration()
     if (savedDuration) {
@@ -50,9 +52,16 @@ export default class extends Controller {
     this.visibilityHandler = this.handleVisibilityChange.bind(this)
     document.addEventListener("visibilitychange", this.visibilityHandler)
 
-    // iOS Safari/PWA can keep audio context suspended unless it is primed by gesture.
-    this.pointerUnlockHandler = this.warmUpAudio.bind(this)
-    window.addEventListener("pointerdown", this.pointerUnlockHandler, { once: true })
+    // iOS Safari/PWA can keep audio contexts suspended unless they are unlocked
+    // from a real gesture and resumed again after page/app transitions.
+    this.audioUnlockHandler = this.warmUpAudio.bind(this)
+    this.pageShowHandler = this.handlePageShow.bind(this)
+    document.addEventListener("touchstart", this.audioUnlockHandler, { capture: true, passive: true })
+    document.addEventListener("pointerdown", this.audioUnlockHandler, { capture: true, passive: true })
+    document.addEventListener("mousedown", this.audioUnlockHandler, { capture: true, passive: true })
+    document.addEventListener("click", this.audioUnlockHandler, { capture: true, passive: true })
+    document.addEventListener("keydown", this.audioUnlockHandler, { capture: true })
+    window.addEventListener("pageshow", this.pageShowHandler)
   }
 
   disconnect() {
@@ -77,7 +86,12 @@ export default class extends Controller {
     document.removeEventListener("turbo:load", this.turboSyncHandler)
     document.removeEventListener("turbo:render", this.turboSyncHandler)
     document.removeEventListener("visibilitychange", this.visibilityHandler)
-    window.removeEventListener("pointerdown", this.pointerUnlockHandler)
+    document.removeEventListener("touchstart", this.audioUnlockHandler, { capture: true })
+    document.removeEventListener("pointerdown", this.audioUnlockHandler, { capture: true })
+    document.removeEventListener("mousedown", this.audioUnlockHandler, { capture: true })
+    document.removeEventListener("click", this.audioUnlockHandler, { capture: true })
+    document.removeEventListener("keydown", this.audioUnlockHandler, { capture: true })
+    window.removeEventListener("pageshow", this.pageShowHandler)
   }
 
   collapsedTargetConnected() {
@@ -264,6 +278,10 @@ export default class extends Controller {
   }
 
   handleVisibilityChange() {
+    if (document.visibilityState === "visible") {
+      this.resumeAudioContext()
+    }
+
     if (document.visibilityState === "visible" && this.isRunning) {
       // Force immediate update when app comes back to foreground
       const remaining = this.remaining
@@ -275,6 +293,10 @@ export default class extends Controller {
         this.complete()
       }
     }
+  }
+
+  handlePageShow() {
+    this.resumeAudioContext()
   }
 
   showTimer() {
@@ -371,60 +393,174 @@ export default class extends Controller {
     return savedDuration === this.defaultDurationValue ? savedDuration : null
   }
 
-  // Initialize audio context during user gesture (start/setLogged) so it's
-  // ready to play when the timer completes (which is not a user gesture)
-  warmUpAudio() {
+  ensureAudioContext() {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext
+    if (!AudioContextClass) {
+      return null
+    }
+
     try {
-      if (!this.audioContext) {
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
+      if (!this.audioContext || this.audioContext.state === "closed") {
+        this.audioContext = new AudioContextClass()
       }
-      if (this.audioContext.state === "suspended") {
-        this.audioContext.resume().catch(() => {})
-      }
-    } catch (e) {
-      console.log("Audio context init failed:", e)
+      return this.audioContext
+    } catch (error) {
+      console.log("Audio context init failed:", error)
+      return null
     }
   }
 
+  resumeAudioContext() {
+    const context = this.ensureAudioContext()
+    if (!context) {
+      return Promise.resolve(null)
+    }
+
+    if (context.state === "running") {
+      this.audioUnlocked = true
+      return Promise.resolve(context)
+    }
+
+    return context.resume()
+      .then(() => {
+        if (context.state === "running") {
+          this.audioUnlocked = true
+        }
+        return context
+      })
+      .catch((error) => {
+        console.log("Audio context resume failed:", error)
+        return null
+      })
+  }
+
+  // Prime Web Audio from a real user gesture so later countdown/completion cues
+  // can still sound after timers finish asynchronously on iPhone Safari/PWA.
+  warmUpAudio() {
+    return this.resumeAudioContext().then((context) => {
+      if (!context || context.state !== "running") {
+        return null
+      }
+
+      try {
+        const buffer = context.createBuffer(1, 1, context.sampleRate)
+        const source = context.createBufferSource()
+        const gainNode = context.createGain()
+
+        source.buffer = buffer
+        gainNode.gain.value = 0.00001
+
+        source.connect(gainNode)
+        gainNode.connect(context.destination)
+        source.start(context.currentTime)
+        source.stop(context.currentTime + 0.001)
+        this.audioUnlocked = true
+      } catch (error) {
+        console.log("Audio warm-up pulse failed:", error)
+      }
+
+      return context
+    })
+  }
+
   playAlert() {
-    // Play alert beeps using Web Audio API
+    this.withReadyAudioContext((context) => {
+      const now = context.currentTime
+
+      this.playShapedTone(context, {
+        startTime: now,
+        frequency: 146.83,
+        duration: 0.28,
+        gain: 0.42,
+        overtoneFrequency: 220.0,
+        overtoneGain: 0.06,
+        lowpassFrequency: 620
+      })
+      this.playShapedTone(context, {
+        startTime: now + 0.31,
+        frequency: 164.81,
+        duration: 0.28,
+        gain: 0.44,
+        overtoneFrequency: 246.94,
+        overtoneGain: 0.065,
+        lowpassFrequency: 660
+      })
+      this.playShapedTone(context, {
+        startTime: now + 0.64,
+        frequency: 123.47,
+        duration: 0.62,
+        gain: 0.52,
+        overtoneFrequency: 185.0,
+        overtoneGain: 0.08,
+        lowpassFrequency: 540
+      })
+    }, "Audio not available:")
+  }
+
+  withReadyAudioContext(callback, logPrefix = "Audio not available:") {
+    this.resumeAudioContext()
+      .then((context) => {
+        if (!context || context.state !== "running") {
+          return
+        }
+
+        callback(context)
+      })
+      .catch((error) => {
+        console.log(logPrefix, error)
+      })
+  }
+
+  playShapedTone(context, {
+    startTime,
+    frequency,
+    duration,
+    gain = 0.28,
+    overtoneFrequency = null,
+    overtoneGain = 0.08,
+    lowpassFrequency = 1100
+  }) {
     try {
-      // Ensure audio context exists (warmUpAudio should have created it)
-      if (!this.audioContext) {
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
+      const filterNode = context.createBiquadFilter()
+      const gainNode = context.createGain()
+      const mainOscillator = context.createOscillator()
+
+      filterNode.type = "lowpass"
+      filterNode.frequency.setValueAtTime(lowpassFrequency, startTime)
+      gainNode.gain.setValueAtTime(0.00001, startTime)
+      gainNode.gain.linearRampToValueAtTime(gain, startTime + 0.015)
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + duration)
+
+      mainOscillator.type = "triangle"
+      mainOscillator.frequency.setValueAtTime(frequency * 1.04, startTime)
+      mainOscillator.frequency.exponentialRampToValueAtTime(frequency, startTime + 0.06)
+
+      mainOscillator.connect(filterNode)
+      filterNode.connect(gainNode)
+      gainNode.connect(context.destination)
+
+      const oscillators = [mainOscillator]
+
+      if (overtoneFrequency) {
+        const overtoneOscillator = context.createOscillator()
+        const overtoneMix = context.createGain()
+
+        overtoneOscillator.type = "sine"
+        overtoneOscillator.frequency.setValueAtTime(overtoneFrequency * 1.02, startTime)
+        overtoneOscillator.frequency.exponentialRampToValueAtTime(overtoneFrequency, startTime + 0.05)
+        overtoneMix.gain.setValueAtTime(overtoneGain, startTime)
+
+        overtoneOscillator.connect(overtoneMix)
+        overtoneMix.connect(filterNode)
+        oscillators.push(overtoneOscillator)
       }
 
-      // Last-resort resume attempt
-      if (this.audioContext.state === "suspended") {
-        this.audioContext.resume().catch(() => {})
-      }
-
-      const playBeep = (startTime, frequency, duration) => {
-        const oscillator = this.audioContext.createOscillator()
-        const gainNode = this.audioContext.createGain()
-
-        oscillator.connect(gainNode)
-        gainNode.connect(this.audioContext.destination)
-
-        oscillator.frequency.value = frequency
-        oscillator.type = "sine"
-
-        // Fade in/out to avoid clicks
-        gainNode.gain.setValueAtTime(0, startTime)
-        gainNode.gain.linearRampToValueAtTime(0.4, startTime + 0.01)
-        gainNode.gain.linearRampToValueAtTime(0, startTime + duration)
-
+      oscillators.forEach((oscillator) => {
         oscillator.start(startTime)
         oscillator.stop(startTime + duration)
-      }
-
-      const now = this.audioContext.currentTime
-      // Three ascending beeps
-      playBeep(now, 660, 0.15)        // E5
-      playBeep(now + 0.2, 880, 0.15)  // A5
-      playBeep(now + 0.4, 1100, 0.25) // C#6 (longer final beep)
-    } catch (e) {
-      console.log("Audio not available:", e)
+      })
+    } catch (error) {
+      console.log("Tone shaping failed:", error)
     }
   }
 
@@ -443,34 +579,17 @@ export default class extends Controller {
   }
 
   playCountdownPip() {
-    try {
-      if (!this.audioContext) {
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext)()
-      }
-
-      if (this.audioContext.state === "suspended") {
-        this.audioContext.resume().catch(() => {})
-      }
-
-      const oscillator = this.audioContext.createOscillator()
-      const gainNode = this.audioContext.createGain()
-      const now = this.audioContext.currentTime
-
-      oscillator.connect(gainNode)
-      gainNode.connect(this.audioContext.destination)
-
-      oscillator.frequency.value = 880
-      oscillator.type = "sine"
-
-      gainNode.gain.setValueAtTime(0, now)
-      gainNode.gain.linearRampToValueAtTime(0.22, now + 0.01)
-      gainNode.gain.linearRampToValueAtTime(0, now + 0.12)
-
-      oscillator.start(now)
-      oscillator.stop(now + 0.12)
-    } catch (e) {
-      console.log("Countdown audio not available:", e)
-    }
+    this.withReadyAudioContext((context) => {
+      this.playShapedTone(context, {
+        startTime: context.currentTime,
+        frequency: 130.81,
+        duration: 0.2,
+        gain: 0.28,
+        overtoneFrequency: 196.0,
+        overtoneGain: 0.045,
+        lowpassFrequency: 520
+      })
+    }, "Countdown audio not available:")
   }
 
   resetCountdownCueState() {

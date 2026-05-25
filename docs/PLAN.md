@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: May 21, 2026
+> Last Updated: May 25, 2026
 
 ## Overview
 
@@ -11,6 +11,9 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Restore the Body Metrics mobile settings quick link so the body metrics pages remain discoverable on phone layouts
+- [x] Stabilize week-based performance notification tests with fixed dates so volume-drop coverage does not fail on calendar boundaries
+- [x] Revoice the rest-timer countdown/completion cues with lower, heavier tones and harden iPhone audio-context warm-up/resume behavior
 - [x] Refresh the gym equipment panel in place when retiring or reactivating equipment instead of leaving stale machine lists on screen
 - [x] Add versioned public icon URLs so iPhone home-screen installs refresh swapped favicon/PWA assets instead of reusing stale caches
 - [x] Swap in the new favicon/PWA icon set and realign the app manifest plus cached shell icon paths

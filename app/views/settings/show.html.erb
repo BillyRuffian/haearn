@@ -12,6 +12,14 @@
       <div class="card mb-4 d-lg-none">
         <div class="card-body p-0">
           <div class="list-group list-group-flush">
+            <%= link_to body_metrics_path, class: "list-group-item list-group-item-action d-flex justify-content-between align-items-center" do %>
+              <div>
+                <i class="bi bi-person-lines-fill me-2"></i>
+                <strong>Body Metrics</strong>
+                <p class="text-muted small mb-0">Track bodyweight and measurements</p>
+              </div>
+              <i class="bi bi-chevron-right"></i>
+            <% end %>
             <%= link_to gyms_path, class: "list-group-item list-group-item-action d-flex justify-content-between align-items-center" do %>
               <div>
                 <i class="bi bi-building me-2"></i>

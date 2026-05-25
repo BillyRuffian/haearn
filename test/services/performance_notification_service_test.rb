@@ -44,16 +44,18 @@ class PerformanceNotificationServiceTest < ActiveSupport::TestCase
   end
 
   test 'creates weekly volume drop notification' do
-    # Last week: high volume
-    create_workout_with_volume(days_ago: 8, sets: [ [ 100, 10 ], [ 100, 10 ] ])
-    # This week: low volume
-    create_workout_with_volume(days_ago: 1, sets: [ [ 50, 4 ] ])
+    travel_to Time.zone.local(2026, 2, 18, 9, 0, 0) do
+      # Last week: high volume
+      create_workout_with_volume(days_ago: 8, sets: [ [ 100, 10 ], [ 100, 10 ] ])
+      # This week: low volume
+      create_workout_with_volume(days_ago: 1, sets: [ [ 50, 4 ] ])
 
-    notifications = PerformanceNotificationService.new(user: @user).refresh!
-    volume_drop = notifications.find { |n| n.kind == 'volume_drop' }
+      notifications = PerformanceNotificationService.new(user: @user).refresh!
+      volume_drop = notifications.find { |n| n.kind == 'volume_drop' }
 
-    assert volume_drop
-    assert_equal 'warning', volume_drop.severity
+      assert volume_drop
+      assert_equal 'warning', volume_drop.severity
+    end
   end
 
   test 'refresh is idempotent by dedupe key' do

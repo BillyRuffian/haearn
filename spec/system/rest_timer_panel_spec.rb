@@ -165,6 +165,58 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
     expect(cue_log).to eq([ 'pip', 'pip', 'pip', 'pip', 'alert' ])
   end
 
+  it 'warms and resumes the audio context across iPhone-style gesture and page return events' do
+    visit workout_path(workout)
+
+    page.execute_script(<<~JS)
+      window.__restTimerAudioLifecycle = []
+      const controllerElement = document.querySelector("[data-controller~='rest-timer']")
+      const controller = window.Stimulus?.getControllerForElementAndIdentifier(controllerElement, "rest-timer")
+      if (!controller) throw new Error("Missing rest-timer controller")
+
+      controller.audioContext = {
+        state: "suspended",
+        resume() {
+          window.__restTimerAudioLifecycle.push("resume")
+          this.state = "running"
+          return Promise.resolve()
+        },
+        sampleRate: 44100,
+        currentTime: 0,
+        destination: {},
+        createBuffer() {
+          return {}
+        },
+        createBufferSource() {
+          return {
+            buffer: null,
+            connect() {},
+            start() { window.__restTimerAudioLifecycle.push("warm") },
+            stop() {}
+          }
+        },
+        createGain() {
+          return {
+            gain: {
+              value: 0,
+              setValueAtTime() {},
+              linearRampToValueAtTime() {},
+              exponentialRampToValueAtTime() {}
+            },
+            connect() {}
+          }
+        }
+      }
+    JS
+
+    page.execute_script("document.dispatchEvent(new Event('touchstart', { bubbles: true }))")
+    page.execute_script("window.dispatchEvent(new Event('pageshow'))")
+
+    lifecycle = page.evaluate_script("window.__restTimerAudioLifecycle")
+    expect(lifecycle).to include('resume')
+    expect(lifecycle).to include('warm')
+  end
+
   it 'hides the timer footer, add-exercise button, and mobile toolbar while add or edit set forms are active' do
     visit workout_path(workout)
 
