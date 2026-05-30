@@ -1315,10 +1315,47 @@ body.add-set-form-open .rest-timer-footer {
   padding: 0.5rem 1rem;
   position: relative;
   overflow: hidden;
+  transition:
+    background-color 0.22s ease,
+    border-top-color 0.22s ease,
+    box-shadow 0.22s ease;
 
   &.timer-active {
     border-top-color: $rust;
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.28);
+  }
+
+  &.timer-cue-hot:not(.timer-complete) {
+    background: linear-gradient(
+      180deg,
+      rgba($forge-orange, 0.82) 0%,
+      rgba($rust-light, 0.62) 34%,
+      rgba($rust, 0.58) 68%,
+      rgba($rust-dark, 0.4) 100%
+    );
+    border-top-color: $forge-orange;
+    box-shadow:
+      0 -16px 46px rgba($forge-orange, 0.95),
+      0 -4px 22px rgba($rust-light, 0.72),
+      0 0 0 1px rgba($forge-orange, 0.45),
+      inset 0 1px 0 rgba(#fff, 0.16),
+      inset 0 -10px 24px rgba($rust-dark, 0.26);
+
+    .rest-timer-display {
+      color: #fff7ef;
+      text-shadow:
+        0 0 12px rgba(#fff, 0.35),
+        0 0 28px rgba($forge-orange, 0.95);
+    }
+
+    .rest-timer-progress {
+      background: rgba($rust-dark, 0.52);
+      box-shadow: 0 0 16px rgba($forge-orange, 0.5);
+    }
+  }
+
+  &.timer-cue-pulse:not(.timer-complete) {
+    animation: restTimerCuePulse 0.48s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   &.timer-complete {
@@ -1495,6 +1532,23 @@ body.add-set-form-open .rest-timer-footer {
 
   to {
     background-position: 0 0;
+  }
+}
+
+@keyframes restTimerCuePulse {
+  0% {
+    filter: brightness(1);
+    transform: translateY(0) scale(1);
+  }
+
+  36% {
+    filter: brightness(1.72) saturate(2.15);
+    transform: translateY(-2px) scale(1.018);
+  }
+
+  100% {
+    filter: brightness(1);
+    transform: translateY(0) scale(1);
   }
 }
 

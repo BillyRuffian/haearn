@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: May 25, 2026
+> Last Updated: May 30, 2026
 
 ## Overview
 
@@ -11,6 +11,8 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Add alternating forge-orange visual pulses to the final rest-timer countdown pips while preserving the zero-second gradient sweep
+- [x] Rebalance rest-timer tones with more midrange presence so cues cut through music while keeping a stern, heavy character
 - [x] Restore the Body Metrics mobile settings quick link so the body metrics pages remain discoverable on phone layouts
 - [x] Stabilize week-based performance notification tests with fixed dates so volume-drop coverage does not fail on calendar boundaries
 - [x] Revoice the rest-timer countdown/completion cues with lower, heavier tones and harden iPhone audio-context warm-up/resume behavior

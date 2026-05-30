@@ -174,6 +174,7 @@ export default class extends Controller {
       this.interval = null
     }
     this.resetCountdownCueState()
+    this.clearCountdownCueVisual()
     this.isRunning = false
     this.endTime = null
     this.clearTimerState()
@@ -312,6 +313,7 @@ export default class extends Controller {
   hideTimer() {
     if (this.hasContainerTarget) {
       this.containerTarget.classList.remove("timer-active")
+      this.clearCountdownCueVisual()
       this.setPanelVisible(this.containerTarget, false)
     }
     if (this.hasCollapsedTarget) {
@@ -469,30 +471,30 @@ export default class extends Controller {
 
       this.playShapedTone(context, {
         startTime: now,
-        frequency: 146.83,
-        duration: 0.28,
-        gain: 0.42,
-        overtoneFrequency: 220.0,
-        overtoneGain: 0.06,
-        lowpassFrequency: 620
-      })
-      this.playShapedTone(context, {
-        startTime: now + 0.31,
-        frequency: 164.81,
-        duration: 0.28,
+        frequency: 196.0,
+        duration: 0.26,
         gain: 0.44,
-        overtoneFrequency: 246.94,
-        overtoneGain: 0.065,
-        lowpassFrequency: 660
+        overtoneFrequency: 392.0,
+        overtoneGain: 0.08,
+        lowpassFrequency: 1100
       })
       this.playShapedTone(context, {
-        startTime: now + 0.64,
-        frequency: 123.47,
-        duration: 0.62,
+        startTime: now + 0.29,
+        frequency: 220.0,
+        duration: 0.26,
+        gain: 0.46,
+        overtoneFrequency: 440.0,
+        overtoneGain: 0.085,
+        lowpassFrequency: 1150
+      })
+      this.playShapedTone(context, {
+        startTime: now + 0.6,
+        frequency: 164.81,
+        duration: 0.56,
         gain: 0.52,
-        overtoneFrequency: 185.0,
-        overtoneGain: 0.08,
-        lowpassFrequency: 540
+        overtoneFrequency: 329.63,
+        overtoneGain: 0.1,
+        lowpassFrequency: 950
       })
     }, "Audio not available:")
   }
@@ -576,24 +578,50 @@ export default class extends Controller {
 
     this.lastCountdownCueSecond = remaining
     this.playCountdownPip()
+    this.renderCountdownCueVisual(remaining)
   }
 
   playCountdownPip() {
     this.withReadyAudioContext((context) => {
       this.playShapedTone(context, {
         startTime: context.currentTime,
-        frequency: 130.81,
-        duration: 0.2,
-        gain: 0.28,
-        overtoneFrequency: 196.0,
-        overtoneGain: 0.045,
-        lowpassFrequency: 520
+        frequency: 196.0,
+        duration: 0.19,
+        gain: 0.34,
+        overtoneFrequency: 392.0,
+        overtoneGain: 0.07,
+        lowpassFrequency: 1150
       })
     }, "Countdown audio not available:")
   }
 
   resetCountdownCueState() {
     this.lastCountdownCueSecond = null
+  }
+
+  renderCountdownCueVisual(remaining) {
+    if (!this.hasContainerTarget) return
+
+    const showOrangePulse = remaining % 2 === 0
+    this.containerTarget.classList.toggle("timer-cue-hot", showOrangePulse)
+    this.containerTarget.classList.remove("timer-cue-pulse")
+
+    requestAnimationFrame(() => {
+      if (!this.hasContainerTarget) return
+
+      this.containerTarget.classList.add("timer-cue-pulse")
+      setTimeout(() => {
+        if (this.hasContainerTarget) {
+          this.containerTarget.classList.remove("timer-cue-pulse")
+        }
+      }, 340)
+    })
+  }
+
+  clearCountdownCueVisual() {
+    if (!this.hasContainerTarget) return
+
+    this.containerTarget.classList.remove("timer-cue-hot", "timer-cue-pulse")
   }
 
   vibrate() {
