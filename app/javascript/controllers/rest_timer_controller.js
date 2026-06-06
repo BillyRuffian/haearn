@@ -602,8 +602,7 @@ export default class extends Controller {
   renderCountdownCueVisual(remaining) {
     if (!this.hasContainerTarget) return
 
-    const showOrangePulse = remaining % 2 === 0
-    this.containerTarget.classList.toggle("timer-cue-hot", showOrangePulse)
+    this.containerTarget.classList.add("timer-cue-hot")
     this.containerTarget.classList.remove("timer-cue-pulse")
 
     requestAnimationFrame(() => {
@@ -614,7 +613,7 @@ export default class extends Controller {
         if (this.hasContainerTarget) {
           this.containerTarget.classList.remove("timer-cue-pulse")
         }
-      }, 340)
+      }, 480)
     })
   }
 

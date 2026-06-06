@@ -165,7 +165,7 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
     expect(cue_log).to eq([ 'pip', 'pip', 'pip', 'pip', 'alert' ])
   end
 
-  it 'alternates a visual cue with the final countdown pips before the completion gradient' do
+  it 'pulses a visual cue with each final countdown pip before the completion gradient' do
     visit workout_path(workout)
 
     within('.rest-timer-footer') do
@@ -189,7 +189,7 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
       controller.playCountdownCueIfNeeded(3)
     JS
 
-    expect(page).to have_no_css('.rest-timer-bar.timer-cue-hot', visible: true)
+    expect(page).to have_css('.rest-timer-bar.timer-cue-hot', visible: true)
 
     page.execute_script(<<~JS)
       const controllerElement = document.querySelector("[data-controller~='rest-timer']")
@@ -205,7 +205,7 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
       controller.playCountdownCueIfNeeded(1)
     JS
 
-    expect(page).to have_no_css('.rest-timer-bar.timer-cue-hot', visible: true)
+    expect(page).to have_css('.rest-timer-bar.timer-cue-hot', visible: true)
   end
 
   it 'warms and resumes the audio context across iPhone-style gesture and page return events' do
