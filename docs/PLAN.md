@@ -11,6 +11,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Align active-workout "Last" set summaries with exercise history's visible workout-date ordering and harden history tab sorting
 - [x] Keep the bold forge-orange rest-timer visual pulse active on every final countdown pip while preserving the zero-second gradient sweep
 - [x] Add alternating forge-orange visual pulses to the final rest-timer countdown pips while preserving the zero-second gradient sweep
 - [x] Rebalance rest-timer tones with more midrange presence so cues cut through music while keeping a stern, heavy character

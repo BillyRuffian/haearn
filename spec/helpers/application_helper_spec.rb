@@ -130,7 +130,7 @@ RSpec.describe ApplicationHelper, type: :helper do
       expect(second_payload["reps"]).to eq(8)
     end
 
-    it 'uses the most recently finished matching session rather than the most recently started one' do
+    it 'uses the latest visible matching session rather than an older session that finished later' do
       user = users(:one)
       gym = gyms(:one)
       machine = gym.machines.create!(name: 'Chronology Helper Machine', equipment_type: 'machine', display_unit: 'kg')
@@ -175,8 +175,8 @@ RSpec.describe ApplicationHelper, type: :helper do
 
       payload = helper.previous_session_set_data(current_we, 1)
 
-      expect(payload["weight_value"]).to eq("52.5")
-      expect(payload["reps"]).to eq(7)
+      expect(payload["weight_value"]).to eq("47.5")
+      expect(payload["reps"]).to eq(10)
     end
 
     it 'ignores prior sessions for the same exercise on different equipment' do
@@ -393,6 +393,54 @@ RSpec.describe ApplicationHelper, type: :helper do
       expect(helper.last_weight_for(current_we)).to eq("70")
       expect(helper.last_reps_for(current_we)).to eq(12)
       expect(helper.previous_session_sets_for(current_we).map { |set| [ set.weight_kg, set.reps ] }).to eq([ [ 80.0, 15 ], [ 70.0, 12 ] ])
+    end
+
+    it 'matches exercise history by choosing the latest visible workout date, not the latest finish time' do
+      user = users(:one)
+      gym = gyms(:one)
+      machine = gym.machines.create!(name: 'Visible Date Machine', equipment_type: 'machine', display_unit: 'kg')
+      exercise = user.exercises.create!(
+        name: 'Visible Date Exercise',
+        exercise_type: 'reps',
+        has_weight: true,
+        primary_muscle_group: 'glutes'
+      )
+
+      newer_visible_workout = user.workouts.create!(
+        gym: gym,
+        started_at: Time.zone.local(2026, 6, 3, 10, 0, 0),
+        finished_at: Time.zone.local(2026, 6, 3, 11, 0, 0)
+      )
+      newer_visible_block = newer_visible_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+      newer_visible_we = newer_visible_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+      newer_visible_we.exercise_sets.create!(
+        position: 1,
+        weight_kg: 65,
+        reps: 20,
+        completed_at: Time.zone.local(2026, 6, 3, 10, 20, 0)
+      )
+
+      older_visible_late_finished_workout = user.workouts.create!(
+        gym: gym,
+        started_at: Time.zone.local(2026, 3, 11, 10, 0, 0),
+        finished_at: Time.zone.local(2026, 6, 4, 11, 0, 0)
+      )
+      older_visible_block = older_visible_late_finished_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+      older_visible_we = older_visible_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+      older_visible_we.exercise_sets.create!(
+        position: 1,
+        weight_kg: 45,
+        reps: 12,
+        completed_at: Time.zone.local(2026, 3, 11, 10, 20, 0)
+      )
+
+      current_workout = user.workouts.create!(gym: gym, started_at: Time.zone.local(2026, 6, 6, 10, 0, 0), finished_at: nil)
+      current_block = current_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+      current_we = current_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+      expect(helper.previous_session_sets_for(current_we).map { |set| [ set.weight_kg, set.reps ] }).to eq([ [ 65.0, 20 ] ])
+      expect(helper.last_weight_for(current_we)).to eq("65")
+      expect(helper.last_reps_for(current_we)).to eq(20)
     end
   end
 end

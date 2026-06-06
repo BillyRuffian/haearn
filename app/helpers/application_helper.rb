@@ -334,7 +334,7 @@ module ApplicationHelper
       .where.not(workouts: { finished_at: nil })
 
     latest_workout_id = matching_history
-      .reorder(Arel.sql('workouts.finished_at DESC, workouts.started_at DESC, workout_blocks.position DESC, workout_exercises.position DESC'))
+      .reorder(Arel.sql('workouts.started_at DESC, workouts.finished_at DESC, workout_blocks.position DESC, workout_exercises.position DESC'))
       .limit(1)
       .pick('workouts.id')
 

@@ -145,7 +145,7 @@ class ExercisesController < ApplicationController
       .where(exercise_id: @exercise.id)
       .includes(:machine, :exercise_sets, workout_block: :workout)
       .joins(workout_block: :workout)
-      .order(Arel.sql('workouts.started_at DESC'))
+      .order(Arel.sql('workouts.started_at DESC, workout_blocks.position ASC, workout_exercises.position ASC'))
 
     # machine_id selects the initially active tab, but should not hide
     # cross-machine history from the page.

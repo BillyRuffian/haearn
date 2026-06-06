@@ -750,6 +750,61 @@ RSpec.describe 'Workout UI regressions', type: :request do
     )
   end
 
+  it 'keeps machine-tab exercise history ordered by visible date even when records are created out of order' do
+    machine = gym.machines.create!(
+      name: 'Out Of Order History Machine',
+      equipment_type: 'machine',
+      display_unit: 'kg'
+    )
+    exercise = user.exercises.create!(
+      name: 'Out Of Order History Exercise',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'glutes'
+    )
+
+    [
+      [ Time.zone.local(2026, 3, 11, 12, 0, 0), 45, 12 ],
+      [ Time.zone.local(2026, 2, 23, 12, 0, 0), 55, 20 ],
+      [ Time.zone.local(2026, 6, 3, 12, 0, 0), 65, 20 ],
+      [ Time.zone.local(2026, 3, 21, 12, 0, 0), 60, 15 ]
+    ].each_with_index do |(started_at, weight_kg, reps), index|
+      workout = user.workouts.create!(
+        gym: gym,
+        started_at: started_at,
+        finished_at: started_at + 45.minutes
+      )
+      block = workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+      workout_exercise = block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+      workout_exercise.exercise_sets.create!(
+        position: 1,
+        reps: reps,
+        weight_kg: weight_kg,
+        is_warmup: false,
+        completed_at: started_at + (10 + index).minutes
+      )
+    end
+
+    get history_exercise_path(exercise, machine_id: machine.id)
+
+    expect(response).to have_http_status(:ok)
+
+    doc = Nokogiri::HTML.parse(response.body)
+    history_root = doc.at_css("#machine-#{machine.id}.tab-pane.show.active") || doc
+    visible_dates = history_root.css('.history-session h6').map do |heading|
+      heading.text.gsub(/\s+PR\b/, '').squish
+    end
+
+    expect(visible_dates.first(4)).to eq(
+      [
+        'Wednesday, June 3, 2026',
+        'Saturday, March 21, 2026',
+        'Wednesday, March 11, 2026',
+        'Monday, February 23, 2026'
+      ]
+    )
+  end
+
   it 'does not render redundant All and machine tabs when only one machine history bucket exists' do
     machine = gym.machines.create!(
       name: 'Single Bucket Machine',
