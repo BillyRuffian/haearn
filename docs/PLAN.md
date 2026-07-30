@@ -11,6 +11,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Harden the Docker runtime package check so libvips is verified from `vips --version` and jemalloc is linked from the system loader cache
 - [x] Enforce libvips >= 8.13 for Active Storage image variants at Rails boot and during container builds
 - [x] Align active-workout "Last" set summaries with exercise history's visible workout-date ordering and harden history tab sorting
 - [x] Keep the bold forge-orange rest-timer visual pulse active on every final countdown pip while preserving the zero-second gradient sweep
