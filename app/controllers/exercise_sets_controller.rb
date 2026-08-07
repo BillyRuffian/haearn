@@ -29,8 +29,7 @@ class ExerciseSetsController < ApplicationController
               locals: {
                 workout_exercise: @workout_exercise,
                 workout: @workout,
-                set: @workout_exercise.exercise_sets.build,
-                quick_log_mode: params[:quick_log] == '1'
+                set: @workout_exercise.exercise_sets.build
               }),
             turbo_stream.replace('workout_stats',
               partial: 'workouts/stats',
@@ -53,8 +52,7 @@ class ExerciseSetsController < ApplicationController
             locals: {
               workout_exercise: @workout_exercise,
               workout: @workout,
-              set: @exercise_set,
-              quick_log_mode: params[:quick_log] == '1'
+              set: @exercise_set
             })
         end
         format.html { redirect_to workout_path(@workout), alert: 'Could not save set.' }

@@ -506,19 +506,6 @@ select option:checked {
   font-variant-numeric: tabular-nums;
 }
 
-.quick-log-form {
-  .form-control {
-    min-height: 2.35rem;
-    font-size: 1rem;
-  }
-
-  .btn-primary {
-    min-height: 2.35rem;
-    min-width: 5.5rem;
-    font-weight: 700;
-  }
-}
-
 .notifications-dropdown {
   width: min(28rem, calc(100vw - 1rem));
   min-width: 20rem;
@@ -1327,12 +1314,15 @@ body.add-set-form-open .rest-timer-footer {
 
   &.timer-cue-hot:not(.timer-complete) {
     background: linear-gradient(
-      180deg,
-      rgba($forge-orange, 0.82) 0%,
-      rgba($rust-light, 0.62) 34%,
-      rgba($rust, 0.58) 68%,
-      rgba($rust-dark, 0.4) 100%
+      160deg,
+      rgba($forge-orange, 0.92) 0%,
+      rgba($rust-light, 0.76) 26%,
+      rgba($rust, 0.68) 50%,
+      rgba($forge-orange, 0.84) 76%,
+      rgba($rust-dark, 0.52) 100%
     );
+    background-size: 240% 240%;
+    animation: restTimerCueFlow 0.62s cubic-bezier(0.16, 1, 0.3, 1) both;
     border-top-color: $forge-orange;
     box-shadow:
       0 -16px 46px rgba($forge-orange, 0.95),
@@ -1537,16 +1527,19 @@ body.add-set-form-open .rest-timer-footer {
 
 @keyframes restTimerCuePulse {
   0% {
+    background-position: 20% 60%;
     filter: brightness(1);
     transform: translateY(0) scale(1);
   }
 
   36% {
+    background-position: 80% 30%;
     filter: brightness(1.72) saturate(2.15);
     transform: translateY(-2px) scale(1.018);
   }
 
   100% {
+    background-position: 20% 60%;
     filter: brightness(1);
     transform: translateY(0) scale(1);
   }

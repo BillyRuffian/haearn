@@ -132,8 +132,19 @@
       </div>
     <% end %>
 
+    <!-- Form Cues -->
+    <% if workout_exercise.exercise.has_cues? %>
+      <div class="form-cues small mt-1 mb-2 px-2 py-1 rounded" style="background: rgba(255, 107, 53, 0.08); border-left: 3px solid var(--bs-warning);">
+        <i class="bi bi-lightbulb text-warning me-1"></i>
+        <% workout_exercise.exercise.cues_list.each_with_index do |cue, i| %>
+          <span class="text-muted"><%= cue %></span><%= '  ·  ' unless i == workout_exercise.exercise.cues_list.length - 1 %>
+        <% end %>
+      </div>
+    <% end %>
+
     <!-- Sets Table -->
     <div class="sets-list" id="sets_<%= workout_exercise.id %>">
+
       <div class="row small text-muted mb-1">
         <div class="col-1 text-center">#</div>
         <div class="col-3 text-center">Weight</div>
@@ -199,22 +210,11 @@
         </button>
         <div data-add-set-toggle-target="form" class="d-none">
 
-          <%# Form Cues from exercise %>
-          <% if workout_exercise.exercise.has_cues? %>
-            <div class="form-cues small mt-2 mb-2 px-2 py-1 rounded" style="background: rgba(255, 107, 53, 0.08); border-left: 3px solid var(--bs-warning);">
-              <i class="bi bi-lightbulb text-warning me-1"></i>
-              <% workout_exercise.exercise.cues_list.each_with_index do |cue, i| %>
-                <span class="text-muted"><%= cue %></span><%= '  ·  ' unless i == workout_exercise.exercise.cues_list.length - 1 %>
-              <% end %>
-            </div>
-          <% end %>
-
           <%= turbo_frame_tag "new_set_#{workout_exercise.id}" do %>
             <%= render "exercise_sets/form",
                 workout: workout,
                 workout_exercise: workout_exercise,
-                set: workout_exercise.exercise_sets.build,
-                quick_log_mode: (params[:quick_log] == "1") %>
+                set: workout_exercise.exercise_sets.build %>
           <% end %>
         </div>
       </div>

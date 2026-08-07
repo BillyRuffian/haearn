@@ -1,6 +1,5 @@
 <% show_plate_calc = workout_exercise.exercise.has_weight && workout_exercise.machine&.plate_loaded? %>
 <% input_unit = input_weight_unit_for(workout_exercise) %>
-<% quick_log_mode = local_assigns.fetch(:quick_log_mode, false) %>
 <% next_set_number = workout_exercise.exercise_sets.count + 1 %>
 <% set = seeded_new_set_for(workout_exercise, set) %>
 <% initial_weight = set.weight_kg ? input_weight_value_for(set.weight_kg, workout_exercise) : nil %>
@@ -21,8 +20,8 @@
      data-plate-calculator-bar-weight-value="<%= input_unit == 'kg' ? 20 : 45 %>"
      data-plate-calculator-unit-value="<%= input_unit %>"<% end %>>
   <%= form_with model: set, 
-      url: workout_workout_exercise_exercise_sets_path(workout, workout_exercise, quick_log: (quick_log_mode ? 1 : nil)),
-      class: "add-set-form mt-2 #{'quick-log-form' if quick_log_mode}",
+      url: workout_workout_exercise_exercise_sets_path(workout, workout_exercise),
+      class: "add-set-form mt-2",
       data: { controller: "set-form", action: "submit->set-form#submitted" } do |form| %>
     
     <%# Row 1: Primary fields - Weight + Reps/Time/Distance %>
@@ -42,23 +41,19 @@
 
     <%# Row 2: Secondary fields - Warmup, RPE, RIR, Submit %>
     <div class="row g-2 align-items-center mt-1">
-      <% unless quick_log_mode %>
-        <%= render "exercise_sets/warmup_amrap_fields", form: form %>
-        <%= render "exercise_sets/set_type_field", form: form, select_data: { action: "change->set-type-toggle#toggle" } %>
-        <%= render "exercise_sets/rpe_rir_fields", form: form, focus_inputs: true %>
-      <% else %>
-        <%= form.hidden_field :is_warmup, value: false %>
-      <% end %>
+      <%= render "exercise_sets/warmup_amrap_fields", form: form %>
+      <%= render "exercise_sets/set_type_field", form: form, select_data: { action: "change->set-type-toggle#toggle" } %>
+      <%= render "exercise_sets/rpe_rir_fields", form: form, focus_inputs: true %>
 
       <div class="col-auto">
         <div class="mt-3">
-          <%= form.submit(quick_log_mode ? "Log Set" : "✓",
-              class: "btn btn-primary #{quick_log_mode ? '' : 'btn-sm'}",
-              data: { set_form_target: "submit" }) %>
+          <%= form.submit "✓",
+              class: "btn btn-primary btn-sm",
+              data: { set_form_target: "submit" } %>
         </div>
       </div>
 
-      <% if prev_set_data.present? && !quick_log_mode %>
+      <% if prev_set_data.present? %>
         <div class="col-auto">
           <div class="mt-3"
                data-controller="copy-last"
@@ -71,10 +66,8 @@
       <% end %>
     </div>
 
-    <% unless quick_log_mode %>
     <%= render "exercise_sets/tempo_fields", form: form, focus_inputs: true %>
     <%= render "exercise_sets/tracking_fields", form: form, input_unit: input_unit, focus_inputs: true %>
-    <% end %>
 
   <% end %>
 
