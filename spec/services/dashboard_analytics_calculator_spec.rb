@@ -140,6 +140,39 @@ RSpec.describe DashboardAnalyticsCalculator do
         ])
       end
     end
+
+    it 'does not show training period start dates before the first completed workout' do
+      travel_to Time.zone.local(2026, 8, 11, 12, 0, 0) do
+        user = User.create!(
+          email_address: 'analytics-start-clamp@example.com',
+          password: 'password',
+          password_confirmation: 'password',
+          name: 'Analytics Start Clamp User',
+          preferred_unit: 'kg'
+        )
+        gym = user.gyms.create!(name: 'Spec Gym')
+        machine = gym.machines.create!(name: 'Spec Machine', equipment_type: 'machine', display_unit: 'kg')
+        exercise = user.exercises.create!(
+          name: 'Spec Lift',
+          exercise_type: 'reps',
+          has_weight: true,
+          primary_muscle_group: 'back'
+        )
+
+        create_workout_set(user:, gym:, machine:, exercise:, finished_at: Time.zone.local(2026, 8, 1, 18), weight_kg: 50, reps: 10)
+
+        result = described_class.new(user: user).calculate('training_period_totals')
+
+        expect(result.pluck(:start_date)).to eq([
+          '2026-08-10',
+          '2026-08-01',
+          '2026-08-01',
+          '2026-08-01',
+          '2026-08-01'
+        ])
+        expect(result.find { |period| period[:label] == 'Last 90 days' }[:range_label]).to eq('Aug 1, 2026 - Aug 11, 2026')
+      end
+    end
   end
 
   def create_workout_set(user:, gym:, machine:, exercise:, finished_at:, weight_kg:, reps:, is_warmup: false)

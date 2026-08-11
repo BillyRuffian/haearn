@@ -234,8 +234,10 @@ class DashboardAnalyticsCalculator
       { label: 'Last 12 months', start_date: 12.months.ago.to_date, end_date: today },
       { label: 'All time', start_date: all_time_start, end_date: all_time_end }
     ].map do |period|
-      tonnage_period_rows = rows_for_period(all_time_rows, period[:start_date], period[:end_date])
-      workout_period_rows = rows_for_period(completed_workout_rows, period[:start_date], period[:end_date])
+      start_date = clamped_start_date(period[:start_date], all_time_start)
+      end_date = period[:end_date]
+      tonnage_period_rows = rows_for_period(all_time_rows, start_date, end_date)
+      workout_period_rows = rows_for_period(completed_workout_rows, start_date, end_date)
       volume = tonnage_period_rows.sum { |row| row[:volume] }
       duration_minutes = workout_period_rows.sum { |row| row[:duration_minutes] }
 
@@ -244,9 +246,9 @@ class DashboardAnalyticsCalculator
         volume: display_volume(volume),
         duration_minutes: duration_minutes,
         duration_label: duration_label(duration_minutes),
-        start_date: period[:start_date]&.iso8601,
-        end_date: period[:end_date]&.iso8601,
-        range_label: range_label(period[:start_date], period[:end_date])
+        start_date: start_date&.iso8601,
+        end_date: end_date&.iso8601,
+        range_label: range_label(start_date, end_date)
       }
     end
   end
@@ -501,6 +503,12 @@ class DashboardAnalyticsCalculator
     return rows unless start_date && end_date
 
     rows.select { |row| row[:date].between?(start_date, end_date) }
+  end
+
+  def clamped_start_date(start_date, first_workout_date)
+    return start_date unless start_date && first_workout_date
+
+    [ start_date, first_workout_date ].max
   end
 
   def range_label(start_date, end_date)
