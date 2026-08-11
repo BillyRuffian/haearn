@@ -1,5 +1,41 @@
-    <!-- Workout Frequency Chart -->
+    <!-- Training Period Totals -->
+    <% if @training_period_totals.present? %>
     <div class="row mt-5">
+      <div class="col-12">
+        <div class="card position-relative">
+          <div class="card-body py-4">
+            <h5 class="section-header">
+              <i class="bi bi-minecart-loaded me-2"></i>Training Load
+              <small class="text-muted ms-2">Weight moved and time spent by analyzed period</small>
+            </h5>
+            <div class="row g-3">
+              <% @training_period_totals.each do |period| %>
+                <div class="col-sm-6 col-xl">
+                  <div class="p-3 h-100 rounded" style="background: rgba(255, 107, 53, 0.08); border: 1px solid rgba(255, 107, 53, 0.18);">
+                    <div class="stat-label mb-2"><%= period[:label] %></div>
+                    <div class="d-flex align-items-baseline gap-1 mb-2">
+                      <span class="h3 weight-display text-forge mb-0"><%= number_to_si(period[:volume]) %></span>
+                      <span class="text-muted small"><%= Current.user.preferred_unit %></span>
+                    </div>
+                    <div class="d-flex align-items-baseline gap-1 mb-2">
+                      <span class="h5 weight-display text-iron mb-0"><%= period[:duration_label] %></span>
+                      <span class="text-muted small">training</span>
+                    </div>
+                    <div class="text-muted small">
+                      <i class="bi bi-calendar-range me-1"></i><%= period[:range_label] %>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% end %>
+
+    <!-- Workout Frequency Chart -->
+    <div class="row mt-4">
       <div class="col-12">
         <div class="card position-relative">
           <div class="card-body py-4">
@@ -659,4 +695,3 @@
       </div>
     </div>
     <% end %>
-

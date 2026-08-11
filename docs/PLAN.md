@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: July 30, 2026
+> Last Updated: August 11, 2026
 
 ## Overview
 
@@ -11,6 +11,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Add analytics-page training load cards for this week, recent windows, and all time with total tonnage, training time, and explicit analyzed start/end dates
 - [x] Harden the Docker runtime package check so libvips is verified from `vips --version` and jemalloc is linked from the system loader cache
 - [x] Enforce libvips >= 8.13 for Active Storage image variants at Rails boot and during container builds
 - [x] Align active-workout "Last" set summaries with exercise history's visible workout-date ordering and harden history tab sorting

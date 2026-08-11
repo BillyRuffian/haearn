@@ -24,6 +24,7 @@ RSpec.describe DashboardPageDataBuilder do
         streaks
         week_comparison
         tonnage
+        training_period_totals
         plateaus
         training_density
         muscle_group_volume
@@ -31,6 +32,7 @@ RSpec.describe DashboardPageDataBuilder do
       ])
       expect(data[:pr_timeline_data]).to eq([ 'pr_timeline' ])
       expect(data[:consistency_data]).to eq([ 'consistency' ])
+      expect(data[:training_period_totals]).to eq([ 'training_period_totals' ])
       expect(data[:muscle_balance_data]).to eq([ 'muscle_balance' ])
       expect(data).not_to have_key(:workouts_this_week)
       expect(data).not_to have_key(:fatigue_data)

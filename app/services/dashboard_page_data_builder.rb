@@ -41,6 +41,7 @@ class DashboardPageDataBuilder
       streak_data: analytics('streaks'),
       week_comparison_data: analytics('week_comparison'),
       tonnage_data: analytics('tonnage'),
+      training_period_totals: analytics('training_period_totals'),
       plateau_data: analytics('plateaus'),
       training_density_data: analytics('training_density'),
       muscle_group_data: analytics('muscle_group_volume'),

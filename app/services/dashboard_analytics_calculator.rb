@@ -11,6 +11,7 @@ class DashboardAnalyticsCalculator
     'streaks' => :streaks,
     'week_comparison' => :week_comparison,
     'tonnage' => :tonnage_tracker,
+    'training_period_totals' => :training_period_totals,
     'plateaus' => :plateaus,
     'training_density' => :training_density,
     'muscle_group_volume' => :muscle_group_volume,
@@ -217,6 +218,37 @@ class DashboardAnalyticsCalculator
         volume: display_volume(volume)
       }
     end.reverse
+  end
+
+  def training_period_totals
+    today = Date.current
+    completed_workout_rows = completed_workout_rows_for_periods
+    all_time_rows = tonnage_rows
+    all_time_start = completed_workout_rows.map { |row| row[:date] }.min
+    all_time_end = completed_workout_rows.map { |row| row[:date] }.max
+
+    [
+      { label: 'This week', start_date: today.beginning_of_week, end_date: today },
+      { label: 'Last 30 days', start_date: 29.days.ago.to_date, end_date: today },
+      { label: 'Last 90 days', start_date: 89.days.ago.to_date, end_date: today },
+      { label: 'Last 12 months', start_date: 12.months.ago.to_date, end_date: today },
+      { label: 'All time', start_date: all_time_start, end_date: all_time_end }
+    ].map do |period|
+      tonnage_period_rows = rows_for_period(all_time_rows, period[:start_date], period[:end_date])
+      workout_period_rows = rows_for_period(completed_workout_rows, period[:start_date], period[:end_date])
+      volume = tonnage_period_rows.sum { |row| row[:volume] }
+      duration_minutes = workout_period_rows.sum { |row| row[:duration_minutes] }
+
+      {
+        label: period[:label],
+        volume: display_volume(volume),
+        duration_minutes: duration_minutes,
+        duration_label: duration_label(duration_minutes),
+        start_date: period[:start_date]&.iso8601,
+        end_date: period[:end_date]&.iso8601,
+        range_label: range_label(period[:start_date], period[:end_date])
+      }
+    end
   end
 
   def plateaus
@@ -434,6 +466,63 @@ class DashboardAnalyticsCalculator
       (volume * 2.20462).round
     else
       volume.round
+    end
+  end
+
+  def tonnage_rows
+    @user.workouts
+      .joins(workout_exercises: :exercise_sets)
+      .where.not(finished_at: nil)
+      .where(exercise_sets: { is_warmup: false })
+      .where.not(exercise_sets: { weight_kg: nil, reps: nil })
+      .pluck(Arel.sql('workouts.finished_at'), Arel.sql('exercise_sets.weight_kg * exercise_sets.reps'))
+      .map do |finished_at, volume|
+        {
+          date: finished_at.to_date,
+          volume: volume.to_f
+        }
+      end
+  end
+
+  def completed_workout_rows_for_periods
+    @user.workouts
+      .where.not(finished_at: nil)
+      .where.not(started_at: nil)
+      .pluck(:started_at, :finished_at)
+      .map do |started_at, finished_at|
+        {
+          date: finished_at.to_date,
+          duration_minutes: ((finished_at - started_at) / 60).round
+        }
+      end
+  end
+
+  def rows_for_period(rows, start_date, end_date)
+    return rows unless start_date && end_date
+
+    rows.select { |row| row[:date].between?(start_date, end_date) }
+  end
+
+  def range_label(start_date, end_date)
+    return 'No completed workouts yet' unless start_date && end_date
+
+    "#{format_date(start_date)} - #{format_date(end_date)}"
+  end
+
+  def format_date(date)
+    date.strftime('%b %-d, %Y')
+  end
+
+  def duration_label(minutes)
+    hours = minutes / 60
+    remaining_minutes = minutes % 60
+
+    if hours.positive? && remaining_minutes.positive?
+      "#{hours}h #{remaining_minutes}m"
+    elsif hours.positive?
+      "#{hours}h"
+    else
+      "#{remaining_minutes}m"
     end
   end
 
