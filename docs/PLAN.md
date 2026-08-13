@@ -11,7 +11,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
-- [x] Restore green security scans by installing libvips for Rails-booting importmap audits and replacing interpolated duration SQL with static trusted expressions
+- [x] Restore green security scans by installing libvips for Rails-booting importmap audits, replacing interpolated duration SQL with static trusted expressions, and upgrading sqlite3 past GHSA-mwm8-39rw-8826
 - [x] Align workout exercises with optional equipment across persistence, add/swap logging, copy/templates, offline replay, exports, history tabs, and exact-context analysis
 - [x] Restore the explicit `ruby-vips` dependency required at boot after upgrading to `image_processing` 2.x
 - [x] Delegate dashboard analytics aggregation to bounded grouped SQL queries, removing per-week, per-workout, per-exercise, and per-combination query loops while retaining Ruby for stateful chronology rules
