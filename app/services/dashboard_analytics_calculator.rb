@@ -3,6 +3,10 @@
 # Encapsulates cached dashboard analytics calculations so controllers stay
 # focused on request orchestration and rendering.
 class DashboardAnalyticsCalculator
+  DURATION_MINUTES_SQL = '(julianday(workouts.finished_at) - julianday(workouts.started_at)) * 1440.0'.freeze
+  ROUNDED_DURATION_MINUTES_SQL = 'ROUND((julianday(workouts.finished_at) - julianday(workouts.started_at)) * 1440.0)'.freeze
+  MINIMUM_DURATION_SQL = '((julianday(workouts.finished_at) - julianday(workouts.started_at)) * 1440.0) >= 5'.freeze
+
   KEY_METHODS = {
     'pr_timeline' => :pr_timeline,
     'consistency' => :consistency_data,
@@ -310,7 +314,6 @@ class DashboardAnalyticsCalculator
   end
 
   def training_density
-    duration_sql = duration_minutes_sql
     volume_sql = working_volume_sql
     rows = @user.workouts
       .left_joins(workout_exercises: :exercise_sets)
@@ -318,12 +321,12 @@ class DashboardAnalyticsCalculator
       .where.not(finished_at: nil)
       .where.not(started_at: nil)
       .group('workouts.id', 'gyms.name')
-      .having(Arel.sql("#{duration_sql} >= 5"))
+      .having(Arel.sql(MINIMUM_DURATION_SQL))
       .order(finished_at: :desc)
       .limit(20)
       .pluck(
         :finished_at,
-        Arel.sql("ROUND(#{duration_sql})"),
+        Arel.sql(ROUNDED_DURATION_MINUTES_SQL),
         Arel.sql(volume_sql),
         Arel.sql('gyms.name')
       )
@@ -510,7 +513,7 @@ class DashboardAnalyticsCalculator
 
   def period_duration_totals(periods)
     relation = @user.workouts.where.not(started_at: nil, finished_at: nil)
-    period_aggregates(relation, periods, "ROUND(#{duration_minutes_sql})")
+    period_aggregates(relation, periods, ROUNDED_DURATION_MINUTES_SQL)
   end
 
   def period_aggregates(relation, periods, expression)
@@ -536,10 +539,6 @@ class DashboardAnalyticsCalculator
 
   def select_row(relation, selections)
     connection.select_one(relation.select(Arel.sql(selections.join(', '))).to_sql) || {}
-  end
-
-  def duration_minutes_sql
-    '(julianday(workouts.finished_at) - julianday(workouts.started_at)) * 1440.0'
   end
 
   def working_volume_sql
