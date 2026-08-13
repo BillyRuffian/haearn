@@ -11,6 +11,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Align CI with the libvips runtime requirement and validate its version before enabling untrusted-operation blocking
 - [x] Unify add-set and edit-set forms around one mobile-first field hierarchy with consistent labels, advanced disclosures, and clear actions
 - [x] Add analytics-page training load cards for this week, recent windows, and all time with total tonnage, training time, and explicit analyzed start/end dates
 - [x] Harden the Docker runtime package check so libvips is verified from `vips --version` and jemalloc is linked from the system loader cache
