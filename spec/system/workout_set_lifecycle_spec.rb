@@ -22,32 +22,51 @@ RSpec.describe 'Workout set lifecycle', type: :system, js: true do
     JS
   end
 
-  def swipe_right(selector, distance: 96, end_event: 'pointerup')
+  def swipe_right(selector, distance: 96, end_event: 'touchend')
     page.execute_script(<<~JS, selector, distance, end_event)
       const element = document.querySelector(arguments[0])
       if (!element) throw new Error(`Missing swipe target: ${arguments[0]}`)
-      if (!("PointerEvent" in window)) throw new Error("Pointer Events are unavailable")
 
       const bounds = element.getBoundingClientRect()
       const y = bounds.top + (bounds.height / 2)
       const startX = bounds.left + Math.min(120, bounds.width / 3)
-      const dispatchPointer = (type, x, buttons) => element.dispatchEvent(new PointerEvent(type, {
-        bubbles: true,
-        cancelable: true,
-        pointerId: 1,
-        pointerType: "touch",
-        isPrimary: true,
+      const makeTouch = (x) => new Touch({
+        identifier: 1,
+        target: element,
         clientX: x,
         clientY: y,
         screenX: x,
         screenY: y,
-        button: type === "pointerdown" ? 0 : -1,
-        buttons
-      }))
+        pageX: x + window.scrollX,
+        pageY: y + window.scrollY
+      })
+      const start = makeTouch(startX)
+      const moves = [24, Math.min(52, arguments[1]), arguments[1]].map((offset) => makeTouch(startX + offset))
+      const finish = moves[moves.length - 1]
 
-      dispatchPointer("pointerdown", startX, 1)
-      ;[24, 52, arguments[1]].forEach((offset) => dispatchPointer("pointermove", startX + offset, 1))
-      dispatchPointer(arguments[2], startX + arguments[1], 0)
+      element.dispatchEvent(new TouchEvent("touchstart", {
+        bubbles: true,
+        cancelable: true,
+        touches: [start],
+        targetTouches: [start],
+        changedTouches: [start]
+      }))
+      moves.forEach((touch) => {
+        element.dispatchEvent(new TouchEvent("touchmove", {
+          bubbles: true,
+          cancelable: true,
+          touches: [touch],
+          targetTouches: [touch],
+          changedTouches: [touch]
+        }))
+      })
+      element.dispatchEvent(new TouchEvent(arguments[2], {
+        bubbles: true,
+        cancelable: true,
+        touches: [],
+        targetTouches: [],
+        changedTouches: [finish]
+      }))
     JS
   end
 
@@ -179,9 +198,7 @@ RSpec.describe 'Workout set lifecycle', type: :system, js: true do
     JS
     expect(worker_update_cache).to eq('none')
 
-    expect(page.evaluate_script('"PointerEvent" in window')).to be(true)
-
-    swipe_right(swipe_selector, end_event: 'pointercancel')
+    swipe_right(swipe_selector, distance: 52, end_event: 'touchcancel')
     within("##{ActionView::RecordIdentifier.dom_id(workout_exercise)}") do
       expect(page).to have_css(".set-row", count: 1)
     end
@@ -192,6 +209,18 @@ RSpec.describe 'Workout set lifecycle', type: :system, js: true do
       expect(page).to have_css(".set-row", count: 2)
     end
     expect_block_at_visible_top(block_id)
+  end
+
+  it 'duplicates when Safari cancels a right swipe after the action threshold' do
+    page.current_window.resize_to(390, 844)
+    visit workout_path(workout)
+
+    swipe_selector = "##{ActionView::RecordIdentifier.dom_id(exercise_set)} .swipeable-container"
+    swipe_right(swipe_selector, end_event: 'touchcancel')
+
+    within("##{ActionView::RecordIdentifier.dom_id(workout_exercise)}") do
+      expect(page).to have_css(".set-row", count: 2)
+    end
   end
 
   it 'duplicates by native form submission when requestSubmit is unavailable' do

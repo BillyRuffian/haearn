@@ -34,77 +34,24 @@ export default class extends Controller {
 
     if (!this.enabledValue) return
 
-    this.pointerEventsEnabled = "PointerEvent" in window
-    if (this.pointerEventsEnabled) {
-      this.boundPointerDown = this.handlePointerDown.bind(this)
-      this.boundPointerMove = this.handlePointerMove.bind(this)
-      this.boundPointerUp = this.handlePointerUp.bind(this)
-      this.boundPointerCancel = this.handlePointerCancel.bind(this)
+    this.boundTouchStart = this.handleTouchStart.bind(this)
+    this.boundTouchMove = this.handleTouchMove.bind(this)
+    this.boundTouchEnd = this.handleTouchEnd.bind(this)
+    this.boundTouchCancel = this.handleTouchCancel.bind(this)
 
-      this.element.addEventListener("pointerdown", this.boundPointerDown)
-      this.element.addEventListener("pointermove", this.boundPointerMove)
-      this.element.addEventListener("pointerup", this.boundPointerUp)
-      this.element.addEventListener("pointercancel", this.boundPointerCancel)
-    } else {
-      this.boundTouchStart = this.handleTouchStart.bind(this)
-      this.boundTouchMove = this.handleTouchMove.bind(this)
-      this.boundTouchEnd = this.handleTouchEnd.bind(this)
-      this.boundTouchCancel = this.handleTouchCancel.bind(this)
-
-      this.element.addEventListener("touchstart", this.boundTouchStart, { passive: true })
-      this.element.addEventListener("touchmove", this.boundTouchMove, { passive: false })
-      this.element.addEventListener("touchend", this.boundTouchEnd, { passive: true })
-      this.element.addEventListener("touchcancel", this.boundTouchCancel, { passive: true })
-    }
+    this.element.addEventListener("touchstart", this.boundTouchStart, { passive: true })
+    this.element.addEventListener("touchmove", this.boundTouchMove, { passive: false })
+    this.element.addEventListener("touchend", this.boundTouchEnd, { passive: true })
+    this.element.addEventListener("touchcancel", this.boundTouchCancel, { passive: true })
   }
 
   disconnect() {
     if (!this.enabledValue) return
 
-    if (this.pointerEventsEnabled) {
-      this.element.removeEventListener("pointerdown", this.boundPointerDown)
-      this.element.removeEventListener("pointermove", this.boundPointerMove)
-      this.element.removeEventListener("pointerup", this.boundPointerUp)
-      this.element.removeEventListener("pointercancel", this.boundPointerCancel)
-    } else {
-      this.element.removeEventListener("touchstart", this.boundTouchStart)
-      this.element.removeEventListener("touchmove", this.boundTouchMove)
-      this.element.removeEventListener("touchend", this.boundTouchEnd)
-      this.element.removeEventListener("touchcancel", this.boundTouchCancel)
-    }
-  }
-
-  handlePointerDown(event) {
-    if (!event.isPrimary || event.pointerType === "mouse") return
-
-    this.activePointerId = event.pointerId
-    this.startGesture(event.clientX, event.clientY)
-
-    try {
-      this.element.setPointerCapture(event.pointerId)
-    } catch (_error) {
-      // Safari applies implicit capture for touch pointers; explicit capture can fail during synthetic events.
-    }
-  }
-
-  handlePointerMove(event) {
-    if (event.pointerId !== this.activePointerId) return
-
-    this.moveGesture(event.clientX, event.clientY, event)
-  }
-
-  handlePointerUp(event) {
-    if (event.pointerId !== this.activePointerId) return
-
-    this.activePointerId = null
-    this.finishGesture()
-  }
-
-  handlePointerCancel(event) {
-    if (event.pointerId !== this.activePointerId) return
-
-    this.activePointerId = null
-    this.cancelGesture()
+    this.element.removeEventListener("touchstart", this.boundTouchStart)
+    this.element.removeEventListener("touchmove", this.boundTouchMove)
+    this.element.removeEventListener("touchend", this.boundTouchEnd)
+    this.element.removeEventListener("touchcancel", this.boundTouchCancel)
   }
 
   handleTouchStart(event) {
@@ -193,7 +140,11 @@ export default class extends Controller {
   }
 
   handleTouchCancel() {
-    this.cancelGesture()
+    if (this.isDragging && this.currentX >= this.thresholdValue && this.hasLeftActionsTarget) {
+      this.finishGesture()
+    } else {
+      this.cancelGesture()
+    }
   }
 
   cancelGesture() {

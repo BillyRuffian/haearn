@@ -11,7 +11,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
-- [x] Make set-row swipe-right duplication reliable on iOS Safari with captured Pointer Events, early horizontal gesture ownership, an attainable action threshold, cancellation cleanup, and forced PWA cache refresh
+- [x] Make set-row swipe-right duplication reliable on iOS Safari with non-passive Touch Events, threshold-aware cancellation handling, an attainable action threshold, and forced PWA cache refresh
 - [x] Refine rest-timer motion with frame-synchronized transform progress, compositor-only cue/completion overlays, stable phone geometry, and explicit reduced-motion behavior
 - [x] Restore swipe-right set duplication and align the current workout block to the visible viewport top after a set is added
 - [x] Add a history-safe Program Builder and Today’s Session workflow with weekly mesocycles, template-based prescriptions, dated cycles, adjustments/skips, workout linkage, and adherence tracking
