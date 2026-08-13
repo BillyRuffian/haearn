@@ -30,7 +30,7 @@ gem 'webpush'
 gem 'pundit'
 
 # Use rdoc version bundled with Ruby 4.0.1 to avoid conflicts
-gem 'rdoc', '~> 7.2.0'
+gem 'rdoc', '~> 8.0.0'
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: %i[ windows jruby ]
