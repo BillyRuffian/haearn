@@ -230,7 +230,7 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(response.body).to include("data-turbo-frame=\"exercise_set_#{set.id}\"")
 
     # Set-level disclosure toggles should be present in add-set form.
-    expect(response.body).to include('Equipment & Tracking')
+    expect(Nokogiri::HTML(response.body).text).to include('Equipment & Tracking')
     expect(response.body).to include('Tempo')
   end
 
@@ -245,6 +245,54 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(response).to have_http_status(:ok)
     expect(response.body).to include('data-add-set-toggle-target="editingForm"')
     expect(response.body).to include('edit-set-form')
+  end
+
+  it 'uses the same complete mobile-first field structure for adding and editing sets' do
+    workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
+    block = workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    we = block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    set = we.exercise_sets.create!(
+      position: 1,
+      reps: 8,
+      weight_kg: 40,
+      is_warmup: false,
+      completed_at: Time.current,
+      belt: true,
+      tempo_eccentric: 3
+    )
+
+    get workout_path(workout)
+    add_form = Nokogiri::HTML(response.body).at_css('form.set-entry-form.add-set-form')
+
+    get edit_workout_workout_exercise_exercise_set_path(workout, we, set)
+    edit_form = Nokogiri::HTML(response.body).at_css('form.set-entry-form.edit-set-form')
+
+    expect(add_form).to be_present
+    expect(edit_form).to be_present
+    expect(add_form.at_css('.set-entry-form__primary')).to be_present
+    expect(edit_form.at_css('.set-entry-form__primary')).to be_present
+    expect(add_form.at_css('.set-entry-form__secondary')).to be_present
+    expect(edit_form.at_css('.set-entry-form__secondary')).to be_present
+    expect(add_form.at_css('.set-entry-form__toggles')).to be_present
+    expect(edit_form.at_css('.set-entry-form__toggles')).to be_present
+
+    field_names = %w[
+      weight_value reps is_warmup is_amrap set_type rpe rir
+      tempo_eccentric tempo_pause_bottom tempo_concentric tempo_pause_top
+      belt knee_sleeves wrist_wraps straps is_failed spotter_assisted pain_flag is_bfr
+      partial_reps pain_note band_tension_kg chain_weight_kg
+    ]
+
+    field_names.each do |field_name|
+      selector = "[name='exercise_set[#{field_name}]']"
+      expect(add_form.at_css(selector)).to be_present, "missing #{field_name} from add form"
+      expect(edit_form.at_css(selector)).to be_present, "missing #{field_name} from edit form"
+    end
+
+    expect(add_form.at_css('button.set-entry-form__submit').text).to include('Log set')
+    expect(add_form.at_css("button.btn-secondary[data-action='add-set-toggle#hide']").text).to include('Cancel')
+    expect(edit_form.at_css('button.set-entry-form__submit').text).to include('Save set')
+    expect(edit_form.at_css('details.set-entry-disclosure[open]')).to be_present
   end
 
   it 'does not render block-specific rest controls in workout headers' do

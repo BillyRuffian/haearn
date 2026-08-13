@@ -1,0 +1,30 @@
+<% focus_inputs = local_assigns.fetch(:focus_inputs, false) %>
+<% weight_input_data = local_assigns.fetch(:weight_input_data, {}) %>
+<% metric_input_data = local_assigns.fetch(:metric_input_data, {}) %>
+
+<div class="set-entry-form__primary">
+  <%= render "exercise_sets/primary_fields",
+      form: form,
+      workout_exercise: workout_exercise,
+      input_unit: input_unit,
+      weight_value: weight_value,
+      focus_inputs: focus_inputs,
+      weight_col_class: "set-entry-form__primary-field",
+      metric_col_class: "set-entry-form__primary-field",
+      weight_input_data: weight_input_data,
+      metric_input_data: metric_input_data %>
+</div>
+
+<div class="set-entry-form__secondary">
+  <%= render "exercise_sets/set_type_field", form: form, wrapper_class: "set-entry-form__type" %>
+  <%= render "exercise_sets/rpe_rir_fields", form: form, focus_inputs: focus_inputs %>
+</div>
+
+<div class="set-entry-form__toggles" aria-label="Set options">
+  <%= render "exercise_sets/warmup_amrap_fields", form: form %>
+</div>
+
+<div class="set-entry-form__advanced">
+  <%= render "exercise_sets/tempo_fields", form: form, focus_inputs: focus_inputs %>
+  <%= render "exercise_sets/tracking_fields", form: form, input_unit: input_unit, focus_inputs: focus_inputs %>
+</div>

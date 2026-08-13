@@ -185,6 +185,7 @@ User
     The workout "Last" button should mirror the previous-session set payload too, including warmup/AMRAP and other extended set flags, not just weight/reps.
     Keep add-set and edit-set UIs built from shared exercise-set field partials so advanced set inputs stay aligned across both flows.
     Duplicate-set rest-timer restarts should behave like normal set submissions and restart the timer from the user's configured default.
+    Keep add-set and edit-set forms on the same mobile-first visual hierarchy and field order; mode-specific differences should be limited to context, actions, and add-only helpers such as copying the last set.
 
 29. **Rest Timer Defaults**: The rest timer should always bootstrap from the user's configured `default_rest_seconds` (or the app fallback if none is set). Do not introduce per-block rest overrides into workout logging; block `rest_seconds` can remain as stored model data, but the active workout timer UX should use the user-level default consistently. When workout logging creates a brand new `WorkoutBlock`, still rely on `WorkoutBlock` model defaults instead of hardcoding `rest_seconds` in controllers.
     Because the active-workout timer controller is mounted at the layout level while the workout-page timer panels are replaced by Turbo, panel visibility must be driven by explicit hidden-state hooks (`.is-hidden`/`hidden`) rather than assuming a one-time connect. Stale client-saved rest durations must not override a newly changed user default unless they were saved against that same default baseline.

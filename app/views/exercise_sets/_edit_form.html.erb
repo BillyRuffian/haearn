@@ -3,44 +3,36 @@
   <%= form_with model: set, 
       url: workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
       method: :patch,
-      class: "edit-set-form p-2 bg-dark rounded",
+      class: "set-entry-form edit-set-form",
       data: { turbo_frame: dom_id(set) } do |form| %>
     <% weight_value = set.weight_kg ? input_weight_value_for(set.weight_kg, workout_exercise) : nil %>
 
-    <%# Row 1: Primary fields %>
-    <div class="row g-2 align-items-end">
-      <%= render "exercise_sets/primary_fields",
-          form: form,
-          workout_exercise: workout_exercise,
-          input_unit: input_unit,
-          weight_value: weight_value,
-          leading_value: index %>
+    <div class="set-entry-form__header">
+      <div>
+        <span class="set-entry-form__context">Editing</span>
+        <strong>Set <%= local_assigns[:index] || set.position %></strong>
+      </div>
     </div>
 
-    <%# Row 2: Secondary fields %>
-    <div class="row g-2 align-items-center mt-1">
-      <div class="col-1"></div>
+    <% if set.errors.any? %>
+      <div class="alert alert-danger py-2 mb-3" role="alert">
+        <%= set.errors.full_messages.to_sentence %>
+      </div>
+    <% end %>
 
-      <%= render "exercise_sets/rpe_rir_fields", form: form %>
-      <%= render "exercise_sets/warmup_amrap_fields", form: form, compact: true %>
-    </div>
-
-    <%# Row 3: Set type and Tempo %>
-    <div class="row g-2 align-items-center mt-1">
-      <div class="col-1"></div>
-      <%= render "exercise_sets/set_type_field", form: form %>
-      <%= render "exercise_sets/tempo_fields", form: form, compact: true %>
-    </div>
-
-    <%= render "exercise_sets/tracking_fields",
+    <%= render "exercise_sets/fields",
         form: form,
+        workout_exercise: workout_exercise,
         input_unit: input_unit,
-        compact: true %>
+        weight_value: weight_value %>
 
-    <%# Actions %>
-    <div class="d-flex gap-2 justify-content-end mt-2">
-      <%= form.submit "Save", class: "btn btn-primary btn-sm" %>
-      <%= link_to "Cancel", workout_path(workout), class: "btn btn-outline-secondary btn-sm", data: { turbo_frame: "_top" } %>
+    <div class="set-entry-form__actions">
+      <div class="set-entry-form__action-tools">
+        <%= link_to "Cancel", workout_path(workout), class: "btn btn-secondary", data: { turbo_frame: "_top" } %>
+      </div>
+      <%= form.button class: "btn btn-primary set-entry-form__submit" do %>
+        <i class="bi bi-check-lg me-1" aria-hidden="true"></i>Save set
+      <% end %>
     </div>
   <% end %>
 <% end %>

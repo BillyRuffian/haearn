@@ -21,53 +21,51 @@
      data-plate-calculator-unit-value="<%= input_unit %>"<% end %>>
   <%= form_with model: set, 
       url: workout_workout_exercise_exercise_sets_path(workout, workout_exercise),
-      class: "add-set-form mt-2",
+      class: "set-entry-form add-set-form mt-2",
       data: { controller: "set-form", action: "submit->set-form#submitted" } do |form| %>
-    
-    <%# Row 1: Primary fields - Weight + Reps/Time/Distance %>
-    <div class="row g-2 align-items-end">
-      <%= render "exercise_sets/primary_fields",
-          form: form,
-          workout_exercise: workout_exercise,
-          input_unit: input_unit,
-          weight_value: initial_weight,
-          focus_inputs: true,
-          weight_input_data: {
-            set_form_target: "weight",
-            action: show_plate_calc ? "input->plate-calculator#updateWeight" : nil
-          }.compact,
-          metric_input_data: { set_form_target: "reps" } %>
+    <div class="set-entry-form__header">
+      <div>
+        <span class="set-entry-form__context">New set</span>
+        <strong>Set <%= next_set_number %></strong>
+      </div>
     </div>
 
-    <%# Row 2: Secondary fields - Warmup, RPE, RIR, Submit %>
-    <div class="row g-2 align-items-center mt-1">
-      <%= render "exercise_sets/warmup_amrap_fields", form: form %>
-      <%= render "exercise_sets/set_type_field", form: form, select_data: { action: "change->set-type-toggle#toggle" } %>
-      <%= render "exercise_sets/rpe_rir_fields", form: form, focus_inputs: true %>
-
-      <div class="col-auto">
-        <div class="mt-3">
-          <%= form.submit "✓",
-              class: "btn btn-primary btn-sm",
-              data: { set_form_target: "submit" } %>
-        </div>
+    <% if set.errors.any? %>
+      <div class="alert alert-danger py-2 mb-3" role="alert">
+        <%= set.errors.full_messages.to_sentence %>
       </div>
+    <% end %>
 
-      <% if prev_set_data.present? %>
-        <div class="col-auto">
-          <div class="mt-3"
-               data-controller="copy-last"
+    <%= render "exercise_sets/fields",
+        form: form,
+        workout_exercise: workout_exercise,
+        input_unit: input_unit,
+        weight_value: initial_weight,
+        focus_inputs: true,
+        weight_input_data: {
+          set_form_target: "weight",
+          action: show_plate_calc ? "input->plate-calculator#updateWeight" : nil
+        }.compact,
+        metric_input_data: { set_form_target: "reps" } %>
+
+    <div class="set-entry-form__actions">
+      <div class="set-entry-form__action-tools">
+        <button type="button" class="btn btn-secondary" data-action="add-set-toggle#hide">Cancel</button>
+
+        <% if prev_set_data.present? %>
+          <div data-controller="copy-last"
                data-copy-last-payload-value="<%= json_escape(prev_set_data.to_json) %>">
-            <button type="button" class="btn btn-outline-secondary btn-sm" data-action="copy-last#copy" title="Copy from last session (set <%= next_set_number %>)">
-              <i class="bi bi-clipboard me-1"></i>Last
+            <button type="button" class="btn btn-outline-secondary" data-action="copy-last#copy" title="Copy from last session (set <%= next_set_number %>)">
+              <i class="bi bi-clipboard me-1" aria-hidden="true"></i>Last
             </button>
           </div>
-        </div>
+        <% end %>
+      </div>
+
+      <%= form.button class: "btn btn-primary set-entry-form__submit", data: { set_form_target: "submit" } do %>
+        <i class="bi bi-check-lg me-1" aria-hidden="true"></i>Log set
       <% end %>
     </div>
-
-    <%= render "exercise_sets/tempo_fields", form: form, focus_inputs: true %>
-    <%= render "exercise_sets/tracking_fields", form: form, input_unit: input_unit, focus_inputs: true %>
 
   <% end %>
 

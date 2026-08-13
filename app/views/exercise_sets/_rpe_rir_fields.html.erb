@@ -1,7 +1,7 @@
 <% focus_inputs = local_assigns.fetch(:focus_inputs, false) %>
 <% select_on_focus = focus_inputs ? "this.select()" : nil %>
 
-<div class="col">
+<div class="set-entry-form__effort-field">
   <label class="form-label small text-muted mb-1" title="Rate of Perceived Exertion (1-10)">RPE</label>
   <%= form.number_field :rpe,
       class: "form-control form-control-sm text-center",
@@ -13,7 +13,7 @@
       onfocus: select_on_focus %>
 </div>
 
-<div class="col">
+<div class="set-entry-form__effort-field">
   <label class="form-label small text-muted mb-1" title="Reps in Reserve (0-10)">RIR</label>
   <%= form.number_field :rir,
       class: "form-control form-control-sm text-center",
