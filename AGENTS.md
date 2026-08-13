@@ -127,7 +127,7 @@ User
 
 8. **Dashboard Information Architecture**: Keep `dashboard#index` focused on overview/quick actions and place charts in `dashboard#analytics` (accessible from desktop nav and mobile bottom nav).
 
-9. **Analytics Query Pattern**: For week-based dashboard analytics, use grouped SQL week buckets (SQLite `strftime`) plus Ruby gap-filling instead of issuing one query per week; preload lookup tables (exercise/machine) before loops to avoid N+1.
+9. **Analytics Query Pattern**: Keep associative analytics work (`SUM`, `COUNT`, `MAX`, date/range bucketing, sorting, limiting) in bounded grouped or conditional SQL queries. Use Ruby for gap-filling, unit/presentation formatting, and genuinely stateful sequence rules such as PR chronology and streak interpretation. Analytics query counts must not grow with weeks, workouts, exercises, machines, or sets; preserve the query-budget regression when adding datasets.
 
 10. **Analytics/Admin Index Baseline**: Maintain indexes for time-window analytics and admin counters (`workouts(user_id, finished_at)`, `users.created_at`, `users.updated_at`, `workouts.created_at`) before adding new chart/counter queries.
 

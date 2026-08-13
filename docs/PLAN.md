@@ -11,6 +11,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Delegate dashboard analytics aggregation to bounded grouped SQL queries, removing per-week, per-workout, per-exercise, and per-combination query loops while retaining Ruby for stateful chronology rules
 - [x] Make active workout logging resilient offline with durable queued sets, optimistic pending rows, idempotent replay, queued workout completion, reconnect/app-resume sync, and automatic service-worker registration
 - [x] Align CI with the libvips runtime requirement and validate its version before enabling untrusted-operation blocking
 - [x] Unify add-set and edit-set forms around one mobile-first field hierarchy with consistent labels, advanced disclosures, and clear actions

@@ -20,18 +20,29 @@ namespace :performance do
 
     benchmark = lambda do |name, &block|
       warmup.times { block.call }
-      timings = runs.times.map do
+      measurements = runs.times.map do
+        query_count = 0
+        subscriber = lambda do |_event, _started, _finished, _id, payload|
+          next if payload[:cached] || payload[:name].in?(%w[SCHEMA TRANSACTION])
+
+          query_count += 1
+        end
         started = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        block.call
+        ActiveSupport::Notifications.subscribed(subscriber, 'sql.active_record') { block.call }
         finished = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        (finished - started) * 1000.0
+        { milliseconds: (finished - started) * 1000.0, queries: query_count }
       end
 
+      timings = measurements.pluck(:milliseconds)
+      queries = measurements.pluck(:queries)
       avg_ms = timings.sum / timings.length
       min_ms = timings.min
       max_ms = timings.max
 
-      puts format('%-36s avg: %8.2f ms   min: %8.2f ms   max: %8.2f ms', name, avg_ms, min_ms, max_ms)
+      puts format(
+        '%-36s avg: %8.2f ms   min: %8.2f ms   max: %8.2f ms   queries: %d',
+        name, avg_ms, min_ms, max_ms, queries.max
+      )
     end
 
     original_session = Current.session
@@ -39,26 +50,11 @@ namespace :performance do
     Current.session = benchmark_session
 
     begin
-      dashboard = DashboardController.new
-
-      benchmark.call('dashboard#load_dashboard_data') do
-        dashboard.send(:load_dashboard_data)
-      end
-
-      benchmark.call('dashboard#calculate_pr_timeline') do
-        dashboard.send(:calculate_pr_timeline)
-      end
-
-      benchmark.call('dashboard#calculate_plateaus') do
-        dashboard.send(:calculate_plateaus)
-      end
-
-      benchmark.call('dashboard#calculate_tonnage_tracker') do
-        dashboard.send(:calculate_tonnage_tracker)
-      end
-
-      benchmark.call('dashboard#calculate_consistency_data') do
-        dashboard.send(:calculate_consistency_data)
+      calculator = DashboardAnalyticsCalculator.new(user: user)
+      DashboardAnalyticsCalculator::KEY_METHODS.each_key do |key|
+        benchmark.call("analytics##{key}") do
+          calculator.calculate(key)
+        end
       end
 
       benchmark.call('performance_notification_service#refresh!') do

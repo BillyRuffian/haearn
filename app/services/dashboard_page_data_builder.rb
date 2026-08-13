@@ -33,7 +33,7 @@ class DashboardPageDataBuilder
   def shared_analytics_data
     @shared_analytics_data ||= {
       pr_timeline_data: analytics('pr_timeline'),
-      workout_frequency: workout_frequency,
+      workout_frequency: analytics('workout_frequency'),
       consistency_data: analytics('consistency'),
       rep_range_data: analytics('rep_range_distribution'),
       session_duration_data: session_duration_data,
@@ -132,29 +132,23 @@ class DashboardPageDataBuilder
     end
   end
 
-  def workout_frequency
-    (0..7).map do |weeks_ago|
-      week_start = weeks_ago.weeks.ago.beginning_of_week
-      week_end = weeks_ago.weeks.ago.end_of_week
-
-      {
-        label: week_start.strftime('%b %d'),
-        count: @user.workouts.where(finished_at: week_start..week_end).count
-      }
-    end.reverse
-  end
-
   def session_duration_data
     @user.workouts
+      .left_joins(:gym)
       .where.not(finished_at: nil)
       .where.not(started_at: nil)
       .order(finished_at: :desc)
       .limit(20)
-      .map do |workout|
+      .pluck(
+        :finished_at,
+        Arel.sql('ROUND((julianday(workouts.finished_at) - julianday(workouts.started_at)) * 1440.0)'),
+        Arel.sql('gyms.name')
+      )
+      .map do |finished_at, duration, gym_name|
         {
-          date: workout.finished_at.to_date.to_s,
-          duration: workout.duration_minutes || 0,
-          gym: workout.gym&.name || 'Unknown'
+          date: finished_at.to_date.to_s,
+          duration: duration.to_i,
+          gym: gym_name || 'Unknown'
         }
       end.reverse
   end

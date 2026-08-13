@@ -18,6 +18,7 @@ RSpec.describe DashboardPageDataBuilder do
 
       expect(requested_keys).to match_array(%w[
         pr_timeline
+        workout_frequency
         consistency
         rep_range_distribution
         exercise_frequency
@@ -36,6 +37,14 @@ RSpec.describe DashboardPageDataBuilder do
       expect(data[:muscle_balance_data]).to eq([ 'muscle_balance' ])
       expect(data).not_to have_key(:workouts_this_week)
       expect(data).not_to have_key(:fatigue_data)
+    end
+
+    it 'loads the bounded session-duration series in one query' do
+      builder = described_class.new(user: user, analytics_fetcher: ->(_key) { [] })
+
+      query_count = count_sql_queries { builder.analytics_data }
+
+      expect(query_count).to eq(1)
     end
   end
 
@@ -58,5 +67,22 @@ RSpec.describe DashboardPageDataBuilder do
       expect(data[:fatigue_data]).to eq([])
       expect(data[:readiness_alerts]).to eq([])
     end
+  end
+
+  def count_sql_queries
+    count = 0
+    callback = lambda do |_name, _started, _finished, _unique_id, payload|
+      next if payload[:cached]
+      next if payload[:name].in?(%w[SCHEMA TRANSACTION])
+      next if payload[:sql].match?(/\A(?:BEGIN|COMMIT|ROLLBACK|SAVEPOINT|RELEASE)/)
+
+      count += 1
+    end
+
+    ActiveSupport::Notifications.subscribed(callback, 'sql.active_record') do
+      ActiveRecord::Base.uncached { yield }
+    end
+
+    count
   end
 end
