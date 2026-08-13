@@ -41,13 +41,14 @@ export default class extends Controller {
 
     this.element.addEventListener("touchstart", this.boundTouchStart, { passive: true })
     this.element.addEventListener("touchmove", this.boundTouchMove, { passive: false })
-    this.element.addEventListener("touchend", this.boundTouchEnd, { passive: true })
+    this.element.addEventListener("touchend", this.boundTouchEnd, { passive: false })
     this.element.addEventListener("touchcancel", this.boundTouchCancel, { passive: true })
   }
 
   disconnect() {
     if (!this.enabledValue) return
 
+    this.cancelCloseTransitionCleanup()
     this.element.removeEventListener("touchstart", this.boundTouchStart)
     this.element.removeEventListener("touchmove", this.boundTouchMove)
     this.element.removeEventListener("touchend", this.boundTouchEnd)
@@ -113,7 +114,8 @@ export default class extends Controller {
     }
   }
 
-  handleTouchEnd() {
+  handleTouchEnd(event) {
+    if (this.isDragging && event.cancelable) event.preventDefault()
     this.finishGesture()
   }
 
@@ -124,8 +126,8 @@ export default class extends Controller {
     const containerWidth = this.element.offsetWidth
     const fullSwipeThreshold = containerWidth * this.fullSwipeRatioValue
 
-    if (this.currentX >= this.thresholdValue && this.hasLeftActionsTarget) {
-      // An intentional right swipe duplicates without requiring an edge-to-edge drag.
+    if (this.currentX > fullSwipeThreshold && this.hasLeftActionsTarget) {
+      // A full swipe right auto-triggers duplicate, mirroring full-swipe delete.
       this.triggerAction(this.leftActionsTarget)
     } else if (this.currentX < -fullSwipeThreshold && this.hasRightActionsTarget) {
       // Full swipe left — auto-trigger right action (delete)
@@ -140,7 +142,8 @@ export default class extends Controller {
   }
 
   handleTouchCancel() {
-    if (this.isDragging && this.currentX >= this.thresholdValue && this.hasLeftActionsTarget) {
+    const fullSwipeThreshold = this.element.offsetWidth * this.fullSwipeRatioValue
+    if (this.isDragging && this.currentX > fullSwipeThreshold && this.hasLeftActionsTarget) {
       this.finishGesture()
     } else {
       this.cancelGesture()
@@ -172,6 +175,7 @@ export default class extends Controller {
 
   updatePosition(x) {
     if (this.hasContentTarget) {
+      this.cancelCloseTransitionCleanup()
       this.contentTarget.style.transform = `translateX(${x}px)`
       this.contentTarget.style.transition = "none"
     }
@@ -180,6 +184,7 @@ export default class extends Controller {
   openLeft() {
     this.openDirection = "left"
     if (this.hasContentTarget) {
+      this.cancelCloseTransitionCleanup()
       this.contentTarget.style.transform = `translateX(${this.thresholdValue}px)`
       this.contentTarget.style.transition = "transform 0.2s ease-out"
     }
@@ -193,6 +198,7 @@ export default class extends Controller {
   openRight() {
     this.openDirection = "right"
     if (this.hasContentTarget) {
+      this.cancelCloseTransitionCleanup()
       this.contentTarget.style.transform = `translateX(-${this.thresholdValue}px)`
       this.contentTarget.style.transition = "transform 0.2s ease-out"
     }
@@ -206,18 +212,21 @@ export default class extends Controller {
   close() {
     this.openDirection = null
     if (this.hasContentTarget) {
+      this.cancelCloseTransitionCleanup()
       this.contentTarget.style.transform = "translateX(0)"
       this.contentTarget.style.transition = "transform 0.2s ease-out"
 
       // Remove inline transform after transition so it doesn't create
       // a containing block that traps dropdown menus
       const content = this.contentTarget
-      const handler = () => {
-        content.style.transform = ""
-        content.style.transition = ""
-        content.removeEventListener("transitionend", handler)
+      this.closeTransitionHandler = () => {
+        if (this.openDirection === null) {
+          content.style.transform = ""
+          content.style.transition = ""
+        }
+        this.cancelCloseTransitionCleanup()
       }
-      content.addEventListener("transitionend", handler)
+      content.addEventListener("transitionend", this.closeTransitionHandler)
     }
     if (this.hasLeftActionsTarget) {
       this.leftActionsTarget.style.opacity = "0"
@@ -228,6 +237,13 @@ export default class extends Controller {
       this.rightActionsTarget.style.width = "0"
     }
     this.dispatch("closed")
+  }
+
+  cancelCloseTransitionCleanup() {
+    if (!this.closeTransitionHandler || !this.hasContentTarget) return
+
+    this.contentTarget.removeEventListener("transitionend", this.closeTransitionHandler)
+    this.closeTransitionHandler = null
   }
 
   reset() {

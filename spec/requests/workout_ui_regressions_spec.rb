@@ -199,7 +199,7 @@ RSpec.describe 'Workout UI regressions', type: :request do
 
     expect(response).to have_http_status(:ok)
     expect(response.media_type).to eq('text/javascript')
-    expect(response.body).to include("const CACHE_VERSION = 'haearn-v5'")
+    expect(response.body).to include("const CACHE_VERSION = 'haearn-v6'")
   end
 
   it 'uses machine display unit for set-level rows while user preference stays kg' do
