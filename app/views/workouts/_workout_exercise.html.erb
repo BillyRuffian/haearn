@@ -13,7 +13,7 @@
         <% if is_volume_pr %>
           <span class="badge bg-warning me-1"><i class="bi bi-trophy-fill"></i> Vol PR</span>
         <% end %>
-        <%= link_to history_exercise_path(workout_exercise.exercise, machine_id: workout_exercise.machine_id), class: "text-decoration-none", data: { turbo_frame: "_top" } do %>
+        <%= link_to history_exercise_path(workout_exercise.exercise, machine_id: workout_exercise.machine_id || 'none'), class: "text-decoration-none", data: { turbo_frame: "_top" } do %>
           <strong><%= workout_exercise.exercise.name %></strong>
           <% if workout_exercise.machine %>
             <small class="text-muted ms-1"><%= workout_exercise.machine.name %></small>

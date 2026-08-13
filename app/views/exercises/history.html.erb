@@ -30,11 +30,11 @@
     </div>
   </div>
 
-  <% if @selected_machine %>
+  <% if @selected_machine || @selected_no_machine %>
     <div class="alert alert-info mb-4 d-flex justify-content-between align-items-center">
       <div>
         <i class="bi bi-funnel me-2"></i>
-        <strong>Viewing machine tab:</strong> <%= @selected_machine.name %>
+        <strong>Viewing equipment tab:</strong> <%= @selected_machine&.name || 'No Equipment' %>
       </div>
       <%= link_to history_exercise_path(@exercise), class: "btn btn-sm btn-outline-primary" do %>
         <i class="bi bi-x-circle me-1"></i>Reset Tab
@@ -265,9 +265,7 @@
     <% machine_bucket_count = @by_machine.keys.compact.count + (@by_machine[nil]&.any? ? 1 : 0) %>
     <% active_tab_id = if @selected_machine && @by_machine[@selected_machine].present?
       "machine-#{@selected_machine.id}"
-    elsif @selected_machine.nil?
-      "all-machines"
-    elsif @by_machine[nil]&.any?
+    elsif @selected_no_machine && @by_machine[nil]&.any?
       "no-machine"
     else
       "all-machines"

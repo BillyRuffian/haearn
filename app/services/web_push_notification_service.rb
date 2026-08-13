@@ -69,7 +69,11 @@ class WebPushNotificationService
       machine_id = notification.metadata['machine_id']
       return '/' unless exercise_id
 
-      machine_id.present? ? "/exercises/#{exercise_id}/history?machine_id=#{machine_id}" : "/exercises/#{exercise_id}/history"
+      if notification.kind == 'readiness'
+        "/exercises/#{exercise_id}/history?machine_id=#{machine_id.presence || 'none'}"
+      else
+        "/exercises/#{exercise_id}/history"
+      end
     when 'streak_risk'
       '/workouts/new'
     when 'volume_drop'

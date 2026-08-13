@@ -81,8 +81,8 @@ class ProgressionReadinessChecker
         .where('workouts.finished_at >= ?', cutoff_date)
         .where('exercise_sets.is_warmup = ?', false)
 
-      # Filter by machine if specified
-      scope = scope.where(machine_id: machine.id) if machine
+      # A nil machine is the equipment-free variant, not an all-machines wildcard.
+      scope = scope.where(machine_id: machine&.id)
 
       scope
         .distinct

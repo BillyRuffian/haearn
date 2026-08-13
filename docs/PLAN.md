@@ -11,6 +11,8 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Align workout exercises with optional equipment across persistence, add/swap logging, copy/templates, offline replay, exports, history tabs, and exact-context analysis
+- [x] Restore the explicit `ruby-vips` dependency required at boot after upgrading to `image_processing` 2.x
 - [x] Delegate dashboard analytics aggregation to bounded grouped SQL queries, removing per-week, per-workout, per-exercise, and per-combination query loops while retaining Ruby for stateful chronology rules
 - [x] Make active workout logging resilient offline with durable queued sets, optimistic pending rows, idempotent replay, queued workout completion, reconnect/app-resume sync, and automatic service-worker registration
 - [x] Align CI with the libvips runtime requirement and validate its version before enabling untrusted-operation blocking
@@ -802,10 +804,10 @@ $text-muted: #6c757d;
 ## Phase 13: Data Model Alignment
 
 ### 13.1 Machine Optionality Consistency
-- [ ] Align `workout_exercises.machine_id` nullability with product intent (optional machine support)
-- [ ] Update model validations/associations and controller flows for true optional machine selection
-- [ ] Add migration + backfill strategy for existing records
-- [ ] Add regression tests for workout logging, history, PRs, and filters when machine is nil
+- [x] Align `workout_exercises.machine_id` nullability with product intent (optional machine support)
+- [x] Update model validations/associations and controller flows for true optional machine selection
+- [x] Add migration + backfill strategy for existing records _(The old constraint guaranteed every existing row already had a valid machine, so no data rewrite is needed; the migration preserves those IDs and permits new nil values. Rollback refuses once equipment-free history exists.)_
+- [x] Add regression tests for workout logging, history, PRs, and filters when machine is nil
 
 ---
 

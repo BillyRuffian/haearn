@@ -13,7 +13,7 @@
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
 #  exercise_id      :integer          not null
-#  machine_id       :integer          not null
+#  machine_id       :integer
 #  workout_block_id :integer          not null
 #
 # Indexes
@@ -46,7 +46,7 @@ class WorkoutExercise < ApplicationRecord
 
   belongs_to :workout_block
   belongs_to :exercise
-  belongs_to :machine
+  belongs_to :machine, optional: true
   has_many :exercise_sets, -> { order(:position) }, dependent: :destroy
 
   has_one :workout, through: :workout_block

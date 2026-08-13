@@ -85,11 +85,7 @@ class NotificationsController < ApplicationController
       machine_id = notification.metadata['machine_id']
       return nil unless exercise_id
 
-      if machine_id.present?
-        history_exercise_path(exercise_id, machine_id: machine_id)
-      else
-        history_exercise_path(exercise_id)
-      end
+      history_exercise_path(exercise_id, machine_id: machine_id.presence || 'none')
     when 'plateau'
       exercise_id = notification.metadata['exercise_id']
       exercise_id ? history_exercise_path(exercise_id) : workouts_path

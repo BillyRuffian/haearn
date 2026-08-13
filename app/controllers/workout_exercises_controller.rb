@@ -234,7 +234,7 @@ class WorkoutExercisesController < ApplicationController
   # Refreshes persistent_notes from new exercise+machine history
   def perform_swap
     exercise = Exercise.for_user(Current.user).find(params[:exercise_id])
-    machine = @workout.gym.machines.active.find(params[:machine_id])
+    machine = params[:machine_id].present? ? @workout.gym.machines.active.find(params[:machine_id]) : nil
 
     @workout_exercise.update!(
       exercise: exercise,

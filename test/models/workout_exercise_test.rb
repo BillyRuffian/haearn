@@ -13,7 +13,7 @@
 #  created_at       :datetime         not null
 #  updated_at       :datetime         not null
 #  exercise_id      :integer          not null
-#  machine_id       :integer          not null
+#  machine_id       :integer
 #  workout_block_id :integer          not null
 #
 # Indexes

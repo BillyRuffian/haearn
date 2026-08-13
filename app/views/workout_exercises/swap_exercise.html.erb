@@ -29,6 +29,20 @@
               <small class="text-muted">Select equipment (optional)</small>
             </div>
 
+            <div class="list-group list-group-flush border-bottom">
+              <%= button_to swap_exercise_workout_workout_exercise_path(@workout, @workout_exercise, exercise_id: @selected_exercise.id),
+                  method: :post,
+                  class: "list-group-item list-group-item-action d-flex align-items-center gap-3",
+                  data: { turbo_frame: "_top" } do %>
+                <i class="bi bi-person-standing fs-4 text-secondary"></i>
+                <div class="flex-grow-1 text-start">
+                  <strong>No equipment</strong>
+                  <small class="text-muted d-block">Use this exercise without a specific machine</small>
+                </div>
+                <i class="bi bi-chevron-right text-muted"></i>
+              <% end %>
+            </div>
+
             <% if @machines.any? %>
               <div data-controller="equipment-filter">
                 <!-- Search Equipment -->
@@ -61,11 +75,11 @@
                 </div>
               </div>
             <% else %>
-              <!-- No equipment yet - prompt to create one -->
+              <!-- No saved equipment yet - optional creation prompt -->
               <div class="p-4 text-center">
                 <i class="bi bi-gear display-4 text-muted mb-3"></i>
                 <h6>No equipment at <%= @workout.gym.name %> yet</h6>
-                <p class="text-muted small">Add equipment to track variations of this exercise.</p>
+                <p class="text-muted small">You can continue without equipment above, or add equipment to track a specific setup.</p>
                 <%= link_to new_gym_machine_path(@workout.gym, return_to: swap_exercise_workout_workout_exercise_path(@workout, @workout_exercise, select_exercise: @selected_exercise.id)),
                     class: "btn btn-primary",
                     data: { turbo_frame: "_top" } do %>

@@ -119,8 +119,8 @@ class ProgressionSuggester
                   .order(Arel.sql('workouts.finished_at DESC'))
                   .limit(5) # Look at last 5 sessions max
 
-      # Filter by machine if one is selected
-      scope = scope.where(machine: machine) if machine
+      # Keep equipment-free sessions separate from every machine-backed variant.
+      scope = scope.where(machine_id: workout_exercise.machine_id)
 
       scope
     end

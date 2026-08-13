@@ -148,8 +148,11 @@ class ExercisesController < ApplicationController
       .order(Arel.sql('workouts.started_at DESC, workout_blocks.position ASC, workout_exercises.position ASC'))
 
     # machine_id selects the initially active tab, but should not hide
-    # cross-machine history from the page.
-    @selected_machine = Machine.find_by(id: params[:machine_id]) if params[:machine_id].present?
+    # cross-machine history from the page. "none" identifies equipment-free history.
+    @selected_no_machine = params[:machine_id] == 'none'
+    if params[:machine_id].present? && !@selected_no_machine
+      @selected_machine = Machine.where(gym_id: Current.user.gym_ids).find_by(id: params[:machine_id])
+    end
 
     # Calculate overall PRs for the exercise (max weight, max volume, best E1RM)
     @prs = PrCalculator.calculate_all(@workout_exercises, exercise: @exercise)
@@ -169,6 +172,8 @@ class ExercisesController < ApplicationController
 
     # Group by machine if applicable
     @by_machine = @workout_exercises.group_by(&:machine)
+    @selected_no_machine &&= @by_machine[nil].present?
+    @selected_machine = nil unless @selected_machine && @by_machine[@selected_machine].present?
 
     # Calculate PRs per machine for accurate PR badges in each tab
     @prs_by_machine = {}

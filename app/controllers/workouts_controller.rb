@@ -2,7 +2,7 @@
 # Supports workout blocks for organizing exercises and enabling supersets
 # Each workout has a start time, optional finish time, gym, and multiple workout blocks
 class WorkoutsController < ApplicationController
-  before_action :set_workout, only: %i[show edit update destroy finish continue_workout add_exercise reorder_blocks share_text]
+  before_action :set_workout, only: %i[show edit update destroy finish continue_workout add_exercise copy reorder_blocks share_text]
 
   # GET /workouts
   # Lists all workouts with optional filters (gym, date range)
@@ -258,7 +258,7 @@ class WorkoutsController < ApplicationController
   # Copies persistent notes from previous workout if available
   def add_exercise_to_workout
     exercise = Exercise.for_user(Current.user).find(params[:exercise_id])
-    machine = params[:machine_id].present? ? @workout.gym&.machines&.find(params[:machine_id]) : nil
+    machine = params[:machine_id].present? ? @workout.gym&.machines&.active&.find(params[:machine_id]) : nil
 
     # Check if adding to an existing block (for supersets)
     if params[:to_block].present?
