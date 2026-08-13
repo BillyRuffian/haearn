@@ -32,6 +32,7 @@ class TemplateExercise < ApplicationRecord
   belongs_to :template_block
   belongs_to :exercise
   belongs_to :machine, optional: true
+  has_many :workout_exercises, dependent: :restrict_with_error
 
   validates :template_block, presence: true
   validates :exercise, presence: true

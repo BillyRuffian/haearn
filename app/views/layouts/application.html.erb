@@ -132,6 +132,9 @@
                 <%= link_to "Dashboard", root_path, class: "nav-link #{'active' if controller_name == 'dashboard' && action_name == 'index'}" %>
               </li>
               <li class="nav-item">
+                <%= link_to "Today", today_session_path, class: "nav-link #{'active' if controller_name == 'todays_sessions'}" %>
+              </li>
+              <li class="nav-item">
                 <%= link_to workouts_path, class: "nav-link #{'active' if controller_name == 'workouts'}" do %>
                   Workouts
                   <% if active_workout %>
@@ -146,6 +149,9 @@
               </li>
               <li class="nav-item">
                 <%= link_to "Templates", workout_templates_path, class: "nav-link #{'active' if controller_name == 'workout_templates'}" %>
+              </li>
+              <li class="nav-item">
+                <%= link_to "Programs", training_programs_path, class: "nav-link #{'active' if controller_name.in?(%w[training_programs program_sessions])}" %>
               </li>
               <li class="nav-item">
                 <%= link_to "Exercises", exercises_path, class: "nav-link #{'active' if controller_name == 'exercises'}" %>

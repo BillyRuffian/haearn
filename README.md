@@ -121,6 +121,10 @@ User
       -> WorkoutExercises
         -> ExerciseSets
   -> WorkoutTemplates
+  -> TrainingPrograms
+    -> ProgramSessions
+    -> ProgramCycles
+      -> ProgramSessionExecutions
   -> BodyMetrics
   -> ProgressPhotos
   -> Notifications
@@ -167,6 +171,14 @@ User
 - each exercise has a history view
 - machine filters matter
 - PRs are calculated on demand, not stored in a separate model
+
+### Program Execution
+
+1. Build a multi-week program by placing workout templates on week/day slots
+2. Scale per-session set volume and template load for accumulation or deload weeks
+3. Activate the program from a Monday start date
+4. Open Today’s Session to start, resume, adjust, skip, or restore the daily prescription
+5. Finish the linked workout to record exercise progress and planned-versus-completed adherence
 
 ### Dashboard / Analytics
 
@@ -255,4 +267,3 @@ The active improvement track in [docs/PLAN.md](/home/nbt/Projects/Haearn/docs/PL
 - frontend behavior coverage for critical Stimulus flows
 - contributor/onboarding improvements
 - further analytics/query cleanup
-

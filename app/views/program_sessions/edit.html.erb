@@ -1,0 +1,17 @@
+<% content_for(:title) { "Edit #{@program_session.display_name} | Haearn" } %>
+
+<div class="container py-4 program-form-page">
+  <%= link_to @training_program, class: "text-muted text-decoration-none small" do %>
+    <i class="bi bi-arrow-left me-1"></i><%= @training_program.name %>
+  <% end %>
+  <h1 class="display-heading mt-2 mb-4">Edit Session</h1>
+  <%= render "form", training_program: @training_program, program_session: @program_session, templates: @templates %>
+  <div class="border-top border-secondary mt-4 pt-4">
+    <%= button_to training_program_program_session_path(@training_program, @program_session),
+        method: :delete,
+        class: "btn btn-outline-danger",
+        data: { turbo_confirm: "Remove this session from the program?" } do %>
+      <i class="bi bi-trash me-1"></i>Remove Session
+    <% end %>
+  </div>
+</div>

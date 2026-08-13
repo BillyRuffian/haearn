@@ -11,6 +11,9 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Refine rest-timer motion with frame-synchronized transform progress, compositor-only cue/completion overlays, stable phone geometry, and explicit reduced-motion behavior
+- [x] Restore swipe-right set duplication and align the current workout block to the visible viewport top after a set is added
+- [x] Add a history-safe Program Builder and Today’s Session workflow with weekly mesocycles, template-based prescriptions, dated cycles, adjustments/skips, workout linkage, and adherence tracking
 - [x] Restore green security scans by installing libvips for Rails-booting importmap audits, replacing interpolated duration SQL with static trusted expressions, and upgrading sqlite3 past GHSA-mwm8-39rw-8826
 - [x] Align workout exercises with optional equipment across persistence, add/swap logging, copy/templates, offline replay, exports, history tabs, and exact-context analysis
 - [x] Restore the explicit `ruby-vips` dependency required at boot after upgrading to `image_processing` 2.x
@@ -588,7 +591,7 @@ $text-muted: #6c757d;
 
 ### 8.1 Workout Templates & Programs
 - [x] Create reusable workout templates from past workouts
-- [ ] Program builder (weekly schedules, mesocycles)
+- [x] Program builder (weekly schedules, mesocycles)
 - [ ] Popular split templates (PPL, Upper/Lower, Full Body)
 - [ ] Deload week automation (reduce volume/intensity by %)
 - [ ] Program progression rules (linear, double progression, wave loading)
@@ -850,11 +853,11 @@ $text-muted: #6c757d;
 ## Phase 17: Program Execution Workflow
 
 ### 17.1 Daily Prescription UX
-- [ ] Build "Today’s Session" view from active program/template
-- [ ] Show prescribed sets/reps/percentages with quick logging actions
-- [ ] Track completion status per prescribed set/exercise/session
-- [ ] Add adherence scoring (planned vs completed volume/sets)
-- [ ] Add skip/modify flows with reason tracking (equipment busy, fatigue, pain, time)
+- [x] Build "Today’s Session" view from active program/template
+- [x] Show prescribed sets/reps/percentages with quick logging actions
+- [x] Track completion status per prescribed set/exercise/session
+- [x] Add adherence scoring (planned vs completed volume/sets)
+- [x] Add skip/modify flows with reason tracking (equipment busy, fatigue, pain, time)
 
 ---
 

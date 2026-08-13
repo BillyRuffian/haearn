@@ -130,6 +130,7 @@ class WorkoutsController < ApplicationController
     end
 
     @workout.update!(finished_at: nil)
+    @workout.program_session_execution&.update!(status: 'in_progress', completed_at: nil)
     redirect_to @workout, notice: 'Workout continued! Keep going 💪'
   end
   # GET/POST /workouts/:id/add_exercise

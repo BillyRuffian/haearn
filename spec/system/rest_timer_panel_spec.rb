@@ -40,9 +40,12 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
         if (!progressBar) return null
 
         const style = window.getComputedStyle(progressBar)
+        const sheenStyle = window.getComputedStyle(progressBar, "::after")
         return {
-          animationName: style.animationName,
-          backgroundImage: style.backgroundImage
+          animationName: sheenStyle.animationName,
+          backgroundImage: style.backgroundImage,
+          transformOrigin: style.transformOrigin,
+          willChange: style.willChange
         }
       })()
     JS
@@ -50,6 +53,8 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
     expect(progress_styles).not_to be_nil
     expect(progress_styles["animationName"]).to include("restTimerSweep")
     expect(progress_styles["backgroundImage"]).to include("linear-gradient")
+    expect(progress_styles["transformOrigin"]).to start_with('0px')
+    expect(progress_styles["willChange"]).to include('transform')
 
     within('.rest-timer-footer') do
       find('.rest-timer-skip-btn').click
@@ -59,6 +64,50 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
       expect(page).to have_css("[data-rest-timer-target='container'].is-hidden", visible: :all)
       expect(page).to have_no_css("[data-rest-timer-target='display']", visible: true)
     end
+  end
+
+  it 'updates progress continuously without a blank frame or repeated digit writes' do
+    visit workout_path(workout)
+
+    motion = page.evaluate_async_script(<<~JS)
+      const done = arguments[0]
+      const controllerElement = document.querySelector("[data-controller~='rest-timer']")
+      const controller = window.Stimulus?.getControllerForElementAndIdentifier(controllerElement, "rest-timer")
+      if (!controller) throw new Error("Missing rest-timer controller")
+
+      controller.totalDuration = 10
+      controller.start()
+      controller.endTime = Date.now() + 5800
+
+      const collapsed = document.querySelector("[data-rest-timer-target='collapsed']")
+      const active = document.querySelector("[data-rest-timer-target='container']")
+      const display = document.querySelector("[data-rest-timer-target='display']")
+      const progress = document.querySelector("[data-rest-timer-target='progress']")
+      const immediateState = {
+        collapsedHidden: collapsed.hidden,
+        activeHidden: active.hidden
+      }
+
+      setTimeout(() => {
+        const first = { text: display.textContent, transform: progress.style.transform }
+        setTimeout(() => {
+          done({
+            immediateState,
+            first,
+            second: { text: display.textContent, transform: progress.style.transform },
+            usesAnimationFrame: controller.timerFrame !== null,
+            hasLegacyInterval: Object.hasOwn(controller, "interval")
+          })
+        }, 180)
+      }, 60)
+    JS
+
+    expect(motion.dig("immediateState", "collapsedHidden")).to be(true)
+    expect(motion.dig("immediateState", "activeHidden")).to be(false)
+    expect(motion.dig("first", "text")).to eq(motion.dig("second", "text"))
+    expect(motion.dig("first", "transform")).not_to eq(motion.dig("second", "transform"))
+    expect(motion["usesAnimationFrame"]).to be(true)
+    expect(motion["hasLegacyInterval"]).to be(false)
   end
 
   it 'prefers the current user default over stale client-saved timer values' do
@@ -121,7 +170,7 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
         if (!panel || !progressBar || !display) return null
 
         return {
-          panelAnimation: window.getComputedStyle(panel).animationName,
+          panelOverlayAnimation: window.getComputedStyle(panel, "::before").animationName,
           progressOpacity: window.getComputedStyle(progressBar.parentElement).opacity,
           progressAnimation: window.getComputedStyle(progressBar).animationName,
           displayAnimation: window.getComputedStyle(display).animationName
@@ -130,10 +179,46 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
     JS
 
     expect(completion_styles).not_to be_nil
-    expect(completion_styles["panelAnimation"]).to include("timerPulseFill")
+    expect(completion_styles["panelOverlayAnimation"]).to include("restTimerCompleteSweep")
     expect(completion_styles["progressOpacity"].to_f).to be < 0.1
-    expect(completion_styles["progressAnimation"]).to include("restTimerCompleteSweep")
+    expect(completion_styles["progressAnimation"]).to eq("none")
     expect(completion_styles["displayAnimation"]).to include("restTimerCompleteFlash")
+    page.save_screenshot(Rails.root.join('tmp/rest-timer-desktop-complete.png')) if ENV['CAPTURE_TIMER'] == '1'
+  end
+
+  it 'cleanly replaces completion motion when a new rest period starts' do
+    visit workout_path(workout)
+
+    within('.rest-timer-footer') do
+      click_button 'Start Rest Timer'
+    end
+
+    restart_state = page.evaluate_script(<<~JS)
+      (() => {
+        const controllerElement = document.querySelector("[data-controller~='rest-timer']")
+        const controller = window.Stimulus?.getControllerForElementAndIdentifier(controllerElement, "rest-timer")
+        controller.playAlert = () => {}
+        controller.vibrate = () => {}
+        controller.showNotification = () => {}
+        controller.persistInAppNotification = () => Promise.resolve()
+        controller.complete()
+        window.dispatchEvent(new CustomEvent("set-logged", { bubbles: true }))
+
+        return {
+          className: controller.containerTarget.className,
+          running: controller.isRunning,
+          completionHoldTimeout: controller.completionHoldTimeout,
+          completionFadeTimeout: controller.completionFadeTimeout,
+          display: controller.displayTarget.textContent
+        }
+      })()
+    JS
+
+    expect(restart_state["running"]).to be(true)
+    expect(restart_state["className"]).not_to include('timer-complete', 'timer-fade-out')
+    expect(restart_state["completionHoldTimeout"]).to be_nil
+    expect(restart_state["completionFadeTimeout"]).to be_nil
+    expect(restart_state["display"]).to eq('1:30')
   end
 
   it 'plays countdown pips for the final four seconds before the completion tune' do
@@ -145,11 +230,13 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
 
     page.execute_script(<<~JS)
       window.__restTimerCueLog = []
+      window.__restTimerCueSeconds = []
       const controllerElement = document.querySelector("[data-controller~='rest-timer']")
       const controller = window.Stimulus?.getControllerForElementAndIdentifier(controllerElement, "rest-timer")
       if (!controller) throw new Error("Missing rest-timer controller")
 
       controller.playCountdownPip = () => window.__restTimerCueLog.push("pip")
+      controller.renderCountdownCueVisual = (remaining) => window.__restTimerCueSeconds.push(remaining)
       controller.playAlert = () => window.__restTimerCueLog.push("alert")
       controller.vibrate = () => {}
       controller.showNotification = () => {}
@@ -162,6 +249,8 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
     expect(page).to have_css("[data-rest-timer-target='display']", text: '0:00', visible: true, wait: 6)
 
     cue_log = page.evaluate_script("window.__restTimerCueLog")
+    cue_seconds = page.evaluate_script("window.__restTimerCueSeconds")
+    expect(cue_seconds).to eq([ 4, 3, 2, 1 ])
     expect(cue_log).to eq([ 'pip', 'pip', 'pip', 'pip', 'alert' ])
   end
 
@@ -182,6 +271,17 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
     JS
 
     expect(page).to have_css('.rest-timer-bar.timer-cue-hot', visible: true)
+    expect(page).to have_css('.rest-timer-bar.timer-cue-pulse', visible: true)
+
+    cue_motion = page.evaluate_script(<<~JS)
+      (() => {
+        const panel = document.querySelector(".rest-timer-bar.timer-cue-pulse")
+        const overlay = window.getComputedStyle(panel, "::before")
+        return { animationName: overlay.animationName, filter: overlay.filter }
+      })()
+    JS
+    expect(cue_motion["animationName"]).to include('restTimerCuePulse')
+    expect(cue_motion["filter"]).to eq('none')
 
     page.execute_script(<<~JS)
       const controllerElement = document.querySelector("[data-controller~='rest-timer']")
@@ -284,6 +384,75 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
     expect(page).to have_no_css('.bottom-nav', visible: true)
   end
 
+  it 'keeps the timer footer geometry stable through phone-sized motion states' do
+    page.current_window.resize_to(390, 844)
+    visit workout_path(workout)
+
+    collapsed_geometry = page.evaluate_script(<<~JS)
+      (() => {
+        const bounds = document.querySelector(".rest-timer-footer").getBoundingClientRect()
+        return { top: bounds.top, bottom: bounds.bottom, height: bounds.height }
+      })()
+    JS
+
+    within('.rest-timer-footer') do
+      click_button 'Start Rest Timer'
+    end
+
+    active_geometry = page.evaluate_script(<<~JS)
+      (() => {
+        const bounds = document.querySelector(".rest-timer-footer").getBoundingClientRect()
+        return { top: bounds.top, bottom: bounds.bottom, height: bounds.height }
+      })()
+    JS
+
+    page.execute_script(<<~JS)
+      const controllerElement = document.querySelector("[data-controller~='rest-timer']")
+      const controller = window.Stimulus?.getControllerForElementAndIdentifier(controllerElement, "rest-timer")
+      controller.playCountdownPip = () => {}
+      controller.playCountdownCueIfNeeded(4)
+    JS
+    expect(page).to have_css('.rest-timer-bar.timer-cue-pulse', visible: true)
+    page.save_screenshot(Rails.root.join('tmp/rest-timer-mobile-cue.png')) if ENV['CAPTURE_TIMER'] == '1'
+
+    expect((collapsed_geometry["bottom"] - active_geometry["bottom"]).abs).to be < 1
+    expect((collapsed_geometry["height"] - active_geometry["height"]).abs).to be < 2
+  end
+
+  it 'honors reduced motion while preserving timer progress' do
+    page.driver.browser.execute_cdp('Emulation.setEmulatedMedia',
+                                    features: [ { name: 'prefers-reduced-motion', value: 'reduce' } ])
+    visit workout_path(workout)
+
+    within('.rest-timer-footer') do
+      click_button 'Start Rest Timer'
+    end
+
+    reduced_motion = page.evaluate_async_script(<<~JS)
+      const done = arguments[0]
+      const controllerElement = document.querySelector("[data-controller~='rest-timer']")
+      const controller = window.Stimulus?.getControllerForElementAndIdentifier(controllerElement, "rest-timer")
+      const progress = document.querySelector("[data-rest-timer-target='progress']")
+      const sheen = window.getComputedStyle(progress, "::after")
+      const firstTransform = progress.style.transform
+
+      setTimeout(() => done({
+        prefersReducedMotion: controller.prefersReducedMotion,
+        frameType: controller.timerFrameType,
+        sheenAnimation: sheen.animationName,
+        firstTransform,
+        secondTransform: progress.style.transform
+      }), 180)
+    JS
+
+    expect(reduced_motion["prefersReducedMotion"]).to be(true)
+    expect(reduced_motion["frameType"]).to eq('timeout')
+    expect(reduced_motion["sheenAnimation"]).to eq('none')
+    expect(reduced_motion["firstTransform"]).to eq(reduced_motion["secondTransform"])
+  ensure
+    page.driver.browser.execute_cdp('Emulation.setEmulatedMedia', features: []) if page.driver.respond_to?(:browser)
+  end
+
   it 'keeps only the running timer panel visible after navigating away and back' do
     visit workout_path(workout)
 
@@ -294,6 +463,15 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
     end
 
     visit root_path
+
+    off_page_frame_type = page.evaluate_script(<<~JS)
+      (() => {
+        const controllerElement = document.querySelector("[data-controller~='rest-timer']")
+        return window.Stimulus?.getControllerForElementAndIdentifier(controllerElement, "rest-timer")?.timerFrameType
+      })()
+    JS
+    expect(off_page_frame_type).to eq('timeout')
+
     visit workout_path(workout)
 
     within('.rest-timer-footer') do
@@ -311,5 +489,13 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
     JS
 
     expect(visible_panel_count).to eq(1)
+
+    on_page_frame_type = page.evaluate_script(<<~JS)
+      (() => {
+        const controllerElement = document.querySelector("[data-controller~='rest-timer']")
+        return window.Stimulus?.getControllerForElementAndIdentifier(controllerElement, "rest-timer")?.timerFrameType
+      })()
+    JS
+    expect(on_page_frame_type).to eq('animation')
   end
 end

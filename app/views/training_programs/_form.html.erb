@@ -1,0 +1,34 @@
+<%= form_with model: training_program, class: "program-form" do |form| %>
+  <% if training_program.errors.any? %>
+    <div class="alert alert-danger">
+      <ul class="mb-0">
+        <% training_program.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= form.label :name, class: "form-label" %>
+    <%= form.text_field :name, class: "form-control", required: true, autofocus: true %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :description, class: "form-label" %>
+    <%= form.text_area :description, class: "form-control", rows: 4 %>
+  </div>
+
+  <div class="mb-4">
+    <%= form.label :weeks_count, "Mesocycle length", class: "form-label" %>
+    <div class="input-group program-weeks-input">
+      <%= form.number_field :weeks_count, class: "form-control", min: 1, max: 52, required: true, inputmode: "numeric" %>
+      <span class="input-group-text">weeks</span>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2 justify-content-end">
+    <%= link_to "Cancel", training_program.persisted? ? training_program : training_programs_path, class: "btn btn-outline-secondary" %>
+    <%= form.submit training_program.persisted? ? "Save Program" : "Create Program", class: "btn btn-primary" %>
+  </div>
+<% end %>

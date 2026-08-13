@@ -1,0 +1,9 @@
+<% content_for(:title) { "Add Program Session | Haearn" } %>
+
+<div class="container py-4 program-form-page">
+  <%= link_to @training_program, class: "text-muted text-decoration-none small" do %>
+    <i class="bi bi-arrow-left me-1"></i><%= @training_program.name %>
+  <% end %>
+  <h1 class="display-heading mt-2 mb-4">Add Session</h1>
+  <%= render "form", training_program: @training_program, program_session: @program_session, templates: @templates %>
+</div>

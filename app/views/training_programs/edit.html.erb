@@ -1,0 +1,12 @@
+<% content_for(:title) { "Edit #{@training_program.name} | Haearn" } %>
+
+<div class="container py-4 program-form-page">
+  <div class="mb-4">
+    <%= link_to @training_program, class: "text-muted text-decoration-none small" do %>
+      <i class="bi bi-arrow-left me-1"></i><%= @training_program.name %>
+    <% end %>
+    <h1 class="display-heading mt-2 mb-0">Edit Program</h1>
+  </div>
+
+  <%= render "form", training_program: @training_program %>
+</div>

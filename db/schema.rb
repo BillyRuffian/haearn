@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_13_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_13_151000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -166,6 +166,62 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_130000) do
     t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
+  create_table "program_cycles", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "ended_on"
+    t.date "starts_on", null: false
+    t.string "status", default: "active", null: false
+    t.integer "training_program_id", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.index ["training_program_id", "status"], name: "index_program_cycles_on_training_program_id_and_status"
+    t.index ["training_program_id"], name: "index_program_cycles_on_training_program_id"
+    t.index ["user_id"], name: "index_program_cycles_on_one_active_user", unique: true, where: "status = 'active'"
+    t.index ["user_id"], name: "index_program_cycles_on_user_id"
+  end
+
+  create_table "program_session_executions", force: :cascade do |t|
+    t.text "adjustment_notes"
+    t.string "adjustment_reason"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.integer "intensity_percent", default: 100, null: false
+    t.integer "prescribed_sets", default: 0, null: false
+    t.decimal "prescribed_volume_kg", precision: 12, scale: 3, default: "0.0", null: false
+    t.json "prescription", default: [], null: false
+    t.integer "program_cycle_id", null: false
+    t.integer "program_session_id", null: false
+    t.date "scheduled_on", null: false
+    t.string "session_name", null: false
+    t.text "skip_notes"
+    t.string "skip_reason"
+    t.string "status", default: "planned", null: false
+    t.datetime "updated_at", null: false
+    t.integer "volume_percent", default: 100, null: false
+    t.string "workout_template_name", null: false
+    t.index ["program_cycle_id", "program_session_id"], name: "index_program_executions_on_cycle_and_session", unique: true
+    t.index ["program_cycle_id", "scheduled_on"], name: "idx_on_program_cycle_id_scheduled_on_de2e8040e9"
+    t.index ["program_cycle_id"], name: "index_program_session_executions_on_program_cycle_id"
+    t.index ["program_session_id"], name: "index_program_session_executions_on_program_session_id"
+  end
+
+  create_table "program_sessions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "intensity_percent", default: 100, null: false
+    t.string "name"
+    t.text "notes"
+    t.integer "position", default: 1, null: false
+    t.integer "training_program_id", null: false
+    t.datetime "updated_at", null: false
+    t.integer "volume_percent", default: 100, null: false
+    t.integer "week_number", null: false
+    t.integer "weekday", null: false
+    t.integer "workout_template_id", null: false
+    t.index ["training_program_id", "week_number", "weekday", "position"], name: "index_program_sessions_on_schedule", unique: true
+    t.index ["training_program_id"], name: "index_program_sessions_on_training_program_id"
+    t.index ["workout_template_id"], name: "index_program_sessions_on_workout_template_id"
+  end
+
   create_table "progress_photos", force: :cascade do |t|
     t.string "category"
     t.datetime "created_at", null: false
@@ -229,6 +285,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_130000) do
     t.index ["template_block_id"], name: "index_template_exercises_on_template_block_id"
   end
 
+  create_table "training_programs", force: :cascade do |t|
+    t.datetime "archived_at"
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.integer "weeks_count", default: 4, null: false
+    t.index ["user_id", "archived_at"], name: "index_training_programs_on_user_id_and_archived_at"
+    t.index ["user_id"], name: "index_training_programs_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.boolean "admin", default: false, null: false
     t.datetime "created_at", null: false
@@ -275,10 +343,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_130000) do
     t.integer "position"
     t.text "session_notes"
     t.string "stance"
+    t.integer "template_exercise_id"
     t.datetime "updated_at", null: false
     t.integer "workout_block_id", null: false
     t.index ["exercise_id"], name: "index_workout_exercises_on_exercise_id"
     t.index ["machine_id"], name: "index_workout_exercises_on_machine_id"
+    t.index ["template_exercise_id"], name: "index_workout_exercises_on_template_exercise_id"
     t.index ["workout_block_id"], name: "index_workout_exercises_on_workout_block_id"
   end
 
@@ -297,11 +367,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_130000) do
     t.datetime "finished_at"
     t.integer "gym_id", null: false
     t.text "notes"
+    t.integer "program_session_execution_id"
     t.datetime "started_at"
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
     t.index ["created_at"], name: "index_workouts_on_created_at"
     t.index ["gym_id"], name: "index_workouts_on_gym_id"
+    t.index ["program_session_execution_id"], name: "index_workouts_on_program_session_execution_id", unique: true
     t.index ["user_id", "finished_at"], name: "index_workouts_on_user_id_and_finished_at"
     t.index ["user_id"], name: "index_workouts_on_user_id"
   end
@@ -316,6 +388,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_130000) do
   add_foreign_key "gyms", "users"
   add_foreign_key "machines", "gyms"
   add_foreign_key "notifications", "users"
+  add_foreign_key "program_cycles", "training_programs"
+  add_foreign_key "program_cycles", "users"
+  add_foreign_key "program_session_executions", "program_cycles"
+  add_foreign_key "program_session_executions", "program_sessions"
+  add_foreign_key "program_sessions", "training_programs"
+  add_foreign_key "program_sessions", "workout_templates"
   add_foreign_key "progress_photos", "users"
   add_foreign_key "push_subscriptions", "users"
   add_foreign_key "sessions", "users"
@@ -323,12 +401,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_130000) do
   add_foreign_key "template_exercises", "exercises"
   add_foreign_key "template_exercises", "machines"
   add_foreign_key "template_exercises", "template_blocks"
+  add_foreign_key "training_programs", "users"
   add_foreign_key "users", "gyms", column: "default_gym_id"
   add_foreign_key "workout_blocks", "workouts"
   add_foreign_key "workout_exercises", "exercises"
   add_foreign_key "workout_exercises", "machines"
+  add_foreign_key "workout_exercises", "template_exercises"
   add_foreign_key "workout_exercises", "workout_blocks"
   add_foreign_key "workout_templates", "users"
   add_foreign_key "workouts", "gyms"
+  add_foreign_key "workouts", "program_session_executions"
   add_foreign_key "workouts", "users"
 end

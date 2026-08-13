@@ -1,0 +1,182 @@
+<% content_for(:title) { "Today's Session | Haearn" } %>
+
+<div class="container py-4 today-session-page">
+  <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
+    <div>
+      <p class="section-header mb-1"><%= Date.current.to_fs(:long) %></p>
+      <h1 class="display-heading mb-0">Today’s Session</h1>
+    </div>
+    <%= link_to training_programs_path, class: "btn btn-outline-secondary", title: "Programs" do %>
+      <i class="bi bi-calendar2-week"></i>
+    <% end %>
+  </div>
+
+  <% unless @program_cycle %>
+    <div class="empty-state text-center py-5">
+      <i class="bi bi-calendar2-plus display-1 text-muted"></i>
+      <h2 class="h4 mt-3">No active program</h2>
+      <%= link_to "Choose Program", training_programs_path, class: "btn btn-primary mt-3" %>
+    </div>
+  <% else %>
+    <section class="today-program-header mb-4">
+      <div>
+        <%= link_to @program_cycle.training_program.name, @program_cycle.training_program, class: "h5 text-decoration-none" %>
+        <div class="small text-muted mt-1">
+          <% if @program_cycle.week_number_on(@date) %>
+            Week <%= @program_cycle.week_number_on(@date) %> of <%= @program_cycle.weeks_count %>
+          <% else %>
+            <%= @program_cycle.starts_on.to_fs(:long) %> – <%= @program_cycle.ends_on.to_fs(:long) %>
+          <% end %>
+          &middot; <%= @program_cycle.completion_rate %>% complete
+          <% if @program_cycle.adherence_score %>
+            &middot; <%= @program_cycle.adherence_score %>% adherence
+          <% end %>
+        </div>
+      </div>
+      <span class="badge bg-success">Active</span>
+    </section>
+
+    <% if @program_cycle.not_started?(@date) %>
+      <div class="text-center py-5">
+        <i class="bi bi-hourglass-split display-1 text-iron"></i>
+        <h2 class="h4 mt-3">Starts <%= @program_cycle.starts_on.to_fs(:long) %></h2>
+      </div>
+    <% elsif @program_cycle.expired?(@date) %>
+      <div class="text-center py-5">
+        <i class="bi bi-check2-circle display-1 text-success"></i>
+        <h2 class="h4 mt-3">Cycle complete</h2>
+        <%= button_to complete_training_program_path(@program_cycle.training_program, cycle_id: @program_cycle.id),
+            method: :patch,
+            class: "btn btn-primary mt-3" do %>
+          <i class="bi bi-check2 me-1"></i>Complete Cycle
+        <% end %>
+      </div>
+    <% elsif @program_sessions.empty? %>
+      <div class="today-rest-state text-center py-5">
+        <i class="bi bi-moon-stars display-1 text-iron"></i>
+        <h2 class="h4 mt-3">Rest Day</h2>
+      </div>
+    <% else %>
+      <div class="today-session-list">
+        <% @program_sessions.each do |program_session| %>
+          <% execution = @executions[program_session.id] %>
+          <% rows = execution&.prescription.presence || @prescriptions.fetch(program_session) %>
+          <% progress_rows = execution&.progress_rows&.index_by { |row| row['template_exercise_id'] } || {} %>
+          <article class="card today-session-card mb-4">
+            <div class="card-header today-session-card-header">
+              <div>
+                <span class="section-header">Session <%= program_session.position %></span>
+                <h2 class="h4 mb-0"><%= execution&.display_name || program_session.display_name %></h2>
+                <% if program_session.notes.present? %>
+                  <p class="small text-muted mb-0 mt-1"><%= program_session.notes %></p>
+                <% end %>
+              </div>
+              <% if execution %>
+                <span class="badge <%= execution.completed? ? 'bg-success' : execution.skipped? ? 'bg-secondary' : 'bg-warning text-dark' %>">
+                  <%= execution.status.titleize %>
+                </span>
+              <% end %>
+            </div>
+
+            <div class="today-prescription">
+              <% rows.each do |row| %>
+                <% progress_row = progress_rows[row['template_exercise_id']] %>
+                <div class="today-prescription-row">
+                  <div class="today-prescription-exercise">
+                    <strong><%= row['exercise_name'] %></strong>
+                    <% if row['machine_name'].present? %><span><%= row['machine_name'] %></span><% end %>
+                  </div>
+                  <div class="today-prescription-target">
+                    <span><%= row['target_sets'] %> × <%= row['target_reps'].presence || '—' %></span>
+                    <% if row['target_weight_kg'].to_f.positive? %>
+                      <strong><%= Current.user.format_weight(row['target_weight_kg']) %> <%= Current.user.preferred_unit %></strong>
+                    <% end %>
+                  </div>
+                  <% if progress_row %>
+                    <span class="today-prescription-progress <%= 'is-complete' if progress_row['complete'] %>">
+                      <%= progress_row['actual_sets'] %>/<%= row['target_sets'] %>
+                    </span>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+
+            <div class="card-footer today-session-actions">
+              <% if execution&.workout %>
+                <div class="d-flex align-items-center gap-3">
+                  <% if execution.completed? && execution.adherence_score %>
+                    <span class="program-adherence-score"><%= execution.adherence_score %>% adherence</span>
+                  <% end %>
+                  <%= link_to execution.completed? ? "View Workout" : "Resume Workout", execution.workout, class: "btn btn-primary" %>
+                </div>
+              <% elsif execution&.skipped? %>
+                <div class="d-flex justify-content-between align-items-center gap-3 w-100">
+                  <span class="small text-muted"><%= execution.skip_reason.titleize %><% if execution.skip_notes.present? %>: <%= execution.skip_notes %><% end %></span>
+                  <%= button_to restore_today_session_path(program_session), method: :delete, class: "btn btn-outline-secondary" do %>
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Restore
+                  <% end %>
+                </div>
+              <% else %>
+                <div class="today-start-controls w-100">
+                  <%= form_with url: start_today_session_path(program_session), scope: :program_session_execution, class: "today-start-form" do |form| %>
+                    <%= form.select :gym_id,
+                        options_from_collection_for_select(@gyms, :id, :name, Current.user.default_gym_id),
+                        { prompt: "Select gym" },
+                        class: "form-select",
+                        required: true %>
+                    <%= form.button class: "btn btn-primary" do %>
+                      <i class="bi bi-play-fill me-1"></i>Start
+                    <% end %>
+
+                    <details class="today-adjustments">
+                      <summary>Adjust today</summary>
+                      <div class="today-adjustment-grid mt-3">
+                        <div>
+                          <%= form.label :volume_percent, "Set volume", class: "form-label small" %>
+                          <div class="input-group input-group-sm">
+                            <%= form.number_field :volume_percent, value: program_session.volume_percent, min: 1, max: 200, class: "form-control" %>
+                            <span class="input-group-text">%</span>
+                          </div>
+                        </div>
+                        <div>
+                          <%= form.label :intensity_percent, "Template load", class: "form-label small" %>
+                          <div class="input-group input-group-sm">
+                            <%= form.number_field :intensity_percent, value: program_session.intensity_percent, min: 1, max: 200, class: "form-control" %>
+                            <span class="input-group-text">%</span>
+                          </div>
+                        </div>
+                        <div>
+                          <%= form.label :adjustment_reason, "Reason", class: "form-label small" %>
+                          <%= form.select :adjustment_reason,
+                              options_for_select(ProgramSessionExecution::REASONS.map { |reason| [reason.titleize, reason] }),
+                              { include_blank: true }, class: "form-select form-select-sm" %>
+                        </div>
+                        <div>
+                          <%= form.label :adjustment_notes, "Notes", class: "form-label small" %>
+                          <%= form.text_field :adjustment_notes, class: "form-control form-control-sm" %>
+                        </div>
+                      </div>
+                    </details>
+                  <% end %>
+
+                  <details class="today-skip-controls">
+                    <summary>Skip</summary>
+                    <%= form_with url: skip_today_session_path(program_session), scope: :program_session_execution, class: "d-flex gap-2 flex-wrap mt-3" do |form| %>
+                      <%= form.select :skip_reason,
+                          options_for_select(ProgramSessionExecution::REASONS.map { |reason| [reason.titleize, reason] }),
+                          { prompt: "Reason" }, class: "form-select form-select-sm", required: true %>
+                      <%= form.text_field :skip_notes, class: "form-control form-control-sm", placeholder: "Notes" %>
+                      <%= form.button class: "btn btn-sm btn-outline-secondary" do %>
+                        <i class="bi bi-skip-forward me-1"></i>Skip Session
+                      <% end %>
+                    <% end %>
+                  </details>
+                </div>
+              <% end %>
+            </div>
+          </article>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

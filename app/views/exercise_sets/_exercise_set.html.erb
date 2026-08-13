@@ -6,7 +6,7 @@
       <%= button_to duplicate_workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
           method: :post,
           class: "swipe-action swipe-action-duplicate",
-          data: { action: "click->swipeable#reset click->swipeable#dispatchSetLogged" },
+          data: { action: "click->swipeable#reset" },
           form: { data: { turbo_frame: "_top" } } do %>
         <i class="bi bi-copy"></i>
       <% end %>
@@ -99,7 +99,6 @@
                 <%= button_to "Duplicate", duplicate_workout_workout_exercise_exercise_set_path(workout, workout_exercise, set),
                     method: :post,
                     class: "dropdown-item",
-                    data: { action: "click->swipeable#dispatchSetLogged" },
                     form: { data: { turbo_frame: "_top" } } %>
               </li>
               <li>

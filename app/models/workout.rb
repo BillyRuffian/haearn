@@ -2,26 +2,29 @@
 #
 # Table name: workouts
 #
-#  id          :integer          not null, primary key
-#  finished_at :datetime
-#  notes       :text
-#  started_at  :datetime
-#  created_at  :datetime         not null
-#  updated_at  :datetime         not null
-#  gym_id      :integer          not null
-#  user_id     :integer          not null
+#  id                           :integer          not null, primary key
+#  finished_at                  :datetime
+#  notes                        :text
+#  started_at                   :datetime
+#  created_at                   :datetime         not null
+#  updated_at                   :datetime         not null
+#  gym_id                       :integer          not null
+#  program_session_execution_id :integer
+#  user_id                      :integer          not null
 #
 # Indexes
 #
-#  index_workouts_on_created_at               (created_at)
-#  index_workouts_on_gym_id                   (gym_id)
-#  index_workouts_on_user_id                  (user_id)
-#  index_workouts_on_user_id_and_finished_at  (user_id,finished_at)
+#  index_workouts_on_created_at                    (created_at)
+#  index_workouts_on_gym_id                        (gym_id)
+#  index_workouts_on_program_session_execution_id  (program_session_execution_id) UNIQUE
+#  index_workouts_on_user_id                       (user_id)
+#  index_workouts_on_user_id_and_finished_at       (user_id,finished_at)
 #
 # Foreign Keys
 #
-#  gym_id   (gym_id => gyms.id)
-#  user_id  (user_id => users.id)
+#  gym_id                        (gym_id => gyms.id)
+#  program_session_execution_id  (program_session_execution_id => program_session_executions.id)
+#  user_id                       (user_id => users.id)
 #
 # Supersets:
 # Block with multiple exercises = superset
@@ -34,6 +37,7 @@ class Workout < ApplicationRecord
 
   belongs_to :user
   belongs_to :gym
+  belongs_to :program_session_execution, optional: true
   has_many :workout_blocks, -> { order(:position) }, dependent: :destroy
   has_many :workout_exercises, through: :workout_blocks
   has_many :exercise_sets, through: :workout_exercises
@@ -92,7 +96,10 @@ class Workout < ApplicationRecord
 
   # Mark workout as complete by setting finished_at timestamp
   def finish!
-    update!(finished_at: Time.current)
+    transaction do
+      update!(finished_at: Time.current)
+      program_session_execution&.complete_from_workout!
+    end
   end
 
   private

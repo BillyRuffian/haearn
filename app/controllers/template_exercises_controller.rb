@@ -73,8 +73,11 @@ class TemplateExercisesController < ApplicationController
 
   # DELETE /workout_templates/:workout_template_id/exercises/:id
   def destroy
-    @template_exercise.destroy
-    redirect_to @template, notice: 'Exercise removed from template.'
+    if @template_exercise.destroy
+      redirect_to @template, notice: 'Exercise removed from template.'
+    else
+      redirect_to @template, alert: @template_exercise.errors.full_messages.to_sentence
+    end
   end
 
   private

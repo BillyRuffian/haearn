@@ -112,6 +112,17 @@
 
   <div class="card-body py-2">
     <% input_unit = input_weight_unit_for(workout_exercise) %>
+    <% prescription = workout.program_session_execution&.prescription_for(workout_exercise) %>
+    <% if prescription %>
+      <div class="workout-prescription-cue mb-2">
+        <span class="section-header">Prescribed</span>
+        <strong><%= prescription['target_sets'] %> × <%= prescription['target_reps'].presence || '—' %></strong>
+        <% if prescription['target_weight_kg'].to_f.positive? %>
+          <span>@ <%= Current.user.format_weight(prescription['target_weight_kg']) %> <%= Current.user.preferred_unit %></span>
+        <% end %>
+        <span class="ms-auto"><%= workout_exercise.exercise_sets.count { |set| set.is_warmup == false } %>/<%= prescription['target_sets'] %> sets</span>
+      </div>
+    <% end %>
     <% if workout_exercise.machine&.setup_memory? %>
       <div class="small text-muted mb-2">
         <i class="bi bi-sliders2-vertical me-1"></i>

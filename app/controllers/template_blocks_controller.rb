@@ -7,8 +7,11 @@ class TemplateBlocksController < ApplicationController
 
   # DELETE /workout_templates/:workout_template_id/blocks/:id
   def destroy
-    @template_block.destroy
-    redirect_to @template, notice: 'Block removed from template.'
+    if @template_block.destroy
+      redirect_to @template, notice: 'Block removed from template.'
+    else
+      redirect_to @template, alert: @template_block.errors.full_messages.to_sentence
+    end
   end
 
   private

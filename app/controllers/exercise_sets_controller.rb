@@ -49,6 +49,7 @@ class ExerciseSetsController < ApplicationController
           end
 
           append_volume_pr_stream(streams)
+          append_set_added_stream(streams)
           render turbo_stream: streams
         end
         format.html { redirect_to workout_path(@workout) }
@@ -154,6 +155,7 @@ class ExerciseSetsController < ApplicationController
           ]
 
           append_volume_pr_stream(streams)
+          append_set_added_stream(streams)
           render turbo_stream: streams
         end
         format.html { redirect_to workout_path(@workout) }
@@ -181,6 +183,12 @@ class ExerciseSetsController < ApplicationController
     streams << turbo_stream.replace(dom_id(@workout_exercise),
       partial: 'workouts/workout_exercise',
       locals: { workout_exercise: @workout_exercise, workout: @workout, superset_label: superset_label_for(@workout_exercise) })
+  end
+
+  def append_set_added_stream(streams)
+    streams << turbo_stream.append(dom_id(@workout_exercise),
+      partial: 'exercise_sets/set_added_marker',
+      locals: { workout_exercise: @workout_exercise })
   end
 
   # Compute superset label (e.g. "A1", "A2") for re-rendering the workout_exercise partial

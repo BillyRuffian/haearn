@@ -20,7 +20,8 @@ class DashboardPageDataBuilder
       current_weight_kg: @user.body_metrics.current_weight_kg,
       recent_workouts: recent_workouts,
       fatigue_data: fatigue_data,
-      readiness_alerts: readiness_alerts
+      readiness_alerts: readiness_alerts,
+      today_session: today_session_data
     )
   end
 
@@ -151,6 +152,20 @@ class DashboardPageDataBuilder
           gym: gym_name || 'Unknown'
         }
       end.reverse
+  end
+
+  def today_session_data
+    cycle = @user.active_program_cycle
+    return { cycle: nil, sessions: [], exercise_count: 0 } unless cycle
+
+    sessions = cycle.scheduled_sessions_on(Date.current).to_a
+    {
+      cycle: cycle,
+      sessions: sessions,
+      exercise_count: sessions.sum do |session|
+        session.workout_template.template_blocks.sum { |block| block.template_exercises.size }
+      end
+    }
   end
 
   def display_volume(volume)

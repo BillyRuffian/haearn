@@ -48,6 +48,8 @@ class User < ApplicationRecord
   has_many :workout_exercises, through: :workout_blocks
   has_many :exercise_sets, through: :workout_exercises
   has_many :workout_templates, dependent: :destroy
+  has_many :training_programs, dependent: :destroy
+  has_many :program_cycles, through: :training_programs
   has_many :body_metrics, dependent: :destroy
   has_many :notifications, dependent: :destroy
   has_many :push_subscriptions, dependent: :destroy
@@ -151,6 +153,10 @@ class User < ApplicationRecord
   # @return [Workout, nil]
   def active_workout
     workouts.in_progress.first
+  end
+
+  def active_program_cycle
+    program_cycles.active.includes(:training_program).order(starts_on: :desc).first
   end
 
   # Check if user has enabled in-app notifications for a given kind

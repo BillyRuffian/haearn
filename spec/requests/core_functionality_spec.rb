@@ -125,6 +125,23 @@ RSpec.describe 'Core functionality', type: :request do
     expect(workout_exercise.exercise_sets.where(client_request_id: params[:exercise_set][:client_request_id]).count).to eq(1)
   end
 
+  it 'aligns the owning block after generating warmup sets without restarting the timer' do
+    sign_in_as(user)
+    workout = user.workouts.create!(gym: gym, started_at: Time.current)
+    block = workout.workout_blocks.create!(position: 1)
+    workout_exercise = block.workout_exercises.create!(exercise: exercises(:one), position: 1)
+
+    post generate_warmups_workout_workout_exercise_path(workout, workout_exercise),
+         params: { working_weight: '100' },
+         headers: { 'ACCEPT' => Mime[:turbo_stream].to_s }
+
+    expect(response).to have_http_status(:ok)
+    expect(workout_exercise.exercise_sets.warmup).not_to be_empty
+    expect(response.body).to include('data-controller="set-added"')
+    expect(response.body).to include("data-set-added-block-id-value=\"#{ActionView::RecordIdentifier.dom_id(block)}\"")
+    expect(response.body).to include('data-set-added-restart-timer-value="false"')
+  end
+
   it 'updates key settings preferences' do
     sign_in_as(user)
 

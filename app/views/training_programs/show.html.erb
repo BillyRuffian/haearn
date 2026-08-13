@@ -1,0 +1,114 @@
+<% content_for(:title) { "#{@training_program.name} | Haearn" } %>
+
+<div class="container-fluid program-builder py-4 px-3 px-xl-4">
+  <div class="program-builder-header mb-4">
+    <div>
+      <%= link_to training_programs_path, class: "text-muted text-decoration-none small" do %>
+        <i class="bi bi-arrow-left me-1"></i>Programs
+      <% end %>
+      <div class="d-flex align-items-center gap-2 mt-2">
+        <h1 class="display-heading mb-0"><%= @training_program.name %></h1>
+        <span class="badge bg-iron-light"><%= pluralize(@training_program.weeks_count, "week") %></span>
+      </div>
+      <% if @training_program.description.present? %>
+        <p class="text-muted mt-2 mb-0"><%= @training_program.description %></p>
+      <% end %>
+    </div>
+    <div class="d-flex gap-2 flex-wrap justify-content-end">
+      <%= link_to edit_training_program_path(@training_program), class: "btn btn-outline-secondary", title: "Edit program" do %>
+        <i class="bi bi-pencil"></i>
+      <% end %>
+      <% if @active_cycle %>
+        <%= link_to today_session_path, class: "btn btn-primary" do %>
+          <i class="bi bi-calendar-check me-1"></i>Today
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <section class="program-cycle-controls mb-4">
+    <% if @active_cycle %>
+      <div>
+        <span class="badge bg-success mb-1">Active cycle</span>
+        <div class="small text-muted">
+          <%= @active_cycle.starts_on.to_fs(:long) %> – <%= @active_cycle.ends_on.to_fs(:long) %>
+          &middot; <%= @active_cycle.completion_rate %>% complete
+          <% if @active_cycle.adherence_score %>
+            &middot; <%= @active_cycle.adherence_score %>% adherence
+          <% end %>
+        </div>
+      </div>
+      <%= button_to complete_training_program_path(@training_program, cycle_id: @active_cycle.id),
+          method: :patch,
+          class: "btn btn-sm btn-outline-secondary",
+          data: { turbo_confirm: "Complete this program cycle?" } do %>
+        <i class="bi bi-check2-circle me-1"></i>Complete Cycle
+      <% end %>
+    <% else %>
+      <%= form_with url: activate_training_program_path(@training_program), method: :post, class: "program-activate-form" do |form| %>
+        <div>
+          <%= form.label :starts_on, "Week 1 starts", class: "form-label small mb-1" %>
+          <%= form.date_field :starts_on,
+              name: "program_cycle[starts_on]",
+              value: Date.current.beginning_of_week,
+              class: "form-control",
+              required: true %>
+        </div>
+        <%= form.button class: "btn btn-primary" do %>
+          <i class="bi bi-play-fill me-1"></i>Activate
+        <% end %>
+      <% end %>
+    <% end %>
+  </section>
+
+  <% sessions_by_slot = @program_sessions.group_by { |session| [session.week_number, session.weekday] } %>
+  <div class="program-weeks">
+    <% (1..@training_program.weeks_count).each do |week_number| %>
+      <section class="program-week mb-4">
+        <div class="program-week-heading">
+          <span class="section-header">Week</span>
+          <strong><%= week_number %></strong>
+        </div>
+        <div class="program-week-grid">
+          <% ProgramSession::DAY_NAMES.each_with_index do |day_name, index| %>
+            <% weekday = index + 1 %>
+            <% sessions = sessions_by_slot.fetch([week_number, weekday], []) %>
+            <div class="program-day">
+              <div class="program-day-header">
+                <span><%= day_name.first(3) %></span>
+                <%= link_to new_training_program_program_session_path(@training_program, week_number: week_number, weekday: weekday),
+                    class: "btn btn-sm btn-link p-0",
+                    title: "Add session" do %>
+                  <i class="bi bi-plus-circle"></i>
+                <% end %>
+              </div>
+              <div class="program-day-sessions">
+                <% sessions.each do |session| %>
+                  <%= link_to edit_training_program_program_session_path(@training_program, session), class: "program-session-chip" do %>
+                    <strong><%= session.display_name %></strong>
+                    <span><%= session.workout_template.template_blocks.sum { |block| block.template_exercises.size } %> exercises</span>
+                    <% if session.volume_percent != 100 || session.intensity_percent != 100 %>
+                      <span>V <%= session.volume_percent %>% &middot; I <%= session.intensity_percent %>%</span>
+                    <% end %>
+                  <% end %>
+                <% end %>
+                <% if sessions.empty? %>
+                  <span class="program-rest-label">Rest</span>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+  </div>
+
+  <div class="d-flex justify-content-end mt-4">
+    <%= button_to training_program_path(@training_program),
+        method: :delete,
+        class: "btn btn-outline-danger",
+        data: { turbo_confirm: "Archive this program? Its completed workout history will be preserved." } do %>
+      <i class="bi bi-archive me-1"></i>Archive Program
+    <% end %>
+  </div>
+</div>

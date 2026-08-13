@@ -50,20 +50,24 @@ class WorkoutTemplatesController < ApplicationController
 
   # DELETE /workout_templates/:id
   def destroy
-    @template.destroy
-    redirect_to workout_templates_path, notice: 'Template deleted successfully.'
+    if @template.destroy
+      redirect_to workout_templates_path, notice: 'Template deleted successfully.'
+    else
+      redirect_to @template, alert: @template.errors.full_messages.to_sentence
+    end
   end
 
   # POST /workout_templates/:id/start_workout
   # Creates a new workout from this template
   def start_workout
-    workout = create_workout_from_template(@template)
-
-    if workout.persisted?
-      redirect_to workout, notice: "Started workout from template \"#{@template.name}\"."
-    else
-      redirect_to @template, alert: "Failed to start workout: #{workout.errors.full_messages.join(', ')}"
-    end
+    workout = WorkoutTemplateInstantiator.new(
+      user: Current.user,
+      workout_template: @template,
+      gym: Current.user.default_gym
+    ).call
+    redirect_to workout, notice: "Started workout from template \"#{@template.name}\"."
+  rescue ActiveRecord::RecordInvalid => error
+    redirect_to @template, alert: "Failed to start workout: #{error.record.errors.full_messages.to_sentence}"
   end
 
   # POST /workout_templates/:id/toggle_pin
@@ -175,31 +179,5 @@ class WorkoutTemplatesController < ApplicationController
     total = values.reduce(BigDecimal('0')) { |sum, value| sum + BigDecimal(value.to_s) }
     average = total / BigDecimal(values.size.to_s)
     average.round(scale)
-  end
-
-  # Creates a new workout instance from a template
-  def create_workout_from_template(template)
-    workout = Current.user.workouts.build(
-      gym_id: Current.user.default_gym_id,
-      started_at: Time.current
-    )
-
-    template.template_blocks.ordered.each do |template_block|
-      workout_block = workout.workout_blocks.build(
-        position: template_block.position,
-        rest_seconds: template_block.rest_seconds
-      )
-
-      template_block.template_exercises.each do |template_exercise|
-        workout_block.workout_exercises.build(
-          exercise: template_exercise.exercise,
-          machine: template_exercise.machine,
-          persistent_notes: template_exercise.persistent_notes
-        )
-      end
-    end
-
-    workout.save
-    workout
   end
 end

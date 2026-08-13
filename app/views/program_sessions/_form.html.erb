@@ -1,0 +1,57 @@
+<%= form_with model: [ training_program, program_session ] do |form| %>
+  <% if program_session.errors.any? %>
+    <div class="alert alert-danger"><%= program_session.errors.full_messages.to_sentence %></div>
+  <% end %>
+
+  <div class="mb-3">
+    <%= form.label :workout_template_id, "Workout template", class: "form-label" %>
+    <%= form.collection_select :workout_template_id, templates, :id, :name,
+        { prompt: "Select template" },
+        { class: "form-select", required: true } %>
+  </div>
+
+  <div class="mb-3">
+    <%= form.label :name, "Session label", class: "form-label" %>
+    <%= form.text_field :name, class: "form-control", placeholder: "Optional" %>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-6">
+      <%= form.label :week_number, "Week", class: "form-label" %>
+      <%= form.number_field :week_number, class: "form-control", min: 1, max: training_program.weeks_count, required: true %>
+    </div>
+    <div class="col-6">
+      <%= form.label :weekday, "Day", class: "form-label" %>
+      <%= form.select :weekday,
+          options_for_select(ProgramSession::DAY_NAMES.each_with_index.map { |day, index| [day, index + 1] }, program_session.weekday),
+          {}, class: "form-select", required: true %>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-6">
+      <%= form.label :volume_percent, "Set volume", class: "form-label" %>
+      <div class="input-group">
+        <%= form.number_field :volume_percent, class: "form-control", min: 1, max: 200, required: true %>
+        <span class="input-group-text">%</span>
+      </div>
+    </div>
+    <div class="col-6">
+      <%= form.label :intensity_percent, "Template load", class: "form-label" %>
+      <div class="input-group">
+        <%= form.number_field :intensity_percent, class: "form-control", min: 1, max: 200, required: true %>
+        <span class="input-group-text">%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-4">
+    <%= form.label :notes, class: "form-label" %>
+    <%= form.text_area :notes, class: "form-control", rows: 3 %>
+  </div>
+
+  <div class="d-flex gap-2 justify-content-end">
+    <%= link_to "Cancel", training_program, class: "btn btn-outline-secondary" %>
+    <%= form.submit program_session.persisted? ? "Save Session" : "Add Session", class: "btn btn-primary" %>
+  </div>
+<% end %>

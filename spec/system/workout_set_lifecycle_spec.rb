@@ -22,6 +22,96 @@ RSpec.describe 'Workout set lifecycle', type: :system, js: true do
     JS
   end
 
+  def full_swipe_right(selector)
+    page.execute_script(<<~JS, selector)
+      const element = document.querySelector(arguments[0])
+      if (!element) throw new Error(`Missing swipe target: ${arguments[0]}`)
+
+      const bounds = element.getBoundingClientRect()
+      const y = bounds.top + (bounds.height / 2)
+      const makeTouch = (x) => new Touch({
+        identifier: 1,
+        target: element,
+        clientX: x,
+        clientY: y,
+        screenX: x,
+        screenY: y,
+        pageX: x + window.scrollX,
+        pageY: y + window.scrollY
+      })
+      const start = makeTouch(bounds.left + 12)
+      const finish = makeTouch(bounds.right - 12)
+
+      element.dispatchEvent(new TouchEvent("touchstart", {
+        bubbles: true,
+        cancelable: true,
+        touches: [start],
+        targetTouches: [start],
+        changedTouches: [start]
+      }))
+      element.dispatchEvent(new TouchEvent("touchmove", {
+        bubbles: true,
+        cancelable: true,
+        touches: [finish],
+        targetTouches: [finish],
+        changedTouches: [finish]
+      }))
+      element.dispatchEvent(new TouchEvent("touchend", {
+        bubbles: true,
+        cancelable: true,
+        touches: [],
+        targetTouches: [],
+        changedTouches: [finish]
+      }))
+    JS
+  end
+
+  def make_block_scrollable(block_id)
+    page.execute_script(<<~JS, block_id)
+      const block = document.getElementById(arguments[0])
+      if (!block) throw new Error(`Missing workout block: ${arguments[0]}`)
+
+      const before = document.createElement("div")
+      const after = document.createElement("div")
+      before.style.height = "900px"
+      after.style.height = "900px"
+      block.before(before)
+      block.after(after)
+      window.scrollTo(0, 0)
+    JS
+  end
+
+  def expect_block_at_visible_top(block_id)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + Capybara.default_max_wait_time
+    geometry = nil
+
+    loop do
+      geometry = page.evaluate_script(<<~JS, block_id)
+        (() => {
+          const block = document.getElementById(arguments[0])
+          const navbar = document.querySelector(".navbar.sticky-top")
+          const navbarBounds = navbar?.getBoundingClientRect()
+          const navbarBottom = navbarBounds?.top <= 0 && navbarBounds?.bottom > 0 ? navbarBounds.bottom : 0
+          return {
+            blockTop: block.getBoundingClientRect().top,
+            navbarBottom,
+            scrollY: window.scrollY,
+            scrollHeight: document.documentElement.scrollHeight,
+            innerHeight: window.innerHeight,
+            bodyScrollHeight: document.body.scrollHeight,
+            blockDocumentTop: window.scrollY + block.getBoundingClientRect().top
+          }
+        })()
+      JS
+      return if (geometry["blockTop"] - geometry["navbarBottom"]).abs < 8
+
+      break if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+      sleep 0.05
+    end
+
+    raise "Workout block did not align to the visible viewport top: #{geometry.inspect}"
+  end
+
   def open_inline_edit(edit_path, frame_id)
     page.execute_script(<<~JS, edit_path, frame_id)
       if (!window.Turbo) throw new Error("Turbo is unavailable")
@@ -82,5 +172,38 @@ RSpec.describe 'Workout set lifecycle', type: :system, js: true do
       expect(page).to have_text('10')
       expect(page).to have_no_text('12')
     end
+  end
+
+  it 'duplicates with a full right swipe and scrolls its block to the visible top' do
+    page.current_window.resize_to(390, 844)
+    visit workout_path(workout)
+
+    block_id = ActionView::RecordIdentifier.dom_id(workout_exercise.workout_block)
+    make_block_scrollable(block_id)
+    full_swipe_right("##{ActionView::RecordIdentifier.dom_id(exercise_set)} .swipeable-container")
+
+    within("##{ActionView::RecordIdentifier.dom_id(workout_exercise)}") do
+      expect(page).to have_css(".set-row", count: 2)
+    end
+    expect_block_at_visible_top(block_id)
+  end
+
+  it 'scrolls its block to the visible top after logging a new set' do
+    page.current_window.resize_to(390, 844)
+    visit workout_path(workout)
+
+    block_id = ActionView::RecordIdentifier.dom_id(workout_exercise.workout_block)
+    make_block_scrollable(block_id)
+
+    page.execute_script(<<~JS)
+      const form = document.querySelector("form.add-set-form")
+      if (!form) throw new Error("Missing add set form")
+      form.requestSubmit()
+    JS
+
+    within("##{ActionView::RecordIdentifier.dom_id(workout_exercise)}") do
+      expect(page).to have_css(".set-row", count: 2)
+    end
+    expect_block_at_visible_top(block_id)
   end
 end

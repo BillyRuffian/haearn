@@ -179,6 +179,19 @@ Rails.application.routes.draw do
   end
   post 'workouts/:workout_id/save_as_template', to: 'workout_templates#create_from_workout', as: :save_workout_as_template
 
+  # Training Programs
+  resources :training_programs, path: 'programs' do
+    member do
+      post :activate
+      patch :complete
+    end
+    resources :program_sessions, path: 'sessions', except: %i[index show]
+  end
+  get 'today', to: 'todays_sessions#show', as: :today_session
+  post 'today/sessions/:program_session_id/start', to: 'todays_sessions#start', as: :start_today_session
+  post 'today/sessions/:program_session_id/skip', to: 'todays_sessions#skip', as: :skip_today_session
+  delete 'today/sessions/:program_session_id/restore', to: 'todays_sessions#restore', as: :restore_today_session
+
   # Workouts
   resources :workouts do
     collection do

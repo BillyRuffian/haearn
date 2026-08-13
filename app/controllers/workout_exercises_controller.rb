@@ -194,6 +194,11 @@ class WorkoutExercisesController < ApplicationController
             turbo_stream.update(
               "warmup_generator_#{@workout_exercise.id}",
               html: ''
+            ),
+            turbo_stream.append(
+              dom_id(@workout_exercise),
+              partial: 'exercise_sets/set_added_marker',
+              locals: { workout_exercise: @workout_exercise, restart_timer: false }
             )
           ]
         end

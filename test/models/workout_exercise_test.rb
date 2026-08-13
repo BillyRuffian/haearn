@@ -2,31 +2,34 @@
 #
 # Table name: workout_exercises
 #
-#  id               :integer          not null, primary key
-#  bar_type         :string
-#  grip_width       :string
-#  incline_angle    :integer
-#  persistent_notes :text
-#  position         :integer
-#  session_notes    :text
-#  stance           :string
-#  created_at       :datetime         not null
-#  updated_at       :datetime         not null
-#  exercise_id      :integer          not null
-#  machine_id       :integer
-#  workout_block_id :integer          not null
+#  id                   :integer          not null, primary key
+#  bar_type             :string
+#  grip_width           :string
+#  incline_angle        :integer
+#  persistent_notes     :text
+#  position             :integer
+#  session_notes        :text
+#  stance               :string
+#  created_at           :datetime         not null
+#  updated_at           :datetime         not null
+#  exercise_id          :integer          not null
+#  machine_id           :integer
+#  template_exercise_id :integer
+#  workout_block_id     :integer          not null
 #
 # Indexes
 #
-#  index_workout_exercises_on_exercise_id       (exercise_id)
-#  index_workout_exercises_on_machine_id        (machine_id)
-#  index_workout_exercises_on_workout_block_id  (workout_block_id)
+#  index_workout_exercises_on_exercise_id           (exercise_id)
+#  index_workout_exercises_on_machine_id            (machine_id)
+#  index_workout_exercises_on_template_exercise_id  (template_exercise_id)
+#  index_workout_exercises_on_workout_block_id      (workout_block_id)
 #
 # Foreign Keys
 #
-#  exercise_id       (exercise_id => exercises.id)
-#  machine_id        (machine_id => machines.id)
-#  workout_block_id  (workout_block_id => workout_blocks.id)
+#  exercise_id           (exercise_id => exercises.id)
+#  machine_id            (machine_id => machines.id)
+#  template_exercise_id  (template_exercise_id => template_exercises.id)
+#  workout_block_id      (workout_block_id => workout_blocks.id)
 #
 require 'test_helper'
 

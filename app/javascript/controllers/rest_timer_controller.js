@@ -16,12 +16,19 @@ export default class extends Controller {
     this.totalDuration = this.defaultDurationValue
     this.endTime = null
     this.isRunning = false
-    this.interval = null
+    this.timerFrame = null
+    this.timerFrameType = null
+    this.lastRenderedSecond = null
     this.lastAlertAt = 0
     this.lastSetLoggedAt = 0
-    this.lastCountdownCueSecond = null
+    this.countdownCueSecondsPlayed = new Set()
     this.audioContext = null
     this.audioUnlocked = false
+    this.cueVisualFrame = null
+    this.cueVisualTimeout = null
+    this.completionHoldTimeout = null
+    this.completionFadeTimeout = null
+    this.prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
     const savedDuration = this.savedPreferredDuration()
     if (savedDuration) {
@@ -65,11 +72,10 @@ export default class extends Controller {
   }
 
   disconnect() {
-    // Don't call stop() - just clear the interval but keep state in localStorage
-    if (this.interval) {
-      clearInterval(this.interval)
-      this.interval = null
-    }
+    // Don't call stop() - keep persisted state for the next connection.
+    this.cancelTimerFrame()
+    this.clearCueVisualAnimation()
+    this.clearCompletionTimers()
     if (this.panelSyncFrame) {
       cancelAnimationFrame(this.panelSyncFrame)
       this.panelSyncFrame = null
@@ -113,7 +119,7 @@ export default class extends Controller {
         this.endTime = endTime
         this.isRunning = true
         this.showTimer()
-        this.startInterval()
+        this.startAnimationLoop()
       } else {
         // Timer expired while away - complete it on reconnect so the user
         // still gets the alert after navigation/backgrounding.
@@ -135,44 +141,62 @@ export default class extends Controller {
   }
 
   get remaining() {
-    if (!this.endTime) return this.totalDuration
-    const now = Date.now()
-    const remaining = Math.ceil((this.endTime - now) / 1000)
+    const remaining = Math.ceil(this.remainingMilliseconds / 1000)
     return Math.max(0, remaining)
   }
 
-  startInterval() {
-    if (this.interval) return
+  get remainingMilliseconds() {
+    if (!this.endTime) return this.totalDuration * 1000
+    return Math.max(0, this.endTime - Date.now())
+  }
 
-    // Use shorter interval for responsive UI, but rely on timestamps for accuracy
-    this.interval = setInterval(() => {
-      const remaining = this.remaining
-      this.updateDisplayFor(remaining)
+  startAnimationLoop() {
+    if (this.timerFrame) return
+
+    const tick = () => {
+      if (!this.isRunning || !this.endTime) {
+        this.timerFrame = null
+        return
+      }
+
+      const remainingMilliseconds = this.remainingMilliseconds
+      const remaining = Math.ceil(remainingMilliseconds / 1000)
+      this.updateDisplayFor(remaining, remainingMilliseconds)
       this.playCountdownCueIfNeeded(remaining)
 
       if (remaining <= 0) {
         this.complete()
+        return
       }
-    }, 100) // Update frequently for smooth countdown
+
+      this.scheduleTimerTick(tick)
+    }
+
+    tick()
   }
 
   start() {
     if (this.isRunning) return
 
+    this.clearCompletionTimers()
+    this.clearCompletionState()
+    if (this.hasContainerTarget) {
+      this.containerTarget.classList.remove("timer-complete", "timer-fade-out")
+    }
     this.resetCountdownCueState()
+    this.lastRenderedSecond = null
     this.isRunning = true
     this.endTime = Date.now() + (this.totalDuration * 1000)
     this.saveTimerState()
     this.showTimer()
-    this.startInterval()
+    this.startAnimationLoop()
     this.warmUpAudio()
   }
 
   stop() {
-    if (this.interval) {
-      clearInterval(this.interval)
-      this.interval = null
-    }
+    this.cancelTimerFrame()
+    this.clearCueVisualAnimation()
+    this.clearCompletionTimers()
     this.resetCountdownCueState()
     this.clearCountdownCueVisual()
     this.isRunning = false
@@ -204,13 +228,15 @@ export default class extends Controller {
     // Flash the timer, then hide
     if (this.hasContainerTarget) {
       this.containerTarget.classList.add("timer-complete")
-      setTimeout(() => {
+      this.completionHoldTimeout = setTimeout(() => {
         this.containerTarget.classList.add("timer-fade-out")
-        setTimeout(() => {
+        this.completionFadeTimeout = setTimeout(() => {
           this.hideTimer()
           this.clearCompletionState()
           this.containerTarget.classList.remove("timer-complete", "timer-fade-out")
+          this.completionFadeTimeout = null
         }, 350)
+        this.completionHoldTimeout = null
       }, 5000)
     }
   }
@@ -248,19 +274,23 @@ export default class extends Controller {
   }
 
   updateDisplay() {
-    this.updateDisplayFor(this.remaining)
+    this.updateDisplayFor(this.remaining, this.remainingMilliseconds)
   }
 
-  updateDisplayFor(remaining) {
-    if (this.hasDisplayTarget) {
+  updateDisplayFor(remaining, remainingMilliseconds = remaining * 1000) {
+    const secondChanged = remaining !== this.lastRenderedSecond
+
+    if (this.hasDisplayTarget && secondChanged) {
       const mins = Math.floor(remaining / 60)
       const secs = remaining % 60
       this.displayTarget.textContent = `${mins}:${secs.toString().padStart(2, "0")}`
+      this.lastRenderedSecond = remaining
     }
 
-    if (this.hasProgressTarget) {
-      const percent = (remaining / this.totalDuration) * 100
-      this.progressTarget.style.width = `${percent}%`
+    if (this.hasProgressTarget && (!this.prefersReducedMotion || secondChanged)) {
+      const totalMilliseconds = Math.max(1, this.totalDuration * 1000)
+      const ratio = Math.max(0, Math.min(1, remainingMilliseconds / totalMilliseconds))
+      this.progressTarget.style.transform = `scaleX(${ratio.toFixed(5)})`
     }
   }
 
@@ -270,7 +300,7 @@ export default class extends Controller {
     }
 
     if (this.hasProgressTarget) {
-      this.progressTarget.style.width = "100%"
+      this.progressTarget.style.transform = "scaleX(1)"
     }
   }
 
@@ -285,8 +315,9 @@ export default class extends Controller {
 
     if (document.visibilityState === "visible" && this.isRunning) {
       // Force immediate update when app comes back to foreground
-      const remaining = this.remaining
-      this.updateDisplayFor(remaining)
+      const remainingMilliseconds = this.remainingMilliseconds
+      const remaining = Math.ceil(remainingMilliseconds / 1000)
+      this.updateDisplayFor(remaining, remainingMilliseconds)
       this.playCountdownCueIfNeeded(remaining)
 
       // Check if timer completed while backgrounded
@@ -339,11 +370,9 @@ export default class extends Controller {
     if (!panel) return
 
     if (visible) {
-      requestAnimationFrame(() => {
-        panel.classList.remove("is-hidden")
-        panel.setAttribute("aria-hidden", "false")
-        panel.hidden = false
-      })
+      panel.classList.remove("is-hidden")
+      panel.setAttribute("aria-hidden", "false")
+      panel.hidden = false
       return
     }
 
@@ -567,16 +596,11 @@ export default class extends Controller {
   }
 
   playCountdownCueIfNeeded(remaining) {
-    if (remaining > 4 || remaining <= 0) {
-      this.lastCountdownCueSecond = null
-      return
-    }
+    if (remaining > 4 || remaining <= 0) return
 
-    if (remaining === this.lastCountdownCueSecond) {
-      return
-    }
+    if (this.countdownCueSecondsPlayed.has(remaining)) return
 
-    this.lastCountdownCueSecond = remaining
+    this.countdownCueSecondsPlayed.add(remaining)
     this.playCountdownPip()
     this.renderCountdownCueVisual(remaining)
   }
@@ -596,7 +620,7 @@ export default class extends Controller {
   }
 
   resetCountdownCueState() {
-    this.lastCountdownCueSecond = null
+    this.countdownCueSecondsPlayed.clear()
   }
 
   renderCountdownCueVisual(remaining) {
@@ -605,22 +629,74 @@ export default class extends Controller {
     this.containerTarget.classList.add("timer-cue-hot")
     this.containerTarget.classList.remove("timer-cue-pulse")
 
-    requestAnimationFrame(() => {
+    this.cueVisualFrame = requestAnimationFrame(() => {
+      this.cueVisualFrame = null
       if (!this.hasContainerTarget) return
 
       this.containerTarget.classList.add("timer-cue-pulse")
-      setTimeout(() => {
+      this.clearCueVisualTimeout()
+      this.cueVisualTimeout = setTimeout(() => {
         if (this.hasContainerTarget) {
           this.containerTarget.classList.remove("timer-cue-pulse")
         }
-      }, 480)
+        this.cueVisualTimeout = null
+      }, 440)
     })
   }
 
   clearCountdownCueVisual() {
     if (!this.hasContainerTarget) return
 
+    this.clearCueVisualAnimation()
     this.containerTarget.classList.remove("timer-cue-hot", "timer-cue-pulse")
+  }
+
+  cancelTimerFrame() {
+    if (!this.timerFrame) return
+
+    if (this.timerFrameType === "animation") {
+      cancelAnimationFrame(this.timerFrame)
+    } else {
+      clearTimeout(this.timerFrame)
+    }
+    this.timerFrame = null
+    this.timerFrameType = null
+  }
+
+  scheduleTimerTick(callback) {
+    const useAnimationFrame = document.visibilityState === "visible" &&
+      this.hasProgressTarget && !this.prefersReducedMotion
+
+    this.timerFrameType = useAnimationFrame ? "animation" : "timeout"
+    this.timerFrame = useAnimationFrame ?
+      requestAnimationFrame(callback) :
+      setTimeout(callback, 100)
+  }
+
+  clearCueVisualTimeout() {
+    if (!this.cueVisualTimeout) return
+
+    clearTimeout(this.cueVisualTimeout)
+    this.cueVisualTimeout = null
+  }
+
+  clearCueVisualAnimation() {
+    if (this.cueVisualFrame) {
+      cancelAnimationFrame(this.cueVisualFrame)
+      this.cueVisualFrame = null
+    }
+    this.clearCueVisualTimeout()
+  }
+
+  clearCompletionTimers() {
+    if (this.completionHoldTimeout) {
+      clearTimeout(this.completionHoldTimeout)
+      this.completionHoldTimeout = null
+    }
+    if (this.completionFadeTimeout) {
+      clearTimeout(this.completionFadeTimeout)
+      this.completionFadeTimeout = null
+    }
   }
 
   vibrate() {

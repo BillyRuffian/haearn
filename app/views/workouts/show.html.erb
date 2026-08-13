@@ -63,6 +63,26 @@
     <% end %>
   </div>
 
+  <% if (program_execution = @workout.program_session_execution) %>
+    <div class="program-active-band mb-4">
+      <div>
+        <span class="section-header">Program Session</span>
+        <h2 class="h5 mb-1"><%= program_execution.display_name %></h2>
+        <span class="small text-muted">
+          <%= program_execution.program_cycle.training_program.name %>
+          &middot; <%= program_execution.scheduled_on.to_fs(:long) %>
+        </span>
+      </div>
+      <% if @workout.completed? && program_execution.adherence_score %>
+        <strong class="program-adherence-score"><%= program_execution.adherence_score %>% adherence</strong>
+      <% else %>
+        <%= link_to today_session_path, class: "btn btn-sm btn-outline-secondary" do %>
+          <i class="bi bi-calendar-check me-1"></i>Today
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+
   <%# Action buttons for completed workouts - displayed as a clean toolbar below the header %>
   <% unless @workout.in_progress? %>
     <div class="d-flex flex-wrap gap-2 mb-4">

@@ -95,6 +95,322 @@ h6,
   text-transform: uppercase;
 }
 
+// Program builder and daily prescription
+.program-form-page {
+  max-width: 46rem;
+}
+
+.program-weeks-input {
+  max-width: 13rem;
+}
+
+.program-active-band,
+.program-cycle-controls,
+.today-program-header,
+.dashboard-today-band {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.program-builder-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.program-activate-form {
+  display: flex;
+  align-items: end;
+  gap: 0.75rem;
+}
+
+.program-week {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.program-weeks,
+.program-builder {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.program-week-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 0.8rem;
+  border-right: 2px solid $forge-orange;
+
+  strong {
+    font-family: $font-family-monospace;
+    font-size: 2rem;
+    line-height: 1;
+  }
+}
+
+.program-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(8.5rem, 1fr));
+  min-width: 66rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.program-day {
+  min-height: 9.5rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.program-day-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.25rem;
+  padding: 0.4rem 0.55rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: $gray-400;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.program-day-sessions {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.5rem;
+}
+
+.program-session-chip {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+  padding: 0.55rem;
+  border-left: 3px solid $forge-orange;
+  background: rgba($forge-orange, 0.11);
+  color: $gray-100;
+  text-decoration: none;
+
+  strong,
+  span {
+    overflow-wrap: anywhere;
+  }
+
+  span {
+    color: $gray-400;
+    font-size: 0.7rem;
+  }
+
+  &:hover {
+    background: rgba($forge-orange, 0.2);
+    color: $white;
+  }
+}
+
+.program-rest-label {
+  padding: 0.7rem 0.2rem;
+  color: $gray-600;
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+.dashboard-today-band {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+}
+
+.dashboard-today-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-right: 1rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+
+  strong {
+    font-family: $font-family-monospace;
+    font-size: 2rem;
+    line-height: 1;
+  }
+}
+
+.today-session-card-header,
+.today-session-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.today-prescription {
+  width: 100%;
+}
+
+.today-prescription-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(8rem, 0.8fr) 3.5rem;
+  align-items: center;
+  gap: 1rem;
+  min-height: 3.75rem;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.today-prescription-exercise,
+.today-prescription-target {
+  display: grid;
+  min-width: 0;
+
+  span {
+    color: $gray-500;
+    font-size: 0.75rem;
+  }
+}
+
+.today-prescription-target {
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+
+  strong {
+    text-align: right;
+  }
+}
+
+.today-prescription-progress {
+  color: $gray-500;
+  font-family: $font-family-monospace;
+  text-align: right;
+
+  &.is-complete {
+    color: $success;
+  }
+}
+
+.today-start-form {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) auto;
+  gap: 0.75rem;
+}
+
+.today-adjustments,
+.today-skip-controls {
+  grid-column: 1 / -1;
+
+  summary {
+    width: fit-content;
+    color: $gray-400;
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
+}
+
+.today-skip-controls {
+  margin-top: 0.75rem;
+}
+
+.today-adjustment-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(7rem, 1fr));
+  gap: 0.75rem;
+}
+
+.program-adherence-score,
+.workout-prescription-cue {
+  color: $gray-300;
+  font-family: $font-family-monospace;
+  font-size: 0.8rem;
+}
+
+.workout-prescription-cue {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 2rem;
+  padding: 0.35rem 0.55rem;
+  border-left: 3px solid $forge-orange;
+  background: rgba($forge-orange, 0.09);
+}
+
+@media (max-width: 767.98px) {
+  .program-builder-header,
+  .program-active-band,
+  .program-cycle-controls,
+  .today-program-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .program-activate-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .program-week {
+    grid-template-columns: 3rem minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+
+  .dashboard-today-band {
+    grid-template-columns: 3rem minmax(0, 1fr);
+
+    .btn {
+      grid-column: 1 / -1;
+      width: 100%;
+    }
+  }
+
+  .today-prescription-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem;
+  }
+
+  .today-prescription-progress {
+    grid-column: 2;
+  }
+
+  .today-prescription-target {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: start;
+
+    strong {
+      text-align: left;
+    }
+  }
+
+  .today-adjustment-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .workout-prescription-cue {
+    flex-wrap: wrap;
+
+    .ms-auto {
+      width: 100%;
+      margin-left: 0 !important;
+    }
+  }
+}
+
 // Body with subtle iron texture gradient
 body {
   background:
@@ -511,6 +827,11 @@ select option:checked {
   min-width: 20rem;
   max-height: min(70vh, 32rem);
   overflow-y: auto;
+}
+
+.notifications-dropdown.dropdown-menu-end {
+  right: 0;
+  left: auto;
 }
 
 @media (max-width: 575.98px) {
@@ -1463,15 +1784,24 @@ body.add-set-form-open .rest-timer-footer {
   left: 0;
   right: 0;
   z-index: 1040;
-  background: linear-gradient(180deg, rgba(20, 20, 22, 0.98) 0%, rgba(10, 10, 12, 0.98) 100%);
+  min-height: 61px;
+  background: linear-gradient(180deg, rgb(20, 20, 22) 0%, rgb(10, 10, 12) 100%);
   border-top: 1px solid rgba($rust, 0.3);
-  backdrop-filter: blur(10px);
+  contain: paint;
   transition: opacity 0.2s ease, transform 0.2s ease;
 
   // On large screens, bottom nav is hidden so timer sits at bottom
   @media (min-width: 992px) {
     bottom: 0;
   }
+}
+
+.rest-timer-stage {
+  display: flex;
+  align-items: center;
+  height: 61px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .rest-timer-spacer {
@@ -1483,12 +1813,18 @@ body.add-set-form-open .rest-timer-footer {
 }
 
 .rest-timer-collapsed {
+  justify-content: center;
   padding: 0.75rem 1rem;
   text-align: center;
 }
 
 .rest-timer-panel.is-hidden {
   display: none !important;
+}
+
+.rest-timer-panel:not(.is-hidden) > .rest-timer-bar-content,
+.rest-timer-panel:not(.is-hidden) > .rest-timer-start-btn {
+  animation: restTimerStageIn 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .rest-timer-start-btn {
@@ -1501,7 +1837,7 @@ body.add-set-form-open .rest-timer-footer {
   font-size: 0.9rem;
   letter-spacing: 0.1em;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 
   &:hover {
     background: rgba($rust, 0.2);
@@ -1513,10 +1849,29 @@ body.add-set-form-open .rest-timer-footer {
   padding: 0.5rem 1rem;
   position: relative;
   overflow: hidden;
-  transition:
-    background-color 0.22s ease,
-    border-top-color 0.22s ease,
-    box-shadow 0.22s ease;
+  isolation: isolate;
+  background: linear-gradient(180deg, rgb(20, 20, 22) 0%, rgb(10, 10, 12) 100%);
+  transition: border-top-color 0.2s ease;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0;
+    transform: scaleX(0.96);
+    background: linear-gradient(
+      110deg,
+      rgba($rust-dark, 0.2) 0%,
+      rgba($rust, 0.72) 34%,
+      rgba($forge-orange, 0.92) 52%,
+      rgba($rust-light, 0.64) 68%,
+      rgba($rust-dark, 0.18) 100%
+    );
+    transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+  }
 
   &.timer-active {
     border-top-color: $rust;
@@ -1524,61 +1879,41 @@ body.add-set-form-open .rest-timer-footer {
   }
 
   &.timer-cue-hot:not(.timer-complete) {
-    background: linear-gradient(
-      160deg,
-      rgba($forge-orange, 0.92) 0%,
-      rgba($rust-light, 0.76) 26%,
-      rgba($rust, 0.68) 50%,
-      rgba($forge-orange, 0.84) 76%,
-      rgba($rust-dark, 0.52) 100%
-    );
-    background-size: 240% 240%;
-    animation: restTimerCueFlow 0.62s cubic-bezier(0.16, 1, 0.3, 1) both;
     border-top-color: $forge-orange;
-    box-shadow:
-      0 -16px 46px rgba($forge-orange, 0.95),
-      0 -4px 22px rgba($rust-light, 0.72),
-      0 0 0 1px rgba($forge-orange, 0.45),
-      inset 0 1px 0 rgba(#fff, 0.16),
-      inset 0 -10px 24px rgba($rust-dark, 0.26);
+
+    &::before {
+      opacity: 0.48;
+      transform: scaleX(1);
+    }
 
     .rest-timer-display {
       color: #fff7ef;
-      text-shadow:
-        0 0 12px rgba(#fff, 0.35),
-        0 0 28px rgba($forge-orange, 0.95);
+      text-shadow: 0 0 18px rgba($forge-orange, 0.72);
     }
 
     .rest-timer-progress {
       background: rgba($rust-dark, 0.52);
-      box-shadow: 0 0 16px rgba($forge-orange, 0.5);
     }
   }
 
-  &.timer-cue-pulse:not(.timer-complete) {
-    animation: restTimerCuePulse 0.48s cubic-bezier(0.16, 1, 0.3, 1);
+  &.timer-cue-pulse:not(.timer-complete)::before {
+    animation: restTimerCuePulse 0.44s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  &.timer-cue-pulse:not(.timer-complete) .rest-timer-display {
+    animation: restTimerCueDigits 0.44s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   &.timer-complete {
-    background: linear-gradient(
-      180deg,
-      rgba($forge-orange, 0.18) 0%,
-      rgba($rust-dark, 0.1) 100%
-    ),
-    linear-gradient(
-      120deg,
-      rgba($rust-dark, 0.92) 0%,
-      rgba($rust, 0.95) 28%,
-      rgba($forge-orange, 0.98) 50%,
-      rgba($rust-light, 0.96) 70%,
-      rgba($rust-dark, 0.92) 100%
-    );
-    background-size: 220% 220%;
-    animation: timerPulseFill 1.6s ease-in-out infinite;
+    background: linear-gradient(180deg, rgba($rust-dark, 0.96) 0%, rgb(24, 13, 10) 100%);
     border-top-color: $forge-orange;
-    box-shadow:
-      0 -10px 36px rgba($forge-orange, 0.8),
-      0 -2px 12px rgba($rust-light, 0.55);
+
+    &::before {
+      inset: -20% -45%;
+      opacity: 0.86;
+      transform: translate3d(-22%, 0, 0) scaleX(0.72);
+      animation: restTimerCompleteSweep 1.45s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+    }
   }
 
   &.timer-fade-out {
@@ -1588,6 +1923,8 @@ body.add-set-form-open .rest-timer-footer {
 
 .rest-timer-bar-content {
   display: flex;
+  position: relative;
+  z-index: 1;
   align-items: center;
   justify-content: center;
   gap: 1rem;
@@ -1610,9 +1947,12 @@ body.add-set-form-open .rest-timer-footer {
   color: #fff;
   text-shadow: 0 0 20px rgba($forge-orange, 0.5);
   line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transform: translateZ(0);
 }
 
 .rest-timer-progress {
+  position: relative;
   height: 4px;
   background: $iron-light;
   border-radius: 2px;
@@ -1621,34 +1961,47 @@ body.add-set-form-open .rest-timer-footer {
 }
 
 .rest-timer-progress-bar {
+  position: relative;
   height: 100%;
+  width: 100%;
   background: linear-gradient(90deg,
       rgba($rust-dark, 0.92) 0%,
       rgba($rust, 0.95) 24%,
       rgba($forge-orange, 1) 50%,
       rgba($rust-light, 0.95) 72%,
       rgba($rust-dark, 0.92) 100%);
-  background-size: 220% 100%;
   border-radius: 2px;
-  transition: width 1s linear;
+  transform: scaleX(1);
+  transform-origin: left center;
+  will-change: transform;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(#fff, 0.5) 48%, transparent 100%);
+    transform: translate3d(-110%, 0, 0);
+    will-change: transform;
+  }
 }
 
-.rest-timer-bar.timer-active .rest-timer-progress-bar {
-  animation: restTimerSweep 2.2s linear infinite;
+.rest-timer-bar.timer-active .rest-timer-progress-bar::after {
+  animation: restTimerSweep 2.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
 .rest-timer-bar.timer-complete .rest-timer-progress-bar {
-  background-size: 280% 100%;
-  animation: restTimerCompleteSweep 0.8s linear infinite;
-  box-shadow: 0 0 12px rgba($forge-orange, 0.7);
+  transform: scaleX(1) !important;
 }
 
 .rest-timer-bar.timer-complete .rest-timer-progress {
   opacity: 0;
   transform: translateY(4px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
 }
 
 .rest-timer-bar.timer-complete .rest-timer-display {
+  color: lighten($forge-orange, 18%);
+  text-shadow: 0 0 24px rgba($forge-orange, 0.82);
   animation: restTimerCompleteFlash 0.8s ease-in-out infinite;
 }
 
@@ -1660,7 +2013,7 @@ body.add-set-form-open .rest-timer-footer {
   border-radius: 0.25rem;
   font-size: 0.8rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 
   &:hover {
     border-color: $rust;
@@ -1679,7 +2032,7 @@ body.add-set-form-open .rest-timer-footer {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 
   &:hover {
     background: $rust;
@@ -1713,71 +2066,80 @@ body.add-set-form-open .rest-timer-footer {
   }
 }
 
-@keyframes timerPulseFill {
-  0%,
-  100% {
-    background-position: 0% 50%;
-    filter: saturate(1);
-  }
-
-  50% {
-    background-position: 100% 50%;
-    filter: saturate(1.25);
-  }
-}
-
 @keyframes restTimerSweep {
   from {
-    background-position: 200% 0;
+    transform: translate3d(-110%, 0, 0);
   }
 
   to {
-    background-position: 0 0;
+    transform: translate3d(110%, 0, 0);
   }
 }
 
 @keyframes restTimerCuePulse {
   0% {
-    background-position: 20% 60%;
-    filter: brightness(1);
-    transform: translateY(0) scale(1);
+    opacity: 0.48;
+    transform: scaleX(1);
   }
 
-  36% {
-    background-position: 80% 30%;
-    filter: brightness(1.72) saturate(2.15);
-    transform: translateY(-2px) scale(1.018);
+  38% {
+    opacity: 0.92;
+    transform: scaleX(1.025);
   }
 
   100% {
-    background-position: 20% 60%;
-    filter: brightness(1);
-    transform: translateY(0) scale(1);
+    opacity: 0.48;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes restTimerCueDigits {
+  0%,
+  100% {
+    opacity: 1;
+    transform: translateZ(0) scale(1);
+  }
+
+  38% {
+    opacity: 0.88;
+    transform: translateZ(0) scale(1.045);
   }
 }
 
 @keyframes restTimerCompleteSweep {
   from {
-    background-position: 220% 0;
+    opacity: 0.66;
+    transform: translate3d(-22%, 0, 0) scaleX(0.72);
   }
 
   to {
-    background-position: -20% 0;
+    opacity: 0.94;
+    transform: translate3d(22%, 0, 0) scaleX(0.72);
   }
 }
 
 @keyframes restTimerCompleteFlash {
   0%,
   100% {
-    color: #fff;
-    text-shadow: 0 0 18px rgba($forge-orange, 0.45);
-    transform: scale(1);
+    opacity: 0.86;
+    transform: translateZ(0) scale(1);
   }
 
   50% {
-    color: lighten($forge-orange, 18%);
-    text-shadow: 0 0 32px rgba($forge-orange, 0.95);
-    transform: scale(1.04);
+    opacity: 1;
+    transform: translateZ(0) scale(1.035);
+  }
+}
+
+@keyframes restTimerStageIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 4px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -1790,6 +2152,21 @@ body.add-set-form-open .rest-timer-footer {
   to {
     opacity: 0;
     transform: translateY(10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rest-timer-panel:not(.is-hidden) > .rest-timer-bar-content,
+  .rest-timer-panel:not(.is-hidden) > .rest-timer-start-btn,
+  .rest-timer-bar::before,
+  .rest-timer-progress-bar::after,
+  .rest-timer-display {
+    animation: none !important;
+  }
+
+  .rest-timer-progress-bar,
+  .rest-timer-bar::before {
+    will-change: auto;
   }
 }
 

@@ -18,9 +18,10 @@
           <span>Workout</span>
         <% end %>
       <% else %>
-        <%= link_to new_workout_path, class: "bottom-nav-item bottom-nav-primary" do %>
-          <i class="bi bi-plus-circle-fill"></i>
-          <span>Start</span>
+        <%= link_to Current.user.active_program_cycle ? today_session_path : new_workout_path,
+            class: "bottom-nav-item bottom-nav-primary #{'active' if controller_name == 'todays_sessions'}" do %>
+          <i class="bi <%= Current.user.active_program_cycle ? 'bi-calendar-check-fill' : 'bi-plus-circle-fill' %>"></i>
+          <span><%= Current.user.active_program_cycle ? "Today" : "Start" %></span>
         <% end %>
       <% end %>
 

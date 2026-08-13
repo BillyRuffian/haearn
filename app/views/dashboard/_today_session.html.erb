@@ -1,0 +1,25 @@
+<% cycle = today_session[:cycle] %>
+<% if cycle %>
+  <section class="dashboard-today-band mb-4">
+    <div class="dashboard-today-date">
+      <span class="section-header"><%= Date.current.strftime("%a") %></span>
+      <strong><%= Date.current.day %></strong>
+    </div>
+    <div class="dashboard-today-copy">
+      <span class="small text-muted"><%= cycle.training_program.name %> &middot; Week <%= cycle.week_number_on(Date.current) || cycle.weeks_count %></span>
+      <% if cycle.not_started? %>
+        <h2 class="h4 mb-0">Starts <%= cycle.starts_on.to_fs(:long) %></h2>
+      <% elsif today_session[:sessions].any? %>
+        <h2 class="h4 mb-1"><%= today_session[:sessions].map(&:display_name).to_sentence %></h2>
+        <span class="small text-muted"><%= pluralize(today_session[:exercise_count], "prescribed exercise") %></span>
+      <% elsif cycle.expired? %>
+        <h2 class="h4 mb-0">Cycle complete</h2>
+      <% else %>
+        <h2 class="h4 mb-0">Rest day</h2>
+      <% end %>
+    </div>
+    <%= link_to today_session_path, class: "btn btn-primary" do %>
+      <i class="bi bi-calendar-check me-1"></i>Open Today
+    <% end %>
+  </section>
+<% end %>

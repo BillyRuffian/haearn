@@ -56,6 +56,7 @@ export default class extends Controller {
 
     this.startX = event.touches[0].clientX
     this.startY = event.touches[0].clientY
+    this.currentX = 0
     this.isDragging = false
   }
 
@@ -125,13 +126,17 @@ export default class extends Controller {
   }
 
   triggerAction(actionsTarget) {
-    // Find the first submit button or link inside the action panel and click it
+    // Submit forms explicitly. Mobile Safari can suppress a synthetic click
+    // fired from touchend after touchmove has been prevented.
     const actionBtn = actionsTarget.querySelector("button[type='submit'], a, button")
-    if (actionBtn) {
-      this.close()
-      actionBtn.click()
+    this.close()
+    if (!actionBtn) return
+
+    const form = actionBtn.form || actionBtn.closest("form")
+    if (form?.requestSubmit) {
+      form.requestSubmit(actionBtn)
     } else {
-      this.close()
+      actionBtn.click()
     }
   }
 
@@ -197,10 +202,5 @@ export default class extends Controller {
 
   reset() {
     this.close()
-  }
-
-  // Dispatch set-logged event to reset the rest timer (used by duplicate action)
-  dispatchSetLogged() {
-    window.dispatchEvent(new CustomEvent("set-logged", { bubbles: true }))
   }
 }
