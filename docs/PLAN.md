@@ -11,6 +11,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Make active workout logging resilient offline with durable queued sets, optimistic pending rows, idempotent replay, queued workout completion, reconnect/app-resume sync, and automatic service-worker registration
 - [x] Align CI with the libvips runtime requirement and validate its version before enabling untrusted-operation blocking
 - [x] Unify add-set and edit-set forms around one mobile-first field hierarchy with consistent labels, advanced disclosures, and clear actions
 - [x] Add analytics-page training load cards for this week, recent windows, and all time with total tonnage, training time, and explicit analyzed start/end dates
@@ -813,7 +814,7 @@ $text-muted: #6c757d;
 - [ ] Define conflict policy for offline queued actions (last-write-wins vs timestamp/version checks)
 - [ ] Detect stale updates/deletes during sync replay
 - [ ] Surface conflict UI with user choices (keep local, keep server, merge where possible)
-- [ ] Add idempotency keys/replay safeguards for queued set submissions
+- [x] Add idempotency keys/replay safeguards for queued set submissions _(Each set form carries a stable client request UUID; IndexedDB deduplicates queued requests and the server enforces a unique replay key.)_
 - [ ] Add end-to-end tests for offline create/edit/delete conflict scenarios
 
 ---

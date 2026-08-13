@@ -8,10 +8,17 @@ export default class extends Controller {
     // Listen for successful turbo submissions to trigger rest timer
     this.boundHandleSubmitEnd = this.handleSubmitEnd.bind(this)
     this.element.addEventListener("turbo:submit-end", this.boundHandleSubmitEnd)
+    this.boundHandleOfflineQueued = this.handleOfflineQueued.bind(this)
+    this.element.addEventListener("offline-form:queued", this.boundHandleOfflineQueued)
   }
 
   disconnect() {
     this.element.removeEventListener("turbo:submit-end", this.boundHandleSubmitEnd)
+    this.element.removeEventListener("offline-form:queued", this.boundHandleOfflineQueued)
+  }
+
+  handleOfflineQueued() {
+    window.dispatchEvent(new CustomEvent("set-logged", { bubbles: true }))
   }
 
   handleSubmitEnd(event) {

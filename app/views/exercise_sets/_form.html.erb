@@ -22,7 +22,16 @@
   <%= form_with model: set, 
       url: workout_workout_exercise_exercise_sets_path(workout, workout_exercise),
       class: "set-entry-form add-set-form mt-2",
-      data: { controller: "set-form", action: "submit->set-form#submitted" } do |form| %>
+      data: {
+        controller: "set-form offline-form",
+        action: "submit->offline-form#submit submit->set-form#submitted",
+        offline_form_kind_value: "exercise_set",
+        offline_form_list_id_value: "sets_list_#{workout_exercise.id}",
+        offline_form_set_number_value: next_set_number,
+        offline_form_unit_value: input_unit,
+        offline_form_exercise_type_value: workout_exercise.exercise.exercise_type
+      } do |form| %>
+    <%= hidden_field_tag "exercise_set[client_request_id]", SecureRandom.uuid %>
     <div class="set-entry-form__header">
       <div>
         <span class="set-entry-form__context">New set</span>

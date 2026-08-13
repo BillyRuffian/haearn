@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_21_123000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_13_120000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -77,6 +77,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_21_123000) do
     t.decimal "band_tension_kg"
     t.boolean "belt", default: false, null: false
     t.decimal "chain_weight_kg"
+    t.string "client_request_id"
     t.datetime "completed_at"
     t.datetime "created_at", null: false
     t.decimal "distance_meters"
@@ -104,6 +105,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_21_123000) do
     t.decimal "weight_kg"
     t.integer "workout_exercise_id", null: false
     t.boolean "wrist_wraps", default: false, null: false
+    t.index ["client_request_id"], name: "index_exercise_sets_on_client_request_id", unique: true
     t.index ["workout_exercise_id"], name: "index_exercise_sets_on_workout_exercise_id"
   end
 

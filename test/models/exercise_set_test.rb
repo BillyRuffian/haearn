@@ -32,10 +32,12 @@
 #  wrist_wraps         :boolean          default(FALSE), not null
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
+#  client_request_id   :string
 #  workout_exercise_id :integer          not null
 #
 # Indexes
 #
+#  index_exercise_sets_on_client_request_id    (client_request_id) UNIQUE
 #  index_exercise_sets_on_workout_exercise_id  (workout_exercise_id)
 #
 # Foreign Keys

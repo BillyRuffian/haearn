@@ -48,7 +48,14 @@
           <%= button_to finish_workout_path(@workout), 
               method: :patch, 
               class: "btn btn-success btn-sm",
-              data: { turbo_confirm: "Finish this workout?" } do %>
+              form: {
+                data: {
+                  controller: "offline-form",
+                  action: "submit->offline-form#submit",
+                  offline_form_kind_value: "finish_workout",
+                  turbo_confirm: "Finish this workout?"
+                }
+              } do %>
             <i class="bi bi-check-lg me-1"></i>Finish
           <% end %>
         </div>

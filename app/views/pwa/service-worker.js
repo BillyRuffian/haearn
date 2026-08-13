@@ -1,14 +1,17 @@
 // Haearn Service Worker
 // Provides offline support and caching for the PWA
 
-const CACHE_VERSION = 'haearn-v2';
+const CACHE_VERSION = 'haearn-v3';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 
 // App shell - files needed for basic app functionality
 const APP_SHELL = [
   '/',
-  '/manifest.json',
+  '/manifest.json'
+];
+
+const OPTIONAL_SHELL = [
   '/favicon.svg',
   '/favicon.ico',
   '/apple-touch-icon.png',
@@ -22,9 +25,10 @@ const APP_SHELL = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE)
-      .then((cache) => {
+      .then(async (cache) => {
         console.log('[SW] Caching app shell');
-        return cache.addAll(APP_SHELL);
+        await cache.addAll(APP_SHELL);
+        await Promise.allSettled(OPTIONAL_SHELL.map((path) => cache.add(path)));
       })
       .then(() => self.skipWaiting())
   );
@@ -122,7 +126,8 @@ async function networkFirst(request) {
 
     // Return offline page for HTML requests
     if (request.headers.get('Accept')?.includes('text/html')) {
-      return caches.match('/');
+      const fallback = await caches.match('/');
+      if (fallback) return fallback;
     }
 
     return new Response('Offline', { status: 503 });

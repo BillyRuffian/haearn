@@ -204,6 +204,7 @@ User
 34. **Weight Round-Trip Rule**: Preserve higher internal kg precision when normalizing lb-entered exercise weights and machine conversions; round for display/input formatting, not at the first conversion step, so whole-pound entries render back exactly.
 35. **PWA Icon Refresh Rule**: iPhone home-screen installs aggressively cache `apple-touch-icon` and manifest icon URLs. When replacing favicon/PWA icon assets under `public/`, expose them through versioned URLs in the layout/manifest so refreshed branding is treated as a new resource.
 36. **libvips Version Floor**: Active Storage variants use the vips processor and require system libvips >= 8.13. Keep the Rails boot-time guard and Docker build-time version check in place when changing image-processing dependencies or deployment images.
+37. **Offline Active Workout Contract**: Active workout set forms and workout completion must remain queueable through `offline_form_controller`. Set creates carry a stable `client_request_id`, are shown immediately as pending, and replay idempotently from IndexedDB when connectivity returns or the PWA resumes. Keep service-worker registration automatic and preserve cached active-workout navigation; new logging mutations must not bypass the shared offline queue without an explicit product decision.
     CI test jobs must install `libvips-tools`, and the initializer must validate the loaded libvips version before calling version-dependent security APIs such as `Vips.block_untrusted`.
 
 ## Equipment Types (Enum)

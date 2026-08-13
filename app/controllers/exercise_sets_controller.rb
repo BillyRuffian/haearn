@@ -9,6 +9,13 @@ class ExerciseSetsController < ApplicationController
   # POST /workouts/:workout_id/workout_exercises/:workout_exercise_id/exercise_sets
   # Creates a new set and updates the workout stats via Turbo Stream
   def create
+    if exercise_set_params[:client_request_id].present? &&
+        (existing_set = @workout_exercise.exercise_sets.find_by(client_request_id: exercise_set_params[:client_request_id]))
+      @exercise_set = existing_set
+      respond_to_replayed_create
+      return
+    end
+
     # Build new set with auto-incremented position
     @exercise_set = @workout_exercise.exercise_sets.build(exercise_set_params)
     @exercise_set.position = @workout_exercise.exercise_sets.count + 1
@@ -190,6 +197,7 @@ class ExerciseSetsController < ApplicationController
   # Handles machine-specific weight ratios (e.g., 2:1 pulley systems)
   def exercise_set_params
     permitted = params.require(:exercise_set).permit(
+      :client_request_id,
       :weight_kg, :weight_value, :reps, :duration_seconds, :distance_meters,
       :is_warmup, :rpe, :rir,
       :is_amrap, :set_type,
@@ -219,5 +227,12 @@ class ExerciseSetsController < ApplicationController
     end
 
     permitted
+  end
+
+  def respond_to_replayed_create
+    respond_to do |format|
+      format.turbo_stream { head :no_content }
+      format.html { redirect_to workout_path(@workout) }
+    end
   end
 end

@@ -52,12 +52,16 @@ module SystemTestHelpers
     page.evaluate_async_script(<<~JS, item)
       const payload = arguments[0]
       const done = arguments[1]
-      const request = indexedDB.open("haearn-offline", 1)
+      const request = indexedDB.open("haearn-offline", 2)
 
       request.onupgradeneeded = (event) => {
         const db = event.target.result
         if (!db.objectStoreNames.contains("pending")) {
-          db.createObjectStore("pending", { keyPath: "id", autoIncrement: true })
+          const pending = db.createObjectStore("pending", { keyPath: "id", autoIncrement: true })
+          pending.createIndex("requestId", "requestId", { unique: true })
+        } else {
+          const pending = event.target.transaction.objectStore("pending")
+          if (!pending.indexNames.contains("requestId")) pending.createIndex("requestId", "requestId", { unique: true })
         }
         if (!db.objectStoreNames.contains("exercises")) {
           db.createObjectStore("exercises", { keyPath: "id" })

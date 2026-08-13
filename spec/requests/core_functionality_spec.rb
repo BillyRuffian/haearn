@@ -101,6 +101,30 @@ RSpec.describe 'Core functionality', type: :request do
     expect(response.body).not_to include('164.99')
   end
 
+  it 'replays an offline set submission idempotently' do
+    sign_in_as(user)
+    workout = user.workouts.create!(gym: gym, started_at: Time.current)
+    block = workout.workout_blocks.create!(position: 1)
+    exercise = exercises(:one)
+    machine = gym.machines.create!(name: 'Offline Rack', equipment_type: 'barbell', display_unit: 'kg')
+    workout_exercise = block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    params = {
+      exercise_set: {
+        client_request_id: 'd5fd553c-07f8-4dab-a104-76027a10e25c',
+        weight_value: '80',
+        reps: '5',
+        is_warmup: '0'
+      }
+    }
+
+    2.times do
+      post workout_workout_exercise_exercise_sets_path(workout, workout_exercise), params: params
+      expect(response).to redirect_to(workout_path(workout))
+    end
+
+    expect(workout_exercise.exercise_sets.where(client_request_id: params[:exercise_set][:client_request_id]).count).to eq(1)
+  end
+
   it 'updates key settings preferences' do
     sign_in_as(user)
 

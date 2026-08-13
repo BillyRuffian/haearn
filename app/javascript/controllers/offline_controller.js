@@ -27,23 +27,30 @@ export default class extends Controller {
     this.offlineHandler = this.handleOffline.bind(this)
     this.serviceWorkerMessageHandler = this.handleServiceWorkerMessage.bind(this)
     this.queuedHandler = this.handleQueued.bind(this)
+    this.visibilityHandler = this.handleVisibilityChange.bind(this)
 
     this.updateStatus()
     this.refreshQueueCount()
 
     window.addEventListener("online", this.onlineHandler)
     window.addEventListener("offline", this.offlineHandler)
+    window.addEventListener("pageshow", this.onlineHandler)
+    document.addEventListener("visibilitychange", this.visibilityHandler)
 
     // Listen for sync messages from service worker
     navigator.serviceWorker?.addEventListener("message", this.serviceWorkerMessageHandler)
 
     // Listen for newly queued offline form submissions
     this.element.addEventListener("offline-form:queued", this.queuedHandler)
+    this.registerServiceWorker()
+    if (this.isOnline) this.syncPendingData()
   }
 
   disconnect() {
     window.removeEventListener("online", this.onlineHandler)
     window.removeEventListener("offline", this.offlineHandler)
+    window.removeEventListener("pageshow", this.onlineHandler)
+    document.removeEventListener("visibilitychange", this.visibilityHandler)
     navigator.serviceWorker?.removeEventListener("message", this.serviceWorkerMessageHandler)
     this.element.removeEventListener("offline-form:queued", this.queuedHandler)
   }
@@ -85,6 +92,10 @@ export default class extends Controller {
     this.updateStatus()
   }
 
+  handleVisibilityChange() {
+    if (document.visibilityState === "visible" && this.isOnline) this.syncPendingData()
+  }
+
   handleQueued() {
     this.syncError = null
     this.refreshQueueCount()
@@ -117,13 +128,15 @@ export default class extends Controller {
 
       console.log(`[Offline] Syncing ${pendingData.length} pending items`)
 
-      for (const item of pendingData) {
-        await this.syncItem(item)
+      let destination = null
+      for (const item of pendingData.sort((a, b) => (a.createdAt || a.timestamp || 0) - (b.createdAt || b.timestamp || 0))) {
+        destination = await this.syncItem(item) || destination
       }
 
       this.lastSyncedAt = Date.now()
       this.persistLastSyncedAt(this.lastSyncedAt)
       this.dispatch("synced", { detail: { count: pendingData.length } })
+      if (destination) window.Turbo?.visit(destination, { action: "replace" })
     } catch (error) {
       console.error("[Offline] Sync failed:", error)
       this.syncError = error
@@ -136,19 +149,26 @@ export default class extends Controller {
   }
 
   async syncItem(item) {
+    const body = item.entries ? new URLSearchParams(item.entries) : new URLSearchParams(Object.entries(item.data || {}))
     const response = await fetch(item.url, {
       method: item.method,
       headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": this.csrfToken
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+        "Accept": "text/html, application/xhtml+xml",
+        "X-CSRF-Token": this.csrfToken,
+        "X-Haearn-Offline-Replay": "1"
       },
-      body: JSON.stringify(item.data)
+      credentials: "same-origin",
+      body
     })
 
     if (response.ok) {
       await this.removePendingItem(item.id)
+      return response.url || window.location.href
     } else {
-      throw new Error(`Sync failed: ${response.status}`)
+      const error = new Error(response.status === 401 || response.status === 403 ? "Sign in again to sync" : `Sync failed: ${response.status}`)
+      error.status = response.status
+      throw error
     }
   }
 
@@ -159,7 +179,7 @@ export default class extends Controller {
   // IndexedDB helpers
   async openDatabase() {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open("haearn-offline", 1)
+      const request = indexedDB.open("haearn-offline", 2)
 
       request.onerror = () => reject(request.error)
       request.onsuccess = () => resolve(request.result)
@@ -169,7 +189,11 @@ export default class extends Controller {
 
         // Store for pending workout data
         if (!db.objectStoreNames.contains("pending")) {
-          db.createObjectStore("pending", { keyPath: "id", autoIncrement: true })
+          const pending = db.createObjectStore("pending", { keyPath: "id", autoIncrement: true })
+          pending.createIndex("requestId", "requestId", { unique: true })
+        } else {
+          const pending = event.target.transaction.objectStore("pending")
+          if (!pending.indexNames.contains("requestId")) pending.createIndex("requestId", "requestId", { unique: true })
         }
 
         // Store for cached exercises
@@ -178,6 +202,16 @@ export default class extends Controller {
         }
       }
     })
+  }
+
+  async registerServiceWorker() {
+    if (!("serviceWorker" in navigator)) return
+
+    try {
+      await navigator.serviceWorker.register("/service-worker")
+    } catch (error) {
+      console.warn("[Offline] Service worker registration failed", error)
+    }
   }
 
   async getPendingWorkouts() {

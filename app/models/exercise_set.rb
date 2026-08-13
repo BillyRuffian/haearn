@@ -32,10 +32,12 @@
 #  wrist_wraps         :boolean          default(FALSE), not null
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
+#  client_request_id   :string
 #  workout_exercise_id :integer          not null
 #
 # Indexes
 #
+#  index_exercise_sets_on_client_request_id    (client_request_id) UNIQUE
 #  index_exercise_sets_on_workout_exercise_id  (workout_exercise_id)
 #
 # Foreign Keys
@@ -73,6 +75,7 @@ class ExerciseSet < ApplicationRecord
   has_one :exercise, through: :workout_exercise
 
   validates :position, presence: true, numericality: { greater_than: 0 }
+  validates :client_request_id, uniqueness: true, allow_nil: true
   validates :weight_kg, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validates :reps, numericality: { greater_than: 0, only_integer: true }, allow_nil: true
   validates :duration_seconds, numericality: { greater_than: 0, only_integer: true }, allow_nil: true

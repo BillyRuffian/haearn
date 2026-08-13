@@ -1118,6 +1118,19 @@ select option:checked {
   }
 }
 
+.offline-pending-set {
+  border-left: 3px solid $warning;
+  background: rgba($warning, 0.08);
+  opacity: 0.82;
+}
+
+.offline-pending-label {
+  color: $warning;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
 // PR weight text highlighting
 .pr-weight {
   color: #ffd700 !important;
