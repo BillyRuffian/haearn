@@ -136,6 +136,7 @@ class ExerciseSetsController < ApplicationController
   # Copies the set with a new position and timestamp
   def duplicate
     new_set = @exercise_set.dup
+    new_set.client_request_id = nil
     new_set.position = @workout_exercise.exercise_sets.count + 1
     new_set.completed_at = Time.current
 

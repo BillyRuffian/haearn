@@ -125,6 +125,37 @@ RSpec.describe 'Core functionality', type: :request do
     expect(workout_exercise.exercise_sets.where(client_request_id: params[:exercise_set][:client_request_id]).count).to eq(1)
   end
 
+  it 'duplicates a phone-created set without reusing its offline idempotency key' do
+    sign_in_as(user)
+    workout = user.workouts.create!(gym: gym, started_at: Time.current)
+    block = workout.workout_blocks.create!(position: 1)
+    workout_exercise = block.workout_exercises.create!(exercise: exercises(:one), position: 1)
+    source_set = workout_exercise.exercise_sets.create!(
+      client_request_id: 'ios-source-request-id',
+      position: 1,
+      weight_kg: 80,
+      reps: 5,
+      is_warmup: false,
+      completed_at: 1.minute.ago
+    )
+
+    expect do
+      post duplicate_workout_workout_exercise_exercise_set_path(workout, workout_exercise, source_set),
+           headers: { 'ACCEPT' => Mime[:turbo_stream].to_s }
+    end.to change(workout_exercise.exercise_sets, :count).by(1)
+
+    expect(response).to have_http_status(:ok)
+    expect(response.media_type).to eq(Mime[:turbo_stream].to_s)
+    expect(response.body).to include(%(turbo-stream action="append" target="sets_list_#{workout_exercise.id}"))
+
+    duplicate = workout_exercise.exercise_sets.order(:position).last
+    expect(duplicate.client_request_id).to be_nil
+    expect(duplicate.position).to eq(2)
+    expect(duplicate.weight_kg).to eq(source_set.weight_kg)
+    expect(duplicate.reps).to eq(source_set.reps)
+    expect(source_set.reload.client_request_id).to eq('ios-source-request-id')
+  end
+
   it 'aligns the owning block after generating warmup sets without restarting the timer' do
     sign_in_as(user)
     workout = user.workouts.create!(gym: gym, started_at: Time.current)

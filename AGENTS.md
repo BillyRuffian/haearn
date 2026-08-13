@@ -212,6 +212,7 @@ User
 40. **Set-Added Viewport Contract**: Successful set creates and duplicates should restart the rest timer only after the server confirms the mutation, then scroll the owning workout block to the visible top of the viewport after Turbo finishes replacing the exercise card. Offline queued sets should apply the same block alignment immediately.
 41. **Set Swipe Gesture Contract**: On touch devices, set-row swipe right must mirror the proven swipe-left delete interaction: a partial swipe reveals the Duplicate action, and a full swipe executes it. Use a non-passive Touch Events path on iOS; Pointer Events can be cancelled by WebKit while the user is still swiping. Prevent the handled `touchend` so Safari cannot emit a compatibility click, reset cancellations below the full-swipe threshold, and commit cancellations after that threshold has been reached.
     Keep `/service-worker` defaulting to JavaScript, and when shipping touch-interaction fixes, bump the service-worker cache generation and bypass HTTP caching for worker registration so installed iOS PWAs cannot remain pinned to stale gesture JavaScript or CSS.
+    Duplicating a set must copy its training payload but clear identity/idempotency fields such as `client_request_id`; phone-created sets carry a unique offline replay key that cannot be reused by the duplicate.
 
 ## Equipment Types (Enum)
 

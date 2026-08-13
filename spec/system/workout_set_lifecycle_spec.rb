@@ -211,6 +211,7 @@ RSpec.describe 'Workout set lifecycle', type: :system, js: true do
   end
 
   it 'reveals duplicate on a partial right swipe and runs the revealed action' do
+    exercise_set.update!(client_request_id: 'ios-swipe-source-set')
     page.current_window.resize_to(390, 844)
     visit workout_path(workout)
 
@@ -251,6 +252,12 @@ RSpec.describe 'Workout set lifecycle', type: :system, js: true do
     within("##{ActionView::RecordIdentifier.dom_id(workout_exercise)}") do
       expect(page).to have_css(".set-row", count: 2)
     end
+
+    duplicated_set = workout_exercise.exercise_sets.order(:position).last
+    expect(duplicated_set).not_to eq(exercise_set)
+    expect(duplicated_set.client_request_id).to be_nil
+    expect(duplicated_set.attributes.except('id', 'position', 'completed_at', 'created_at', 'updated_at', 'client_request_id'))
+      .to eq(exercise_set.reload.attributes.except('id', 'position', 'completed_at', 'created_at', 'updated_at', 'client_request_id'))
   end
 
   it 'duplicates with a full right swipe' do
