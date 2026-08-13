@@ -159,7 +159,7 @@ export default class extends Controller {
       const existing = await navigator.serviceWorker.getRegistration()
       if (existing) return existing
 
-      return await navigator.serviceWorker.register("/service-worker")
+      return await navigator.serviceWorker.register("/service-worker", { updateViaCache: "none" })
     } catch (e) {
       console.log("Service worker registration failed:", e)
       return null

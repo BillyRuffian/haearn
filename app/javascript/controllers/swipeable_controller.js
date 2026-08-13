@@ -34,28 +34,88 @@ export default class extends Controller {
 
     if (!this.enabledValue) return
 
-    this.boundTouchStart = this.handleTouchStart.bind(this)
-    this.boundTouchMove = this.handleTouchMove.bind(this)
-    this.boundTouchEnd = this.handleTouchEnd.bind(this)
+    this.pointerEventsEnabled = "PointerEvent" in window
+    if (this.pointerEventsEnabled) {
+      this.boundPointerDown = this.handlePointerDown.bind(this)
+      this.boundPointerMove = this.handlePointerMove.bind(this)
+      this.boundPointerUp = this.handlePointerUp.bind(this)
+      this.boundPointerCancel = this.handlePointerCancel.bind(this)
 
-    this.element.addEventListener("touchstart", this.boundTouchStart, { passive: true })
-    this.element.addEventListener("touchmove", this.boundTouchMove, { passive: false })
-    this.element.addEventListener("touchend", this.boundTouchEnd, { passive: true })
+      this.element.addEventListener("pointerdown", this.boundPointerDown)
+      this.element.addEventListener("pointermove", this.boundPointerMove)
+      this.element.addEventListener("pointerup", this.boundPointerUp)
+      this.element.addEventListener("pointercancel", this.boundPointerCancel)
+    } else {
+      this.boundTouchStart = this.handleTouchStart.bind(this)
+      this.boundTouchMove = this.handleTouchMove.bind(this)
+      this.boundTouchEnd = this.handleTouchEnd.bind(this)
+      this.boundTouchCancel = this.handleTouchCancel.bind(this)
+
+      this.element.addEventListener("touchstart", this.boundTouchStart, { passive: true })
+      this.element.addEventListener("touchmove", this.boundTouchMove, { passive: false })
+      this.element.addEventListener("touchend", this.boundTouchEnd, { passive: true })
+      this.element.addEventListener("touchcancel", this.boundTouchCancel, { passive: true })
+    }
   }
 
   disconnect() {
     if (!this.enabledValue) return
 
-    this.element.removeEventListener("touchstart", this.boundTouchStart)
-    this.element.removeEventListener("touchmove", this.boundTouchMove)
-    this.element.removeEventListener("touchend", this.boundTouchEnd)
+    if (this.pointerEventsEnabled) {
+      this.element.removeEventListener("pointerdown", this.boundPointerDown)
+      this.element.removeEventListener("pointermove", this.boundPointerMove)
+      this.element.removeEventListener("pointerup", this.boundPointerUp)
+      this.element.removeEventListener("pointercancel", this.boundPointerCancel)
+    } else {
+      this.element.removeEventListener("touchstart", this.boundTouchStart)
+      this.element.removeEventListener("touchmove", this.boundTouchMove)
+      this.element.removeEventListener("touchend", this.boundTouchEnd)
+      this.element.removeEventListener("touchcancel", this.boundTouchCancel)
+    }
+  }
+
+  handlePointerDown(event) {
+    if (!event.isPrimary || event.pointerType === "mouse") return
+
+    this.activePointerId = event.pointerId
+    this.startGesture(event.clientX, event.clientY)
+
+    try {
+      this.element.setPointerCapture(event.pointerId)
+    } catch (_error) {
+      // Safari applies implicit capture for touch pointers; explicit capture can fail during synthetic events.
+    }
+  }
+
+  handlePointerMove(event) {
+    if (event.pointerId !== this.activePointerId) return
+
+    this.moveGesture(event.clientX, event.clientY, event)
+  }
+
+  handlePointerUp(event) {
+    if (event.pointerId !== this.activePointerId) return
+
+    this.activePointerId = null
+    this.finishGesture()
+  }
+
+  handlePointerCancel(event) {
+    if (event.pointerId !== this.activePointerId) return
+
+    this.activePointerId = null
+    this.cancelGesture()
   }
 
   handleTouchStart(event) {
     if (event.touches.length !== 1) return
 
-    this.startX = event.touches[0].clientX
-    this.startY = event.touches[0].clientY
+    this.startGesture(event.touches[0].clientX, event.touches[0].clientY)
+  }
+
+  startGesture(clientX, clientY) {
+    this.startX = clientX
+    this.startY = clientY
     this.currentX = 0
     this.isDragging = false
   }
@@ -63,12 +123,15 @@ export default class extends Controller {
   handleTouchMove(event) {
     if (event.touches.length !== 1) return
 
-    const touch = event.touches[0]
-    const deltaX = touch.clientX - this.startX
-    const deltaY = Math.abs(touch.clientY - this.startY)
+    this.moveGesture(event.touches[0].clientX, event.touches[0].clientY, event)
+  }
 
-    // Only start dragging if horizontal movement dominates
-    if (!this.isDragging && Math.abs(deltaX) > 10 && Math.abs(deltaX) > deltaY) {
+  moveGesture(clientX, clientY, event) {
+    const deltaX = clientX - this.startX
+    const deltaY = Math.abs(clientY - this.startY)
+
+    // Lock horizontal intent early, before iOS Safari hands the gesture to scrolling.
+    if (!this.isDragging && Math.abs(deltaX) > 6 && Math.abs(deltaX) > deltaY) {
       this.isDragging = true
       // If already open in a direction and user swipes opposite, reset first
       if (this.openDirection) {
@@ -80,7 +143,7 @@ export default class extends Controller {
 
     if (!this.isDragging) return
 
-    event.preventDefault()
+    if (event.cancelable) event.preventDefault()
 
     // Allow dragging up to full container width for full-swipe
     const containerWidth = this.element.offsetWidth
@@ -104,14 +167,18 @@ export default class extends Controller {
   }
 
   handleTouchEnd() {
+    this.finishGesture()
+  }
+
+  finishGesture() {
     if (!this.isDragging) return
     this.isDragging = false
 
     const containerWidth = this.element.offsetWidth
     const fullSwipeThreshold = containerWidth * this.fullSwipeRatioValue
 
-    if (this.currentX > fullSwipeThreshold && this.hasLeftActionsTarget) {
-      // Full swipe right — auto-trigger left action (duplicate)
+    if (this.currentX >= this.thresholdValue && this.hasLeftActionsTarget) {
+      // An intentional right swipe duplicates without requiring an edge-to-edge drag.
       this.triggerAction(this.leftActionsTarget)
     } else if (this.currentX < -fullSwipeThreshold && this.hasRightActionsTarget) {
       // Full swipe left — auto-trigger right action (delete)
@@ -125,6 +192,16 @@ export default class extends Controller {
     }
   }
 
+  handleTouchCancel() {
+    this.cancelGesture()
+  }
+
+  cancelGesture() {
+    this.isDragging = false
+    this.currentX = 0
+    this.close()
+  }
+
   triggerAction(actionsTarget) {
     // Submit forms explicitly. Mobile Safari can suppress a synthetic click
     // fired from touchend after touchmove has been prevented.
@@ -135,6 +212,8 @@ export default class extends Controller {
     const form = actionBtn.form || actionBtn.closest("form")
     if (form?.requestSubmit) {
       form.requestSubmit(actionBtn)
+    } else if (form) {
+      form.submit()
     } else {
       actionBtn.click()
     }

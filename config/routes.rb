@@ -250,5 +250,5 @@ Rails.application.routes.draw do
 
   # PWA
   get 'manifest' => 'rails/pwa#manifest', as: :pwa_manifest
-  get 'service-worker' => 'rails/pwa#service_worker', as: :pwa_service_worker
+  get 'service-worker' => 'rails/pwa#service_worker', defaults: { format: :js }, as: :pwa_service_worker
 end

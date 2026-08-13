@@ -208,7 +208,8 @@ export default class extends Controller {
     if (!("serviceWorker" in navigator)) return
 
     try {
-      await navigator.serviceWorker.register("/service-worker")
+      const registration = await navigator.serviceWorker.register("/service-worker", { updateViaCache: "none" })
+      await registration.update()
     } catch (error) {
       console.warn("[Offline] Service worker registration failed", error)
     }

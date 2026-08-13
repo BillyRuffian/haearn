@@ -22,47 +22,32 @@ RSpec.describe 'Workout set lifecycle', type: :system, js: true do
     JS
   end
 
-  def full_swipe_right(selector)
-    page.execute_script(<<~JS, selector)
+  def swipe_right(selector, distance: 96, end_event: 'pointerup')
+    page.execute_script(<<~JS, selector, distance, end_event)
       const element = document.querySelector(arguments[0])
       if (!element) throw new Error(`Missing swipe target: ${arguments[0]}`)
+      if (!("PointerEvent" in window)) throw new Error("Pointer Events are unavailable")
 
       const bounds = element.getBoundingClientRect()
       const y = bounds.top + (bounds.height / 2)
-      const makeTouch = (x) => new Touch({
-        identifier: 1,
-        target: element,
+      const startX = bounds.left + Math.min(120, bounds.width / 3)
+      const dispatchPointer = (type, x, buttons) => element.dispatchEvent(new PointerEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        pointerId: 1,
+        pointerType: "touch",
+        isPrimary: true,
         clientX: x,
         clientY: y,
         screenX: x,
         screenY: y,
-        pageX: x + window.scrollX,
-        pageY: y + window.scrollY
-      })
-      const start = makeTouch(bounds.left + 12)
-      const finish = makeTouch(bounds.right - 12)
+        button: type === "pointerdown" ? 0 : -1,
+        buttons
+      }))
 
-      element.dispatchEvent(new TouchEvent("touchstart", {
-        bubbles: true,
-        cancelable: true,
-        touches: [start],
-        targetTouches: [start],
-        changedTouches: [start]
-      }))
-      element.dispatchEvent(new TouchEvent("touchmove", {
-        bubbles: true,
-        cancelable: true,
-        touches: [finish],
-        targetTouches: [finish],
-        changedTouches: [finish]
-      }))
-      element.dispatchEvent(new TouchEvent("touchend", {
-        bubbles: true,
-        cancelable: true,
-        touches: [],
-        targetTouches: [],
-        changedTouches: [finish]
-      }))
+      dispatchPointer("pointerdown", startX, 1)
+      ;[24, 52, arguments[1]].forEach((offset) => dispatchPointer("pointermove", startX + offset, 1))
+      dispatchPointer(arguments[2], startX + arguments[1], 0)
     JS
   end
 
@@ -174,18 +159,57 @@ RSpec.describe 'Workout set lifecycle', type: :system, js: true do
     end
   end
 
-  it 'duplicates with a full right swipe and scrolls its block to the visible top' do
+  it 'duplicates with an intentional right swipe and scrolls its block to the visible top' do
     page.current_window.resize_to(390, 844)
     visit workout_path(workout)
 
     block_id = ActionView::RecordIdentifier.dom_id(workout_exercise.workout_block)
     make_block_scrollable(block_id)
-    full_swipe_right("##{ActionView::RecordIdentifier.dom_id(exercise_set)} .swipeable-container")
+    swipe_selector = "##{ActionView::RecordIdentifier.dom_id(exercise_set)} .swipeable-container"
+
+    touch_action = page.evaluate_script("getComputedStyle(document.querySelector('#{swipe_selector}')).touchAction")
+    expect(touch_action).to include('pan-y')
+    expect(touch_action).to include('pinch-zoom')
+
+    worker_update_cache = page.evaluate_async_script(<<~JS)
+      const done = arguments[0]
+      navigator.serviceWorker.ready
+        .then((registration) => done(registration.updateViaCache))
+        .catch((error) => done(`error: ${error.message}`))
+    JS
+    expect(worker_update_cache).to eq('none')
+
+    expect(page.evaluate_script('"PointerEvent" in window')).to be(true)
+
+    swipe_right(swipe_selector, end_event: 'pointercancel')
+    within("##{ActionView::RecordIdentifier.dom_id(workout_exercise)}") do
+      expect(page).to have_css(".set-row", count: 1)
+    end
+
+    swipe_right(swipe_selector)
 
     within("##{ActionView::RecordIdentifier.dom_id(workout_exercise)}") do
       expect(page).to have_css(".set-row", count: 2)
     end
     expect_block_at_visible_top(block_id)
+  end
+
+  it 'duplicates by native form submission when requestSubmit is unavailable' do
+    page.current_window.resize_to(390, 844)
+    visit workout_path(workout)
+
+    swipe_selector = "##{ActionView::RecordIdentifier.dom_id(exercise_set)} .swipeable-container"
+    page.execute_script(<<~JS, swipe_selector)
+      const form = document.querySelector(`${arguments[0]} .swipe-actions-left form`)
+      if (!form) throw new Error("Missing swipe duplicate form")
+      Object.defineProperty(form, "requestSubmit", { value: undefined })
+    JS
+
+    swipe_right(swipe_selector)
+
+    within("##{ActionView::RecordIdentifier.dom_id(workout_exercise)}") do
+      expect(page).to have_css(".set-row", count: 2)
+    end
   end
 
   it 'scrolls its block to the visible top after logging a new set' do

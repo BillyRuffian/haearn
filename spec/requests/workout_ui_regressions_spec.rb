@@ -194,6 +194,14 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(shortcut_sources).to all(match(%r{\A/web-app-manifest-192x192\.png\?v=\d+\z}))
   end
 
+  it 'serves the current PWA cache generation for installed iOS clients' do
+    get pwa_service_worker_path
+
+    expect(response).to have_http_status(:ok)
+    expect(response.media_type).to eq('text/javascript')
+    expect(response.body).to include("const CACHE_VERSION = 'haearn-v4'")
+  end
+
   it 'uses machine display unit for set-level rows while user preference stays kg' do
     user.update!(preferred_unit: 'kg')
     machine = gym.machines.create!(

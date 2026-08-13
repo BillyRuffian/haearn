@@ -2997,6 +2997,9 @@ body.add-set-form-open .bottom-nav {
 .swipeable-container {
   position: relative;
   overflow: hidden;
+  touch-action: pan-y pinch-zoom;
+  overscroll-behavior-x: contain;
+  -webkit-touch-callout: none;
 
   // Ensure the container with an open dropdown renders above sibling elements
   &:has(.dropdown-menu.show) {
@@ -3009,6 +3012,8 @@ body.add-set-form-open .bottom-nav {
   position: relative;
   background: $iron-dark;
   z-index: 1;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .swipe-actions {
