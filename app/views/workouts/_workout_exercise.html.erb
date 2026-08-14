@@ -1,4 +1,5 @@
-<% is_volume_pr = workout_exercise.volume_pr? %>
+<% volume_comparison = local_assigns[:volume_comparison] || WorkoutExerciseVolumeComparison.for(workout_exercise) %>
+<% is_volume_pr = volume_comparison[:volume_pr] %>
 <% is_superset_item = local_assigns[:superset_label].present? %>
 <div class="workout-exercise <%= 'volume-pr' if is_volume_pr %> <%= 'workout-exercise--superset-item' if is_superset_item %>" id="<%= dom_id(workout_exercise) %>" <% if workout.in_progress? %>data-controller="add-set-toggle" data-action="turbo:frame-load->add-set-toggle#refresh turbo:submit-end->add-set-toggle#refresh"<% end %>>
   <div class="card-header d-flex justify-content-between align-items-center">
@@ -127,6 +128,31 @@
       <div class="small text-muted mb-2">
         <i class="bi bi-sliders2-vertical me-1"></i>
         <%= workout_exercise.machine.setup_memory_summary %>
+      </div>
+    <% end %>
+
+    <% if workout_exercise.exercise.has_weight? && workout_exercise.exercise.exercise_type == 'reps' %>
+      <% maximum_volume = volume_comparison[:max_volume_kg] %>
+      <% current_percentage = maximum_volume.positive? ? ((volume_comparison[:current_volume_kg] / maximum_volume) * 100).round : 0 %>
+      <div class="exercise-volume-comparison mb-2"
+           id="exercise_volume_comparison_<%= workout_exercise.id %>"
+           data-current-volume-kg="<%= volume_comparison[:current_volume_kg] %>"
+           data-maximum-volume-kg="<%= maximum_volume %>">
+        <div class="exercise-volume-comparison__heading">
+          <i class="bi bi-bar-chart-fill" aria-hidden="true"></i>
+          <span>Session volume</span>
+        </div>
+        <div class="exercise-volume-comparison__metric exercise-volume-comparison__metric--current">
+          <span>Current</span>
+          <strong><%= Current.user.format_weight(volume_comparison[:current_volume_kg]) %> <small><%= Current.user.preferred_unit %></small></strong>
+        </div>
+        <div class="exercise-volume-comparison__metric">
+          <span>Max</span>
+          <strong><%= Current.user.format_weight(maximum_volume) %> <small><%= Current.user.preferred_unit %></small></strong>
+        </div>
+        <div class="exercise-volume-comparison__track" role="progressbar" aria-label="Current session volume compared with maximum" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<%= current_percentage %>">
+          <span style="width: <%= current_percentage %>%"></span>
+        </div>
       </div>
     <% end %>
 

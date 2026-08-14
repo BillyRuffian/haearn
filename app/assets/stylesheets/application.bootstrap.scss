@@ -1680,6 +1680,85 @@ select option:checked {
   padding: 0.25rem 0.5rem;
 }
 
+.exercise-volume-comparison {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 1fr) repeat(2, minmax(5.5rem, auto));
+  align-items: center;
+  column-gap: 1rem;
+  row-gap: 0.35rem;
+  padding: 0.5rem 0.65rem;
+  border-left: 3px solid $forge-orange;
+  border-radius: 0.25rem;
+  background: rgba($iron-light, 0.16);
+  font-family: $font-family-monospace;
+}
+
+.exercise-volume-comparison__heading {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: $gray-400;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+
+  i {
+    color: $forge-orange;
+  }
+}
+
+.exercise-volume-comparison__metric {
+  display: grid;
+  justify-items: end;
+  line-height: 1.1;
+
+  span {
+    color: $gray-500;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+  }
+
+  strong {
+    color: $gray-200;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+
+  small {
+    color: $gray-500;
+    font-size: 0.65rem;
+  }
+}
+
+.exercise-volume-comparison__metric--current strong {
+  color: $forge-orange;
+}
+
+.exercise-volume-comparison__track {
+  grid-column: 1 / -1;
+  height: 2px;
+  overflow: hidden;
+  background: rgba($gray-500, 0.28);
+
+  span {
+    display: block;
+    height: 100%;
+    background: $forge-orange;
+    transition: width 180ms ease-out;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .exercise-volume-comparison {
+    grid-template-columns: minmax(0, 1fr) repeat(2, minmax(4.5rem, auto));
+    column-gap: 0.6rem;
+  }
+
+  .exercise-volume-comparison__heading span {
+    max-width: 4.5rem;
+    line-height: 1.15;
+  }
+}
+
 // Workout timer
 .workout-timer {
   font-family: 'JetBrains Mono', monospace;
@@ -1888,20 +1967,12 @@ body.add-set-form-open .rest-timer-footer {
 
     .rest-timer-display {
       color: #fff7ef;
-      text-shadow: 0 0 18px rgba($forge-orange, 0.72);
     }
 
-    .rest-timer-progress {
-      background: rgba($rust-dark, 0.52);
-    }
   }
 
   &.timer-cue-pulse:not(.timer-complete)::before {
-    animation: restTimerCuePulse 0.44s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  &.timer-cue-pulse:not(.timer-complete) .rest-timer-display {
-    animation: restTimerCueDigits 0.44s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: restTimerCueBackgroundPulse 0.44s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   &.timer-complete {
@@ -1953,10 +2024,13 @@ body.add-set-form-open .rest-timer-footer {
 
 .rest-timer-progress {
   position: relative;
+  z-index: 2;
   height: 4px;
-  background: $iron-light;
+  background: #303034;
   border-radius: 2px;
   overflow: hidden;
+  contain: layout paint;
+  isolation: isolate;
   margin-top: 0.25rem;
 }
 
@@ -1971,14 +2045,13 @@ body.add-set-form-open .rest-timer-footer {
       rgba($rust-light, 0.95) 72%,
       rgba($rust-dark, 0.92) 100%);
   border-radius: 2px;
-  transform: scaleX(1);
-  transform-origin: left center;
-  will-change: transform;
+  overflow: hidden;
 
   &::after {
     content: "";
     position: absolute;
     inset: 0;
+    pointer-events: none;
     background: linear-gradient(90deg, transparent 0%, rgba(#fff, 0.5) 48%, transparent 100%);
     transform: translate3d(-110%, 0, 0);
     will-change: transform;
@@ -1990,7 +2063,7 @@ body.add-set-form-open .rest-timer-footer {
 }
 
 .rest-timer-bar.timer-complete .rest-timer-progress-bar {
-  transform: scaleX(1) !important;
+  width: 100% !important;
 }
 
 .rest-timer-bar.timer-complete .rest-timer-progress {
@@ -2076,33 +2149,20 @@ body.add-set-form-open .rest-timer-footer {
   }
 }
 
-@keyframes restTimerCuePulse {
+@keyframes restTimerCueBackgroundPulse {
   0% {
     opacity: 0.48;
     transform: scaleX(1);
   }
 
   38% {
-    opacity: 0.92;
+    opacity: 1;
     transform: scaleX(1.025);
   }
 
   100% {
     opacity: 0.48;
     transform: scaleX(1);
-  }
-}
-
-@keyframes restTimerCueDigits {
-  0%,
-  100% {
-    opacity: 1;
-    transform: translateZ(0) scale(1);
-  }
-
-  38% {
-    opacity: 0.88;
-    transform: translateZ(0) scale(1.045);
   }
 }
 

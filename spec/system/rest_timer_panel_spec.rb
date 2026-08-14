@@ -17,7 +17,7 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
     JS
   end
 
-  it 'swaps between the start panel and countdown panel with the active sweep styling' do
+  it 'swaps between the start panel and countdown panel with isolated active-fill styling' do
     visit workout_path(workout)
 
     within('.rest-timer-footer') do
@@ -40,12 +40,11 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
         if (!progressBar) return null
 
         const style = window.getComputedStyle(progressBar)
-        const sheenStyle = window.getComputedStyle(progressBar, "::after")
+        const swooshStyle = window.getComputedStyle(progressBar, "::after")
         return {
-          animationName: sheenStyle.animationName,
+          animationName: swooshStyle.animationName,
           backgroundImage: style.backgroundImage,
-          transformOrigin: style.transformOrigin,
-          willChange: style.willChange
+          overflow: style.overflow
         }
       })()
     JS
@@ -53,8 +52,7 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
     expect(progress_styles).not_to be_nil
     expect(progress_styles["animationName"]).to include("restTimerSweep")
     expect(progress_styles["backgroundImage"]).to include("linear-gradient")
-    expect(progress_styles["transformOrigin"]).to start_with('0px')
-    expect(progress_styles["willChange"]).to include('transform')
+    expect(progress_styles["overflow"]).to eq('hidden')
 
     within('.rest-timer-footer') do
       find('.rest-timer-skip-btn').click
@@ -89,12 +87,12 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
       }
 
       setTimeout(() => {
-        const first = { text: display.textContent, transform: progress.style.transform }
+        const first = { text: display.textContent, width: progress.style.width }
         setTimeout(() => {
           done({
             immediateState,
             first,
-            second: { text: display.textContent, transform: progress.style.transform },
+            second: { text: display.textContent, width: progress.style.width },
             usesAnimationFrame: controller.timerFrame !== null,
             hasLegacyInterval: Object.hasOwn(controller, "interval")
           })
@@ -105,7 +103,7 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
     expect(motion.dig("immediateState", "collapsedHidden")).to be(true)
     expect(motion.dig("immediateState", "activeHidden")).to be(false)
     expect(motion.dig("first", "text")).to eq(motion.dig("second", "text"))
-    expect(motion.dig("first", "transform")).not_to eq(motion.dig("second", "transform"))
+    expect(motion.dig("first", "width")).not_to eq(motion.dig("second", "width"))
     expect(motion["usesAnimationFrame"]).to be(true)
     expect(motion["hasLegacyInterval"]).to be(false)
   end
@@ -267,6 +265,10 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
       if (!controller) throw new Error("Missing rest-timer controller")
 
       controller.playCountdownPip = () => {}
+      controller.endTime = Date.now() + 4000
+      controller.saveTimerState()
+      controller.resetCountdownCueState()
+      controller.updateDisplay()
       controller.playCountdownCueIfNeeded(4)
     JS
 
@@ -276,12 +278,36 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
     cue_motion = page.evaluate_script(<<~JS)
       (() => {
         const panel = document.querySelector(".rest-timer-bar.timer-cue-pulse")
-        const overlay = window.getComputedStyle(panel, "::before")
-        return { animationName: overlay.animationName, filter: overlay.filter }
+        const track = panel.querySelector(".rest-timer-progress")
+        const progress = panel.querySelector(".rest-timer-progress-bar")
+        const panelOverlay = window.getComputedStyle(panel, "::before")
+        const swoosh = window.getComputedStyle(progress, "::after")
+        const trackBounds = track.getBoundingClientRect()
+        const progressBounds = progress.getBoundingClientRect()
+
+        return {
+          backgroundAnimationName: panelOverlay.animationName,
+          panelOverlayOpacity: panelOverlay.opacity,
+          swooshAnimationName: swoosh.animationName,
+          trackAnimationName: window.getComputedStyle(track).animationName,
+          trackBackgroundColor: window.getComputedStyle(track).backgroundColor,
+          trackOverflow: window.getComputedStyle(track).overflow,
+          trackWidth: trackBounds.width,
+          progressWidth: progressBounds.width,
+          progressRight: progressBounds.right,
+          trackRight: trackBounds.right
+        }
       })()
     JS
-    expect(cue_motion["animationName"]).to include('restTimerCuePulse')
-    expect(cue_motion["filter"]).to eq('none')
+    expect(cue_motion["backgroundAnimationName"]).to include('restTimerCueBackgroundPulse')
+    expect(cue_motion["panelOverlayOpacity"].to_f).to be > 0
+    expect(cue_motion["swooshAnimationName"]).to include('restTimerSweep')
+    expect(cue_motion["trackAnimationName"]).to eq('none')
+    expect(cue_motion["trackBackgroundColor"]).to eq('rgb(48, 48, 52)')
+    expect(cue_motion["trackOverflow"]).to eq('hidden')
+    expect(cue_motion["progressWidth"].to_f / cue_motion["trackWidth"].to_f).to be_between(0.03, 0.06)
+    expect(cue_motion["progressRight"].to_f).to be <= cue_motion["trackRight"].to_f
+    page.save_screenshot(Rails.root.join('tmp/rest-timer-background-cue.png')) if ENV['CAPTURE_TIMER'] == '1'
 
     page.execute_script(<<~JS)
       const controllerElement = document.querySelector("[data-controller~='rest-timer']")
@@ -434,21 +460,21 @@ RSpec.describe 'Rest timer panel', type: :system, js: true do
       const controller = window.Stimulus?.getControllerForElementAndIdentifier(controllerElement, "rest-timer")
       const progress = document.querySelector("[data-rest-timer-target='progress']")
       const sheen = window.getComputedStyle(progress, "::after")
-      const firstTransform = progress.style.transform
+      const firstWidth = progress.style.width
 
       setTimeout(() => done({
         prefersReducedMotion: controller.prefersReducedMotion,
         frameType: controller.timerFrameType,
         sheenAnimation: sheen.animationName,
-        firstTransform,
-        secondTransform: progress.style.transform
+        firstWidth,
+        secondWidth: progress.style.width
       }), 180)
     JS
 
     expect(reduced_motion["prefersReducedMotion"]).to be(true)
     expect(reduced_motion["frameType"]).to eq('timeout')
     expect(reduced_motion["sheenAnimation"]).to eq('none')
-    expect(reduced_motion["firstTransform"]).to eq(reduced_motion["secondTransform"])
+    expect(reduced_motion["firstWidth"]).to eq(reduced_motion["secondWidth"])
   ensure
     page.driver.browser.execute_cdp('Emulation.setEmulatedMedia', features: []) if page.driver.respond_to?(:browser)
   end

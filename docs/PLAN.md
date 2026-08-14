@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: August 13, 2026
+> Last Updated: August 14, 2026
 
 ## Overview
 
@@ -11,6 +11,8 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Keep the active-fill swoosh bounded to remaining progress while final 4/3/2/1 cues pulse only the opaque-backed timer background
+- [x] Show live current and all-time maximum session volume for each exact exercise+machine during workouts, refreshing after every set mutation
 - [x] Make set-row swipe-right duplication reliable on iOS Safari with symmetric partial-reveal/full-action behavior, compatibility-click suppression, threshold-aware cancellation handling, forced PWA cache refresh, and idempotency-safe server cloning
 - [x] Refine rest-timer motion with frame-synchronized transform progress, compositor-only cue/completion overlays, stable phone geometry, and explicit reduced-motion behavior
 - [x] Restore swipe-right set duplication and align the current workout block to the visible viewport top after a set is added

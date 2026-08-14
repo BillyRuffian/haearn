@@ -156,6 +156,34 @@ RSpec.describe 'Core functionality', type: :request do
     expect(source_set.reload.client_request_id).to eq('ios-source-request-id')
   end
 
+  it 'refreshes current and maximum exercise volume after every set mutation' do
+    sign_in_as(users(:system))
+    workout = workouts(:active_logging)
+    workout_exercise = workout_exercises(:active_logging)
+    original_set = exercise_sets(:active_logging_first_set)
+    turbo_headers = { 'ACCEPT' => Mime[:turbo_stream].to_s }
+
+    post workout_workout_exercise_exercise_sets_path(workout, workout_exercise),
+         params: { exercise_set: { weight_value: '50', reps: '10', is_warmup: '0' } },
+         headers: turbo_headers
+    created_set = workout_exercise.exercise_sets.order(:position).last
+    expect(rendered_volume(response, workout_exercise)).to eq([ 882.5, 882.5 ])
+
+    patch workout_workout_exercise_exercise_set_path(workout, workout_exercise, created_set),
+          params: { exercise_set: { weight_value: '10', reps: '1', is_warmup: '0' } },
+          headers: turbo_headers
+    expect(rendered_volume(response, workout_exercise)).to eq([ 392.5, 570.0 ])
+
+    post duplicate_workout_workout_exercise_exercise_set_path(workout, workout_exercise, original_set),
+         headers: turbo_headers
+    duplicate = workout_exercise.exercise_sets.order(:position).last
+    expect(rendered_volume(response, workout_exercise)).to eq([ 775.0, 775.0 ])
+
+    delete workout_workout_exercise_exercise_set_path(workout, workout_exercise, duplicate),
+           headers: turbo_headers
+    expect(rendered_volume(response, workout_exercise)).to eq([ 392.5, 570.0 ])
+  end
+
   it 'aligns the owning block after generating warmup sets without restarting the timer' do
     sign_in_as(user)
     workout = user.workouts.create!(gym: gym, started_at: Time.current)
@@ -171,6 +199,13 @@ RSpec.describe 'Core functionality', type: :request do
     expect(response.body).to include('data-controller="set-added"')
     expect(response.body).to include("data-set-added-block-id-value=\"#{ActionView::RecordIdentifier.dom_id(block)}\"")
     expect(response.body).to include('data-set-added-restart-timer-value="false"')
+  end
+
+  def rendered_volume(response, workout_exercise)
+    node = Nokogiri::HTML.fragment(response.body).at_css("#exercise_volume_comparison_#{workout_exercise.id}")
+
+    expect(node).to be_present
+    [ node['data-current-volume-kg'].to_f, node['data-maximum-volume-kg'].to_f ]
   end
 
   it 'updates key settings preferences' do

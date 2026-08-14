@@ -48,7 +48,7 @@ class ExerciseSetsController < ApplicationController
             streams << turbo_stream.remove("warmup_generator_#{@workout_exercise.id}")
           end
 
-          append_volume_pr_stream(streams)
+          append_volume_comparison_stream(streams)
           append_set_added_stream(streams)
           render turbo_stream: streams
         end
@@ -95,7 +95,7 @@ class ExerciseSetsController < ApplicationController
               locals: { workout: @workout })
           ]
 
-          append_volume_pr_stream(streams)
+          append_volume_comparison_stream(streams)
           render turbo_stream: streams
         end
         format.html { redirect_to workout_path(@workout) }
@@ -125,7 +125,7 @@ class ExerciseSetsController < ApplicationController
             locals: { workout: @workout })
         ]
 
-        append_volume_pr_stream(streams)
+        append_volume_comparison_stream(streams)
         render turbo_stream: streams
       end
       format.html { redirect_to workout_path(@workout) }
@@ -155,7 +155,7 @@ class ExerciseSetsController < ApplicationController
               locals: { workout: @workout })
           ]
 
-          append_volume_pr_stream(streams)
+          append_volume_comparison_stream(streams)
           append_set_added_stream(streams)
           render turbo_stream: streams
         end
@@ -178,12 +178,17 @@ class ExerciseSetsController < ApplicationController
     @exercise_set = @workout_exercise.exercise_sets.find(params[:id])
   end
 
-  # Re-render the workout exercise card to reflect current volume PR status
-  def append_volume_pr_stream(streams)
+  # Re-render the workout exercise card to reflect current and maximum volume.
+  def append_volume_comparison_stream(streams)
     @workout_exercise.reload
     streams << turbo_stream.replace(dom_id(@workout_exercise),
       partial: 'workouts/workout_exercise',
-      locals: { workout_exercise: @workout_exercise, workout: @workout, superset_label: superset_label_for(@workout_exercise) })
+      locals: {
+        workout_exercise: @workout_exercise,
+        workout: @workout,
+        superset_label: superset_label_for(@workout_exercise),
+        volume_comparison: WorkoutExerciseVolumeComparison.for(@workout_exercise)
+      })
   end
 
   def append_set_added_stream(streams)

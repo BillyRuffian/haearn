@@ -46,7 +46,10 @@ class WorkoutsController < ApplicationController
     # Eager load all nested associations for performance
     @workout_blocks = @workout.workout_blocks.includes(
       workout_exercises: [ :exercise, { machine: :photos_attachments }, :exercise_sets ]
-    ).order(:position)
+    ).order(:position).to_a
+    @volume_comparisons = WorkoutExerciseVolumeComparison.for_many(
+      @workout_blocks.flat_map(&:workout_exercises)
+    )
     @editing_notes = params[:editing_notes].present?
 
 

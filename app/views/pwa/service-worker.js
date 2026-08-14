@@ -1,7 +1,7 @@
 // Haearn Service Worker
 // Provides offline support and caching for the PWA
 
-const CACHE_VERSION = 'haearn-v6';
+const CACHE_VERSION = 'haearn-v7';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 

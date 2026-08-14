@@ -160,6 +160,9 @@ RSpec.describe 'Workout set lifecycle', type: :system, js: true do
 
     within("##{ActionView::RecordIdentifier.dom_id(workout_exercise)}") do
       expect(page).to have_css(".set-row", count: 1)
+      expect(page).to have_css(
+        "#exercise_volume_comparison_#{workout_exercise.id}[data-current-volume-kg='382.5'][data-maximum-volume-kg='570.0']"
+      )
     end
 
     duplicate_set(duplicate_workout_workout_exercise_exercise_set_path(workout, workout_exercise, exercise_set))
@@ -171,6 +174,9 @@ RSpec.describe 'Workout set lifecycle', type: :system, js: true do
 
       expect(reps).to eq(%w[9 9])
       expect(weights).to all(include("42.5"))
+      expect(page).to have_css(
+        "#exercise_volume_comparison_#{workout_exercise.id}[data-current-volume-kg='765.0'][data-maximum-volume-kg='765.0']"
+      )
     end
 
     open_inline_edit(
@@ -187,6 +193,9 @@ RSpec.describe 'Workout set lifecycle', type: :system, js: true do
 
       expect(page).to have_no_css('form.edit-set-form')
       expect(page).to have_text('10')
+      expect(page).to have_css(
+        "#exercise_volume_comparison_#{workout_exercise.id}[data-current-volume-kg='807.5'][data-maximum-volume-kg='807.5']"
+      )
     end
 
     open_inline_edit(

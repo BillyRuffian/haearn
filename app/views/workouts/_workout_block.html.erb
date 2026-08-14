@@ -37,6 +37,7 @@
     <%= render "workout_exercise", 
         workout_exercise: workout_exercise, 
         workout: workout,
+        volume_comparison: local_assigns.fetch(:volume_comparisons, {})[workout_exercise.id],
         superset_label: is_superset ? "#{superset_group_label}#{index + 1}" : nil,
         superset_position: index + 1,
         superset_count: block.workout_exercises.count %>

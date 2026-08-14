@@ -221,8 +221,8 @@
           controller: "sortable", 
           sortable_url_value: reorder_blocks_workout_path(@workout) 
         } : {} do %>
-      <% @workout.workout_blocks.includes(workout_exercises: [:exercise, :machine, :exercise_sets]).order(:position).each do |block| %>
-        <%= render "workout_block", block: block, workout: @workout %>
+      <% @workout_blocks.each do |block| %>
+        <%= render "workout_block", block: block, workout: @workout, volume_comparisons: @volume_comparisons %>
       <% end %>
     <% end %>
   </div>

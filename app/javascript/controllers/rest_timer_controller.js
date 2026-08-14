@@ -290,7 +290,7 @@ export default class extends Controller {
     if (this.hasProgressTarget && (!this.prefersReducedMotion || secondChanged)) {
       const totalMilliseconds = Math.max(1, this.totalDuration * 1000)
       const ratio = Math.max(0, Math.min(1, remainingMilliseconds / totalMilliseconds))
-      this.progressTarget.style.transform = `scaleX(${ratio.toFixed(5)})`
+      this.progressTarget.style.width = `${(ratio * 100).toFixed(5)}%`
     }
   }
 
@@ -300,7 +300,7 @@ export default class extends Controller {
     }
 
     if (this.hasProgressTarget) {
-      this.progressTarget.style.transform = "scaleX(1)"
+      this.progressTarget.style.width = "100%"
     }
   }
 
