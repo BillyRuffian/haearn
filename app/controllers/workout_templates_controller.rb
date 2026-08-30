@@ -58,14 +58,21 @@ class WorkoutTemplatesController < ApplicationController
   end
 
   # POST /workout_templates/:id/start_workout
-  # Creates a new workout from this template
+  # Creates a new workout, or appends the template to the active workout.
   def start_workout
+    active_workout = Current.user.active_workout
     workout = WorkoutTemplateInstantiator.new(
       user: Current.user,
       workout_template: @template,
-      gym: Current.user.default_gym
+      gym: active_workout&.gym || Current.user.default_gym,
+      workout: active_workout
     ).call
-    redirect_to workout, notice: "Started workout from template \"#{@template.name}\"."
+    notice = if active_workout
+      "Added template \"#{@template.name}\" to your active workout."
+    else
+      "Started workout from template \"#{@template.name}\"."
+    end
+    redirect_to workout, notice:
   rescue ActiveRecord::RecordInvalid => error
     redirect_to @template, alert: "Failed to start workout: #{error.record.errors.full_messages.to_sentence}"
   end

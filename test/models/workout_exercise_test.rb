@@ -180,6 +180,7 @@ class WorkoutExerciseTest < ActiveSupport::TestCase
     )
     older_block = older_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
     older_we = older_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    older_we.exercise_sets.create!(position: 1, reps: 8, completed_at: 4.days.ago + 10.minutes)
 
     latest_workout = Workout.create!(
       user: user,
@@ -189,6 +190,7 @@ class WorkoutExerciseTest < ActiveSupport::TestCase
     )
     latest_block = latest_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
     latest_we = latest_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    latest_we.exercise_sets.create!(position: 1, reps: 8, completed_at: 2.days.ago + 10.minutes)
 
     current_workout = Workout.create!(
       user: user,
@@ -221,7 +223,8 @@ class WorkoutExerciseTest < ActiveSupport::TestCase
       finished_at: 2.days.ago + 45.minutes
     )
     different_machine_block = different_machine_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
-    different_machine_block.workout_exercises.create!(exercise: exercise, machine: other_machine, position: 1)
+    different_machine_we = different_machine_block.workout_exercises.create!(exercise: exercise, machine: other_machine, position: 1)
+    different_machine_we.exercise_sets.create!(position: 1, reps: 8, completed_at: 2.days.ago + 10.minutes)
 
     matching_workout = Workout.create!(
       user: user,
@@ -231,6 +234,7 @@ class WorkoutExerciseTest < ActiveSupport::TestCase
     )
     matching_block = matching_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
     matching_we = matching_block.workout_exercises.create!(exercise: exercise, machine: matching_machine, position: 1)
+    matching_we.exercise_sets.create!(position: 1, reps: 8, completed_at: 1.day.ago + 10.minutes)
 
     current_workout = Workout.create!(
       user: user,
@@ -258,6 +262,7 @@ class WorkoutExerciseTest < ActiveSupport::TestCase
     )
     later_finished_block = later_finished_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
     later_finished_we = later_finished_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    later_finished_we.exercise_sets.create!(position: 1, reps: 8, completed_at: 1.day.ago - 10.minutes)
 
     later_started_workout = Workout.create!(
       user: user,
@@ -266,7 +271,8 @@ class WorkoutExerciseTest < ActiveSupport::TestCase
       finished_at: 2.days.ago + 45.minutes
     )
     later_started_block = later_started_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
-    later_started_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    later_started_we = later_started_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+    later_started_we.exercise_sets.create!(position: 1, reps: 8, completed_at: 2.days.ago + 10.minutes)
 
     current_workout = Workout.create!(
       user: user,

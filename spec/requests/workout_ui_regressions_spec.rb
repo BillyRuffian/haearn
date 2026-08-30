@@ -340,6 +340,7 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(frame.at_css('input[name="exercise_set[weight_value]"]')['value'].to_s).to eq('')
     expect(frame.at_css('input[name="exercise_set[reps]"]')['value'].to_s).to eq('')
     expect(frame.at_css('input[type="checkbox"][name="exercise_set[is_warmup]"]')['checked']).to be_nil
+    no_history_workout.update!(finished_at: Time.current)
 
     # Previous finished session for rule 2 source data.
     previous_workout = user.workouts.create!(gym: gym, started_at: 2.days.ago, finished_at: 2.days.ago + 50.minutes)
@@ -491,6 +492,90 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(response.body).to include('45kg × 8')
     expect(response.body).to include('47.5kg × 8')
     expect(response.body).not_to include('60kg × 5')
+  end
+
+  it 'skips a newer setless exercise when rendering Last history and set prefill' do
+    history_machine = gym.machines.create!(
+      name: 'Skipped History Machine',
+      equipment_type: 'machine',
+      display_unit: 'kg'
+    )
+    history_exercise = user.exercises.create!(
+      name: 'Skipped History Exercise',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'chest'
+    )
+
+    recorded_workout = user.workouts.create!(gym:, started_at: 5.days.ago, finished_at: 5.days.ago + 45.minutes)
+    recorded_block = recorded_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    recorded_exercise = recorded_block.workout_exercises.create!(exercise: history_exercise, machine: history_machine, position: 1)
+    recorded_exercise.exercise_sets.create!(
+      position: 1,
+      reps: 9,
+      weight_kg: 52.5,
+      is_warmup: false,
+      completed_at: 5.days.ago + 10.minutes
+    )
+
+    skipped_workout = user.workouts.create!(gym:, started_at: 2.days.ago, finished_at: 2.days.ago + 45.minutes)
+    skipped_block = skipped_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    skipped_block.workout_exercises.create!(exercise: history_exercise, machine: history_machine, position: 1)
+
+    workout = user.workouts.create!(gym:, started_at: Time.current, finished_at: nil)
+    block = workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    current_exercise = block.workout_exercises.create!(exercise: history_exercise, machine: history_machine, position: 1)
+
+    get workout_path(workout)
+
+    expect(response).to have_http_status(:ok)
+    doc = Nokogiri::HTML.parse(response.body)
+    current_card = doc.at_css("##{ActionView::RecordIdentifier.dom_id(current_exercise)}")
+    expect(current_card.text).to include('52.5kg × 9')
+
+    payload_node = doc.at_css("#new_set_#{current_exercise.id} [data-copy-last-payload-value]")
+    payload = JSON.parse(payload_node['data-copy-last-payload-value'])
+    expect(payload).to include('weight_value' => '52.5', 'reps' => 9)
+  end
+
+  it 'omits setless skipped occurrences from the exercise history page' do
+    history_exercise = user.exercises.create!(
+      name: 'Setful History Only Exercise',
+      exercise_type: 'reps',
+      has_weight: true,
+      primary_muscle_group: 'back'
+    )
+
+    recorded_workout = user.workouts.create!(
+      gym:,
+      started_at: Time.zone.local(2026, 8, 20, 10, 0),
+      finished_at: Time.zone.local(2026, 8, 20, 11, 0)
+    )
+    recorded_block = recorded_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    recorded_exercise = recorded_block.workout_exercises.create!(exercise: history_exercise, machine:, position: 1)
+    recorded_exercise.exercise_sets.create!(
+      position: 1,
+      reps: 8,
+      weight_kg: 50,
+      completed_at: Time.zone.local(2026, 8, 20, 10, 15)
+    )
+
+    skipped_workout = user.workouts.create!(
+      gym:,
+      started_at: Time.zone.local(2026, 8, 27, 10, 0),
+      finished_at: Time.zone.local(2026, 8, 27, 11, 0)
+    )
+    skipped_block = skipped_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+    skipped_block.workout_exercises.create!(exercise: history_exercise, machine:, position: 1)
+
+    get history_exercise_path(history_exercise, machine_id: machine.id)
+
+    expect(response).to have_http_status(:ok)
+    doc = Nokogiri::HTML.parse(response.body)
+    sessions = doc.css('.history-session')
+    expect(sessions.length).to eq(1)
+    expect(sessions.first.text).to include('Thursday, August 20, 2026')
+    expect(response.body).not_to include('Thursday, August 27, 2026')
   end
 
   it 'scopes Last summary and payload to the exact machine' do
@@ -720,7 +805,7 @@ RSpec.describe 'Workout UI regressions', type: :request do
     march_thirteenth_workout = user.workouts.create!(
       gym: gym,
       started_at: Time.zone.local(2026, 3, 13, 12, 0, 0),
-      finished_at: nil
+      finished_at: Time.zone.local(2026, 3, 13, 13, 0, 0)
     )
     march_thirteenth_block = march_thirteenth_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
     march_thirteenth_we = march_thirteenth_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
@@ -744,7 +829,7 @@ RSpec.describe 'Workout UI regressions', type: :request do
     march_sixth_workout = user.workouts.create!(
       gym: gym,
       started_at: Time.zone.local(2026, 3, 6, 12, 0, 0),
-      finished_at: nil
+      finished_at: Time.zone.local(2026, 3, 6, 13, 0, 0)
     )
     march_sixth_block = march_sixth_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
     march_sixth_we = march_sixth_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)

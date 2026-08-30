@@ -152,7 +152,7 @@ class User < ApplicationRecord
   # Get the user's currently in-progress workout (if any)
   # @return [Workout, nil]
   def active_workout
-    workouts.in_progress.first
+    workouts.in_progress.order(started_at: :desc, created_at: :desc).first
   end
 
   def active_program_cycle

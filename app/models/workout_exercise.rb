@@ -62,6 +62,7 @@ class WorkoutExercise < ApplicationRecord
   validates :incline_angle, numericality: { greater_than_or_equal_to: -90, less_than_or_equal_to: 90, only_integer: true }, allow_nil: true
 
   scope :ordered, -> { order(:position) }
+  scope :with_recorded_sets, -> { joins(:exercise_sets).distinct }
 
   before_validation :set_position, on: :create
   before_destroy :remember_user_id_for_cache_invalidation
@@ -117,6 +118,7 @@ class WorkoutExercise < ApplicationRecord
   # Only considers finished workouts from same user
   def previous_workout_exercise
     workout.user.workout_exercises
+      .with_recorded_sets
       .where(exercise_id: exercise_id, machine_id: machine_id)
       .joins(workout_block: :workout)
       .where('workouts.id != ?', workout.id)

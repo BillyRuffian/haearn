@@ -95,18 +95,24 @@ RSpec.describe 'Optional workout equipment', type: :request do
     expect(template.template_exercises.sole.machine_id).to be_nil
 
     user.update!(default_gym: gym)
-    post start_workout_workout_template_path(template)
-    templated_workout = user.workouts.order(:id).last
-    expect(response).to redirect_to(workout_path(templated_workout))
-    expect(templated_workout.workout_exercises.sole).to have_attributes(machine_id: nil, persistent_notes: 'No rack needed')
+    expect do
+      post start_workout_workout_template_path(template)
+    end.not_to change(user.workouts, :count)
+    expect(response).to redirect_to(workout_path(copied_workout))
+    expect(copied_workout.reload.workout_exercises).to all(
+      have_attributes(machine_id: nil, persistent_notes: 'No rack needed')
+    )
+    expect(copied_workout.workout_exercises.count).to eq(2)
   end
 
   it 'opens equipment-free history on its own tab without hiding machine history' do
     equipment_free_workout = create_workout(finished_at: 2.days.ago)
-    add_workout_exercise(equipment_free_workout, machine: nil)
+    equipment_free_exercise = add_workout_exercise(equipment_free_workout, machine: nil)
+    equipment_free_exercise.exercise_sets.create!(position: 1, reps: 8, is_warmup: false, completed_at: equipment_free_workout.finished_at)
     machine = gym.machines.create!(name: 'History Stack', equipment_type: 'machine', display_unit: 'kg')
     machine_workout = create_workout(finished_at: 1.day.ago)
-    add_workout_exercise(machine_workout, machine: machine)
+    machine_exercise = add_workout_exercise(machine_workout, machine: machine)
+    machine_exercise.exercise_sets.create!(position: 1, reps: 8, is_warmup: false, completed_at: machine_workout.finished_at)
 
     get history_exercise_path(exercise, machine_id: 'none')
 

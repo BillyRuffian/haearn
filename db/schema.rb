@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_13_151000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_30_170000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -375,6 +375,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_13_151000) do
     t.index ["gym_id"], name: "index_workouts_on_gym_id"
     t.index ["program_session_execution_id"], name: "index_workouts_on_program_session_execution_id", unique: true
     t.index ["user_id", "finished_at"], name: "index_workouts_on_user_id_and_finished_at"
+    t.index ["user_id"], name: "index_workouts_on_one_active_per_user", unique: true, where: "finished_at IS NULL"
     t.index ["user_id"], name: "index_workouts_on_user_id"
   end
 

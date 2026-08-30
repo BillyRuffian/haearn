@@ -314,6 +314,7 @@ module ApplicationHelper
 
   def current_workout_history_source_for(workout_exercise)
     workout_exercise.workout.workout_exercises
+      .with_recorded_sets
       .joins(:workout_block)
       .where(exercise_id: workout_exercise.exercise_id, machine_id: workout_exercise.machine_id)
       .where.not(id: workout_exercise.id)
@@ -328,6 +329,7 @@ module ApplicationHelper
 
   def latest_finished_session_sources_for(workout_exercise)
     matching_history = Current.user.workout_exercises
+      .with_recorded_sets
       .joins(workout_block: :workout)
       .where(exercise_id: workout_exercise.exercise_id, machine_id: workout_exercise.machine_id)
       .where.not(workouts: { id: workout_exercise.workout.id })

@@ -16,6 +16,7 @@
 #
 #  index_workouts_on_created_at                    (created_at)
 #  index_workouts_on_gym_id                        (gym_id)
+#  index_workouts_on_one_active_per_user           (user_id) UNIQUE WHERE finished_at IS NULL
 #  index_workouts_on_program_session_execution_id  (program_session_execution_id) UNIQUE
 #  index_workouts_on_user_id                       (user_id)
 #  index_workouts_on_user_id_and_finished_at       (user_id,finished_at)
@@ -43,6 +44,12 @@ class Workout < ApplicationRecord
   has_many :exercise_sets, through: :workout_exercises
 
   validates :gym, presence: { message: 'must be selected' }
+  validates :user_id,
+    uniqueness: {
+      conditions: -> { where(finished_at: nil) },
+      message: 'already has an active workout'
+    },
+    if: :in_progress?
 
   scope :recent, -> { order(started_at: :desc) }
   scope :completed, -> { where.not(finished_at: nil) }

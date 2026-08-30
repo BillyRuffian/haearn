@@ -214,6 +214,8 @@ User
     Keep `/service-worker` defaulting to JavaScript, and when shipping touch-interaction fixes, bump the service-worker cache generation and bypass HTTP caching for worker registration so installed iOS PWAs cannot remain pinned to stale gesture JavaScript or CSS.
     Duplicating a set must copy its training payload but clear identity/idempotency fields such as `client_request_id`; phone-created sets carry a unique offline replay key that cannot be reused by the duplicate.
 42. **Live Exercise Volume Contract**: During a workout, weighted rep exercises should show current working-set session volume beside the all-time maximum for the exact exercise+machine combination, including exact nil-machine scope. The maximum includes the current session when it exceeds completed history, and the comparison must refresh after set creates, edits, duplicates, and deletes; warmups do not contribute.
+43. **Recorded Exercise History Contract**: A workout exercise counts as exercise history only when it has at least one recorded set, including warmups. Setless skipped occurrences must not replace older setful history in active-workout "Last" summaries, set prefills, or persistent-note inheritance, and must not appear on exercise history pages.
+44. **Single Active Workout Contract**: A user may have at most one workout with `finished_at: nil`, enforced in both model validation and a partial unique database index. New-workout, copy, and continue attempts must return the user to the existing active workout. Starting a workout template while a workout is active appends the template's blocks and exercises to that workout, preserving block grouping and template-exercise links, rather than creating another workout.
 
 ## Equipment Types (Enum)
 

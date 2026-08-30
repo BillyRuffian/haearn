@@ -38,7 +38,7 @@ RSpec.describe WorkoutExerciseVolumeComparison do
       volume_pr: false
     )
 
-    equipment_free_current = create_workout_exercise(machine: nil, finished: false)
+    equipment_free_current = create_workout_exercise(machine: nil, finished: false, workout: current.workout)
     equipment_free_current.exercise_sets.create!(weight_kg: 100, reps: 10, is_warmup: false, position: 1)
 
     expect(described_class.for(equipment_free_current)).to include(
@@ -66,8 +66,8 @@ RSpec.describe WorkoutExerciseVolumeComparison do
 
   private
 
-  def create_workout_exercise(machine:, finished:)
-    workout = user.workouts.create!(
+  def create_workout_exercise(machine:, finished:, workout: nil)
+    workout ||= user.workouts.create!(
       gym: gym,
       started_at: Time.current,
       finished_at: finished ? Time.current : nil

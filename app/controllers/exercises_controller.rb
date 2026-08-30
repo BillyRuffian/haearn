@@ -142,6 +142,7 @@ class ExercisesController < ApplicationController
   def history
     # Load all instances of this exercise across all user's workouts
     @workout_exercises = Current.user.workout_exercises
+      .with_recorded_sets
       .where(exercise_id: @exercise.id)
       .includes(:machine, :exercise_sets, workout_block: :workout)
       .joins(workout_block: :workout)

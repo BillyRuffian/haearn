@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: August 14, 2026
+> Last Updated: August 30, 2026
 
 ## Overview
 
@@ -11,6 +11,8 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Enforce one active workout per user, redirect duplicate start attempts to it, and append launched templates to the active session
+- [x] Exclude setless skipped exercises from exercise history while preserving the latest recorded session in active-workout Last summaries and prefills
 - [x] Keep the active-fill swoosh bounded to remaining progress while final 4/3/2/1 cues pulse only the opaque-backed timer background
 - [x] Show live current and all-time maximum session volume for each exact exercise+machine during workouts, refreshing after every set mutation
 - [x] Make set-row swipe-right duplication reliable on iOS Safari with symmetric partial-reveal/full-action behavior, compatibility-click suppression, threshold-aware cancellation handling, forced PWA cache refresh, and idempotency-safe server cloning

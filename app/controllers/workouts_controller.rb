@@ -76,6 +76,11 @@ class WorkoutsController < ApplicationController
   end
 
   def new
+    if (active_workout = Current.user.active_workout)
+      redirect_to active_workout, notice: 'Your active workout is already in progress.'
+      return
+    end
+
     @workout = Current.user.workouts.build
     @workout.gym_id = Current.user.default_gym_id if Current.user.default_gym_id.present?
     @gyms = Current.user.gyms.ordered
@@ -84,6 +89,11 @@ class WorkoutsController < ApplicationController
   # POST /workouts
   # Starts a new workout session
   def create
+    if (active_workout = Current.user.active_workout)
+      redirect_to active_workout, notice: 'Your active workout is already in progress.'
+      return
+    end
+
     @workout = Current.user.workouts.build(workout_params)
     @workout.started_at = Time.current
 
@@ -127,8 +137,8 @@ class WorkoutsController < ApplicationController
       return
     end
 
-    if Current.user.active_workout
-      redirect_to @workout, alert: 'You already have an active workout. Finish it first.'
+    if (active_workout = Current.user.active_workout)
+      redirect_to active_workout, alert: 'You already have an active workout. Finish it first.'
       return
     end
 
@@ -193,6 +203,11 @@ class WorkoutsController < ApplicationController
   # Creates new workout with same structure (blocks + exercises) but no sets
   # Preserves persistent notes but not session-specific notes or sets
   def copy
+    if (active_workout = Current.user.active_workout)
+      redirect_to active_workout, notice: 'Your active workout is already in progress.'
+      return
+    end
+
     # Duplicate the workout template without copying the actual logged sets
     new_workout = Current.user.workouts.build(
       gym_id: @workout.gym_id,
