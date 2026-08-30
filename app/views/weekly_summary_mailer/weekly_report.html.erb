@@ -1,393 +1,194 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    /* Dark theme matching Haearn's website */
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background-color: #0d0d0d;
-      color: #e0e0e0;
-    }
-    
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      background-color: #1a1a1a;
-    }
-    
-    .header {
-      background: linear-gradient(135deg, #c86432 0%, #8b4513 100%);
-      padding: 40px 20px;
-      text-align: center;
-    }
-    
-    .header h1 {
-      margin: 0;
-      color: #ffffff;
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
-    
-    .header p {
-      margin: 8px 0 0 0;
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 16px;
-    }
-    
-    .content {
-      padding: 30px 20px;
-    }
-    
-    .greeting {
-      font-size: 18px;
-      color: #ffffff;
-      margin-bottom: 20px;
-    }
-    
-    .stats-grid {
-      display: table;
-      width: 100%;
-      margin: 20px 0;
-    }
-    
-    .stat-card {
-      background-color: #242424;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 15px;
-      border-left: 4px solid #c86432;
-    }
-    
-    .stat-label {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: #8a8a8a;
-      margin-bottom: 8px;
-    }
-    
-    .stat-value {
-      font-size: 36px;
-      font-weight: 700;
-      color: #ff6b35;
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-    
-    .stat-unit {
-      font-size: 16px;
-      color: #8a8a8a;
-    }
-    
-    .comparison {
-      font-size: 14px;
-      color: #71797E;
-      margin-top: 8px;
-    }
-    
-    .comparison.positive {
-      color: #4CAF50;
-    }
-    
-    .comparison.negative {
-      color: #f44336;
-    }
-    
-    .section-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #ffffff;
-      margin: 30px 0 15px 0;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      border-bottom: 2px solid #c86432;
-      padding-bottom: 8px;
-    }
-    
-    .highlight {
-      background-color: #242424;
-      border-left: 4px solid #4CAF50;
-      padding: 15px 20px;
-      margin-bottom: 10px;
-      border-radius: 4px;
-    }
-    
-    .highlight.warning {
-      border-left-color: #ff9800;
-    }
-    
-    .highlight-text {
-      font-size: 15px;
-      color: #e0e0e0;
-      margin: 0;
-    }
-    
-    .exercise-item {
-      background-color: #242424;
-      padding: 15px;
-      margin-bottom: 10px;
-      border-radius: 4px;
-      display: table;
-      width: 100%;
-    }
-    
-    .exercise-name {
-      font-size: 16px;
-      font-weight: 600;
-      color: #ffffff;
-      margin-bottom: 4px;
-    }
-    
-    .exercise-stats {
-      font-size: 14px;
-      color: #8a8a8a;
-    }
-    
-    .pr-badge {
-      display: inline-block;
-      background-color: #c86432;
-      color: #ffffff;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-right: 8px;
-    }
-    
-    .footer {
-      background-color: #121212;
-      padding: 30px 20px;
-      text-align: center;
-      border-top: 1px solid #2a2a2a;
-    }
-    
-    .footer-text {
-      font-size: 13px;
-      color: #6a6a6a;
-      margin: 5px 0;
-    }
-    
-    .footer-link {
-      color: #c86432;
-      text-decoration: none;
-    }
-    
-    .footer-link:hover {
-      text-decoration: underline;
-    }
-    
-    .cta-button {
-      display: inline-block;
-      background-color: #c86432;
-      color: #ffffff !important;
-      padding: 15px 30px;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: 600;
-      margin: 20px 0;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-size: 14px;
-    }
-    
-    .empty-state {
-      background-color: #242424;
-      padding: 40px 20px;
-      text-align: center;
-      border-radius: 8px;
-      margin: 20px 0;
-    }
-    
-    .empty-state-icon {
-      font-size: 48px;
-      margin-bottom: 15px;
-    }
-    
-    .empty-state-text {
-      font-size: 16px;
-      color: #8a8a8a;
-      margin: 0;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <!-- Header -->
-    <div class="header">
-      <h1>💪 Haearn</h1>
-      <p>Weekly Workout Summary</p>
-    </div>
-    
-    <!-- Content -->
-    <div class="content">
-      <p class="greeting">Hey <%= @user.name %>,</p>
-      
-      <p style="color: #b0b0b0; font-size: 15px; line-height: 1.6;">
-        Here's your training summary for <strong style="color: #ffffff;"><%= @summary[:week_label] %></strong>.
-        <% if @summary[:vs_average] %>
-          Let's see how you stacked up against your average!
-        <% end %>
-      </p>
-      
-      <!-- Main Stats -->
-      <% if @summary[:this_week][:workout_count] > 0 %>
-        <div class="stats-grid">
-          <!-- Workouts -->
-          <div class="stat-card">
-            <div class="stat-label">Workouts</div>
-            <div class="stat-value"><%= @summary[:this_week][:workout_count] %></div>
-            <% if @summary[:vs_average] %>
-              <% diff = @summary[:vs_average][:workout_count_diff] %>
-              <% pct = @summary[:vs_average][:workout_count_pct] %>
-              <div class="comparison <%= diff >= 0 ? 'positive' : 'negative' %>">
-                <%= diff >= 0 ? '↑' : '↓' %> <%= diff.abs.round(1) %> 
-                (<%= pct >= 0 ? '+' : '' %><%= pct %>%) vs avg
-              </div>
+<%
+  stats = @summary[:this_week]
+  comparison = @summary[:vs_average]
+  baseline_weeks = comparison&.fetch(:baseline_weeks)
+  unit = @user.preferred_unit
+  display_volume = WeightConverter.from_kg(stats[:total_volume_kg], unit).round
+%>
+<span class="preheader">
+  <%= stats[:workout_count] %> workouts, <%= number_with_delimiter(display_volume) %> <%= unit %> moved, <%= weekly_summary_duration(stats[:total_duration_minutes]) %> trained.
+</span>
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#0d0f10" style="width: 100%; background-color: #0d0f10;">
+  <tr>
+    <td class="email-outer" align="center" style="padding: 24px 12px;">
+      <table role="presentation" class="email-shell" width="680" cellspacing="0" cellpadding="0" border="0" bgcolor="#171a1c" style="width: 100%; max-width: 680px; background-color: #171a1c; border: 1px solid #303438; border-radius: 8px; overflow: hidden;">
+        <tr>
+          <td class="email-gutter" style="padding: 24px 30px 20px; border-bottom: 3px solid #d8652f;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+              <tr>
+                <td class="mobile-full mobile-left" style="font-size: 20px; line-height: 24px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0;">Haearn</td>
+                <td class="mobile-hide" align="right" style="font-size: 12px; line-height: 18px; font-weight: 700; color: #d8652f; text-transform: uppercase; letter-spacing: 0;">Weekly training report</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="email-gutter" style="padding: 34px 30px 12px;">
+            <p style="margin: 0 0 9px; font-size: 14px; line-height: 20px; color: #a7adb1;">Hey <%= @user.name %>, here is your week in training.</p>
+            <h1 class="email-title" style="margin: 0; font-size: 34px; line-height: 40px; font-weight: 800; color: #ffffff; letter-spacing: 0;"><%= @summary[:week_label] %></h1>
+            <% if comparison %>
+              <p class="mobile-hide" style="margin: 10px 0 0; font-size: 13px; line-height: 20px; color: #8e969b;">Compared with your previous <%= pluralize(baseline_weeks, 'calendar week') %> of available history.</p>
+              <p class="mobile-only-block" style="margin: 10px 0 0; font-size: 13px; line-height: 20px; color: #8e969b;">Compared with <%= pluralize(baseline_weeks, 'week') %> of history.</p>
             <% end %>
-          </div>
-          
-          <!-- Volume -->
-          <div class="stat-card">
-            <div class="stat-label">Total Volume</div>
-            <div class="stat-value">
-              <%= number_with_delimiter(WeightConverter.from_kg(@summary[:this_week][:total_volume_kg], @user.preferred_unit).round) %>
-              <span class="stat-unit"><%= @user.preferred_unit %></span>
-            </div>
-            <% if @summary[:vs_average] %>
-              <% diff = @summary[:vs_average][:volume_diff_kg] %>
-              <% pct = @summary[:vs_average][:volume_pct] %>
-              <div class="comparison <%= diff >= 0 ? 'positive' : 'negative' %>">
-                <%= diff >= 0 ? '↑' : '↓' %> <%= number_with_delimiter(WeightConverter.from_kg(diff.abs, @user.preferred_unit).round) %> <%= @user.preferred_unit %>
-                (<%= pct >= 0 ? '+' : '' %><%= pct %>%) vs avg
-              </div>
-            <% end %>
-          </div>
-          
-          <!-- Sets & Reps -->
-          <div class="stat-card">
-            <div class="stat-label">Total Sets</div>
-            <div class="stat-value"><%= @summary[:this_week][:total_sets] %></div>
-            <div class="stat-unit"><%= number_with_delimiter(@summary[:this_week][:total_reps]) %> total reps</div>
-            <% if @summary[:vs_average] %>
-              <% diff = @summary[:vs_average][:sets_diff] %>
-              <% pct = @summary[:vs_average][:sets_pct] %>
-              <div class="comparison <%= diff >= 0 ? 'positive' : 'negative' %>">
-                <%= diff >= 0 ? '↑' : '↓' %> <%= diff.abs %> sets
-                (<%= pct >= 0 ? '+' : '' %><%= pct %>%) vs avg
-              </div>
-            <% end %>
-          </div>
-          
-          <!-- Time -->
-          <div class="stat-card">
-            <div class="stat-label">Training Time</div>
-            <div class="stat-value">
-              <%= (@summary[:this_week][:total_duration_minutes] / 60.0).round(1) %>
-              <span class="stat-unit">hours</span>
-            </div>
-            <div class="stat-unit"><%= @summary[:this_week][:unique_exercises] %> different exercises</div>
-          </div>
-        </div>
-        
-        <!-- Highlights -->
-        <% if @summary[:highlights].any? %>
-          <h2 class="section-title">🌟 Highlights</h2>
-          <% @summary[:highlights].each do |highlight| %>
-            <div class="highlight <%= highlight[:type] == :missed_week ? 'warning' : '' %>">
-              <p class="highlight-text"><%= highlight[:message] %></p>
-            </div>
-          <% end %>
-        <% end %>
-        
-        <!-- New PRs -->
-        <% if @summary[:new_prs].any? %>
-          <h2 class="section-title">🏆 New Personal Records</h2>
-          <% @summary[:new_prs].each do |pr| %>
-            <div class="exercise-item">
-              <div class="exercise-name">
-                <span class="pr-badge">PR</span>
-                <%= pr[:exercise_name] %>
-              </div>
-              <div class="exercise-stats">
-                <%= number_with_delimiter(WeightConverter.from_kg(pr[:value_kg], @user.preferred_unit).round) %> <%= @user.preferred_unit %> 
-                × <%= pr[:reps] %> reps
-              </div>
-            </div>
-          <% end %>
-        <% end %>
-        
-        <!-- Top Exercises -->
-        <% if @summary[:top_exercises].any? %>
-          <h2 class="section-title">📊 Top Exercises by Volume</h2>
-          <% @summary[:top_exercises].each do |exercise| %>
-            <div class="exercise-item">
-              <div class="exercise-name"><%= exercise[:exercise_name] %></div>
-              <div class="exercise-stats">
-                <%= number_with_delimiter(WeightConverter.from_kg(exercise[:volume_kg], @user.preferred_unit).round) %> <%= @user.preferred_unit %> 
-                total (<%= exercise[:set_count] %> sets)
-              </div>
-            </div>
-          <% end %>
-        <% end %>
-        
-        <!-- Consistency -->
-        <% if @summary[:consistency] %>
-          <h2 class="section-title">📅 Consistency</h2>
-          <div class="stat-card">
-            <% streak = @summary[:consistency][:current_streak] %>
-            <p style="font-size: 16px; color: #e0e0e0; margin: 0 0 10px 0;">
-              <% if streak > 0 %>
-                <strong style="color: #4CAF50; font-size: 24px;"><%= streak %></strong> week streak!
-                <% if streak >= 4 %>
-                  Keep it up! 🔥
+          </td>
+        </tr>
+
+        <% if stats[:workout_count] > 0 %>
+          <tr>
+            <td class="email-gutter" style="padding: 18px 22px 8px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td class="metric-cell" width="50%" valign="top" style="width: 50%; padding: 0 8px 16px;">
+                    <table role="presentation" width="100%" height="166" cellspacing="0" cellpadding="0" border="0" bgcolor="#202427" style="height: 166px; background-color: #202427; border: 1px solid #343a3e; border-radius: 6px;">
+                      <tr><td valign="top" style="padding: 19px 20px;">
+                        <p style="margin: 0 0 12px; font-size: 12px; line-height: 16px; font-weight: 700; color: #a7adb1; text-transform: uppercase; letter-spacing: 0;">Workouts</p>
+                        <p style="margin: 0; font-size: 36px; line-height: 40px; font-weight: 800; color: #ffffff;"><%= stats[:workout_count] %></p>
+                        <% if comparison %>
+                          <p class="<%= weekly_summary_trend_class(comparison[:workout_count_pct]) %>" style="margin: 10px 0 0; font-size: 13px; line-height: 18px; font-weight: 700;"><%= weekly_summary_comparison(comparison[:workout_count_pct], baseline_weeks) %></p>
+                          <p style="margin: 3px 0 0; font-size: 12px; line-height: 17px; color: #7f888d;">Average <%= weekly_summary_number(comparison[:avg_workout_count]) %></p>
+                        <% end %>
+                      </td></tr>
+                    </table>
+                  </td>
+
+                  <td class="metric-cell" width="50%" valign="top" style="width: 50%; padding: 0 8px 16px;">
+                    <table role="presentation" width="100%" height="166" cellspacing="0" cellpadding="0" border="0" bgcolor="#202427" style="height: 166px; background-color: #202427; border: 1px solid #343a3e; border-radius: 6px;">
+                      <tr><td valign="top" style="padding: 19px 20px;">
+                        <p style="margin: 0 0 12px; font-size: 12px; line-height: 16px; font-weight: 700; color: #a7adb1; text-transform: uppercase; letter-spacing: 0;">Volume moved</p>
+                        <p style="margin: 0; font-size: 36px; line-height: 40px; font-weight: 800; color: #d8652f;"><%= number_with_delimiter(display_volume) %> <span style="font-size: 15px; color: #a7adb1;"><%= unit %></span></p>
+                        <% if comparison %>
+                          <p class="<%= weekly_summary_trend_class(comparison[:volume_pct]) %>" style="margin: 10px 0 0; font-size: 13px; line-height: 18px; font-weight: 700;"><%= weekly_summary_comparison(comparison[:volume_pct], baseline_weeks) %></p>
+                          <p style="margin: 3px 0 0; font-size: 12px; line-height: 17px; color: #7f888d;">Average <%= number_with_delimiter(WeightConverter.from_kg(comparison[:avg_volume_kg], unit).round) %> <%= unit %></p>
+                        <% end %>
+                      </td></tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td class="metric-cell" width="50%" valign="top" style="width: 50%; padding: 0 8px 16px;">
+                    <table role="presentation" width="100%" height="166" cellspacing="0" cellpadding="0" border="0" bgcolor="#202427" style="height: 166px; background-color: #202427; border: 1px solid #343a3e; border-radius: 6px;">
+                      <tr><td valign="top" style="padding: 19px 20px;">
+                        <p style="margin: 0 0 12px; font-size: 12px; line-height: 16px; font-weight: 700; color: #a7adb1; text-transform: uppercase; letter-spacing: 0;">Working sets</p>
+                        <p style="margin: 0; font-size: 36px; line-height: 40px; font-weight: 800; color: #ffffff;"><%= stats[:total_sets] %></p>
+                        <p style="margin: 3px 0 0; font-size: 12px; line-height: 17px; color: #7f888d;"><%= number_with_delimiter(stats[:total_reps]) %> total reps</p>
+                        <% if comparison %>
+                          <p class="<%= weekly_summary_trend_class(comparison[:sets_pct]) %>" style="margin: 7px 0 0; font-size: 13px; line-height: 18px; font-weight: 700;"><%= weekly_summary_comparison(comparison[:sets_pct], baseline_weeks) %></p>
+                          <p style="margin: 3px 0 0; font-size: 12px; line-height: 17px; color: #7f888d;">Average <%= weekly_summary_number(comparison[:avg_sets]) %></p>
+                        <% end %>
+                      </td></tr>
+                    </table>
+                  </td>
+
+                  <td class="metric-cell" width="50%" valign="top" style="width: 50%; padding: 0 8px 16px;">
+                    <table role="presentation" width="100%" height="166" cellspacing="0" cellpadding="0" border="0" bgcolor="#202427" style="height: 166px; background-color: #202427; border: 1px solid #343a3e; border-radius: 6px;">
+                      <tr><td valign="top" style="padding: 19px 20px;">
+                        <p style="margin: 0 0 12px; font-size: 12px; line-height: 16px; font-weight: 700; color: #a7adb1; text-transform: uppercase; letter-spacing: 0;">Training time</p>
+                        <p style="margin: 0; font-size: 36px; line-height: 40px; font-weight: 800; color: #ffffff;"><%= weekly_summary_duration(stats[:total_duration_minutes]) %></p>
+                        <p style="margin: 3px 0 0; font-size: 12px; line-height: 17px; color: #7f888d;"><%= pluralize(stats[:unique_exercises], 'exercise') %></p>
+                        <% if comparison %>
+                          <p class="<%= weekly_summary_trend_class(comparison[:duration_pct]) %>" style="margin: 7px 0 0; font-size: 13px; line-height: 18px; font-weight: 700;"><%= weekly_summary_comparison(comparison[:duration_pct], baseline_weeks) %></p>
+                          <p style="margin: 3px 0 0; font-size: 12px; line-height: 17px; color: #7f888d;">Average <%= weekly_summary_duration(comparison[:avg_duration_minutes]) %></p>
+                        <% end %>
+                      </td></tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <% if @summary[:highlights].any? %>
+            <tr>
+              <td class="email-gutter" style="padding: 18px 30px 0;">
+                <h2 style="margin: 0 0 13px; font-size: 18px; line-height: 24px; color: #ffffff; letter-spacing: 0;">Highlights</h2>
+                <% @summary[:highlights].each do |highlight| %>
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 8px; border-left: 3px solid <%= highlight[:type] == :missed_week ? '#d6a74f' : '#70c58b' %>;">
+                    <tr><td bgcolor="#202427" style="padding: 13px 15px; background-color: #202427; font-size: 14px; line-height: 21px; color: #d9dddf;"><%= highlight[:message] %></td></tr>
+                  </table>
                 <% end %>
-              <% else %>
-                Time to start a new streak! 💪
-              <% end %>
-            </p>
-            <p style="font-size: 14px; color: #8a8a8a; margin: 0;">
-              Trained <%= @summary[:consistency][:weeks_trained_last_4] %> of the last 4 weeks
-            </p>
-          </div>
+              </td>
+            </tr>
+          <% end %>
+
+          <% if @summary[:new_prs].any? %>
+            <tr>
+              <td class="email-gutter" style="padding: 28px 30px 0;">
+                <h2 style="margin: 0 0 13px; font-size: 18px; line-height: 24px; color: #ffffff; letter-spacing: 0;">New personal records</h2>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                  <% @summary[:new_prs].each do |pr| %>
+                    <tr>
+                      <td style="padding: 13px 0; border-top: 1px solid #303438; font-size: 15px; line-height: 21px; font-weight: 700; color: #ffffff;"><%= pr[:exercise_name] %></td>
+                      <td align="right" style="padding: 13px 0; border-top: 1px solid #303438; font-size: 14px; line-height: 21px; color: #d8652f;"><%= number_with_delimiter(WeightConverter.from_kg(pr[:value_kg], unit).round) %> <%= unit %> &times; <%= pr[:reps] %></td>
+                    </tr>
+                  <% end %>
+                </table>
+              </td>
+            </tr>
+          <% end %>
+
+          <% if @summary[:top_exercises].any? %>
+            <tr>
+              <td class="email-gutter" style="padding: 28px 30px 0;">
+                <h2 style="margin: 0 0 13px; font-size: 18px; line-height: 24px; color: #ffffff; letter-spacing: 0;">Top exercises by volume</h2>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                  <% @summary[:top_exercises].each_with_index do |exercise, index| %>
+                    <tr>
+                      <td width="34" valign="top" style="padding: 13px 10px 13px 0; border-top: 1px solid #303438; font-size: 12px; line-height: 21px; font-weight: 700; color: #7f888d;"><%= index + 1 %></td>
+                      <td valign="top" style="padding: 13px 0; border-top: 1px solid #303438; font-size: 15px; line-height: 21px; font-weight: 700; color: #ffffff;"><%= exercise[:exercise_name] %><span class="mobile-only"><br><span style="font-size: 12px; font-weight: 400; color: #a7adb1;"><%= number_with_delimiter(WeightConverter.from_kg(exercise[:volume_kg], unit).round) %> <%= unit %> / <%= pluralize(exercise[:set_count], 'set') %></span></span></td>
+                      <td class="mobile-hide" valign="top" align="right" style="padding: 13px 0 13px 12px; border-top: 1px solid #303438; font-size: 13px; line-height: 21px; color: #a7adb1;"><%= number_with_delimiter(WeightConverter.from_kg(exercise[:volume_kg], unit).round) %> <%= unit %> / <%= pluralize(exercise[:set_count], 'set') %></td>
+                    </tr>
+                  <% end %>
+                </table>
+              </td>
+            </tr>
+          <% end %>
+
+          <% if @summary[:consistency] %>
+            <tr>
+              <td class="email-gutter" style="padding: 28px 30px 0;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#202427" style="background-color: #202427; border: 1px solid #343a3e; border-radius: 6px;">
+                  <tr>
+                    <td class="mobile-full mobile-left" style="padding: 17px 18px;">
+                      <p style="margin: 0 0 4px; font-size: 12px; line-height: 17px; font-weight: 700; color: #a7adb1; text-transform: uppercase; letter-spacing: 0;">Consistency</p>
+                      <p style="margin: 0; font-size: 15px; line-height: 21px; color: #ffffff;">Trained <%= @summary[:consistency][:weeks_trained_last_4] %> of the last 4 weeks<span class="mobile-only"><br><span style="font-size: 13px; color: #70c58b;"><%= pluralize(@summary[:consistency][:current_streak], 'week') %> streak</span></span></p>
+                    </td>
+                    <td class="mobile-hide" align="right" style="padding: 17px 18px;"><span style="font-size: 24px; line-height: 28px; font-weight: 800; color: #70c58b;"><%= @summary[:consistency][:current_streak] %></span> <span style="font-size: 13px; line-height: 20px; color: #a7adb1;">week streak</span></td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          <% end %>
+
+          <tr>
+            <td class="email-gutter" align="center" style="padding: 34px 30px 38px;">
+              <a href="<%= root_url %>" class="cta-link" style="display: inline-block; padding: 14px 24px; background-color: #d8652f; border-radius: 6px; color: #ffffff; font-size: 14px; line-height: 18px; font-weight: 800; text-decoration: none; letter-spacing: 0;">Open your dashboard</a>
+            </td>
+          </tr>
+        <% else %>
+          <tr>
+            <td class="email-gutter" style="padding: 24px 30px 40px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#202427" style="background-color: #202427; border: 1px solid #343a3e; border-radius: 6px;">
+                <tr><td align="center" style="padding: 32px 22px;">
+                  <p style="margin: 0 0 8px; font-size: 20px; line-height: 26px; font-weight: 800; color: #ffffff;">No workouts logged</p>
+                  <p style="margin: 0 0 22px; font-size: 14px; line-height: 21px; color: #a7adb1;">A quiet week does not erase the work already done. Start the next session when you are ready.</p>
+                  <a href="<%= new_workout_url %>" class="cta-link" style="display: inline-block; padding: 14px 24px; background-color: #d8652f; border-radius: 6px; color: #ffffff; font-size: 14px; line-height: 18px; font-weight: 800; text-decoration: none; letter-spacing: 0;">Start a workout</a>
+                </td></tr>
+              </table>
+            </td>
+          </tr>
         <% end %>
-        
-        <!-- CTA -->
-        <div style="text-align: center; margin-top: 40px;">
-          <a href="<%= root_url %>" class="cta-button">View Full Dashboard</a>
-        </div>
-        
-      <% else %>
-        <!-- Empty State -->
-        <div class="empty-state">
-          <div class="empty-state-icon">😴</div>
-          <p class="empty-state-text">
-            No workouts logged this week.<br>
-            Time to get back to the iron!
-          </p>
-          <a href="<%= new_workout_url %>" class="cta-button" style="margin-top: 20px;">Start a Workout</a>
-        </div>
-      <% end %>
-    </div>
-    
-    <!-- Footer -->
-    <div class="footer">
-      <p class="footer-text">
-        <strong>Haearn</strong> - Hardcore Weightlifting Tracking
-      </p>
-      <p class="footer-text">
-        <a href="<%= settings_url %>" class="footer-link">Manage Email Preferences</a>
-      </p>
-      <p class="footer-text" style="margin-top: 15px; font-size: 12px;">
-        You're receiving this because you opted in to weekly summaries.
-      </p>
-    </div>
-  </div>
-</body>
-</html>
+
+        <tr>
+          <td class="email-gutter" align="center" bgcolor="#111315" style="padding: 22px 30px; background-color: #111315; border-top: 1px solid #303438;">
+            <p style="margin: 0 0 7px; font-size: 13px; line-height: 19px; font-weight: 700; color: #c3c8cb;">Haearn</p>
+            <p style="margin: 0 0 9px; font-size: 12px; line-height: 18px; color: #747d82;">Hardcore weightlifting tracking</p>
+            <p style="margin: 0; font-size: 12px; line-height: 18px;"><a href="<%= settings_url %>" style="color: #d98258; text-decoration: underline;">Manage email preferences</a></p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

@@ -676,6 +676,7 @@ $text-muted: #6c757d;
   - HTML email matching website aesthetic (iron/rust colors)
   - Plain text fallback
   - Comprehensive weekly insights and comparisons
+- [x] Modernize the weekly summary for wide and narrow email clients, disclose the available-history baseline, and calculate percentage changes from unrounded calendar-week averages
 - [x] Create `SendWeeklySummariesJob` for batch email sends
 - [x] Configure recurring job (every Sunday at 6am via `recurring.yml`)
 - [x] Add settings UI toggle for email preference

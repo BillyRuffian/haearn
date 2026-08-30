@@ -2,12 +2,130 @@
 <html>
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="dark">
+    <meta name="supported-color-schemes" content="dark">
     <style>
-      /* Email styles need to be inline */
+      body,
+      table,
+      td,
+      a {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+      }
+
+      table,
+      td {
+        border-collapse: collapse;
+      }
+
+      img {
+        border: 0;
+        height: auto;
+        line-height: 100%;
+        outline: none;
+        text-decoration: none;
+      }
+
+      body {
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+      }
+
+      .preheader {
+        display: none !important;
+        font-size: 1px;
+        line-height: 1px;
+        max-height: 0;
+        max-width: 0;
+        opacity: 0;
+        overflow: hidden;
+      }
+
+      .trend-up {
+        color: #70c58b !important;
+      }
+
+      .trend-down {
+        color: #ef8175 !important;
+      }
+
+      .trend-flat,
+      .trend-unavailable {
+        color: #9ba3a8 !important;
+      }
+
+      .mobile-only {
+        display: none;
+      }
+
+      .mobile-only-block {
+        display: none;
+      }
+
+      @media only screen and (max-width: 600px) {
+        .email-outer {
+          padding: 0 !important;
+        }
+
+        .email-shell {
+          border-radius: 0 !important;
+          width: 100% !important;
+        }
+
+        .email-gutter {
+          padding-left: 18px !important;
+          padding-right: 18px !important;
+        }
+
+        .metric-cell {
+          display: block !important;
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+          width: 100% !important;
+        }
+
+        .mobile-full {
+          display: block !important;
+          width: 100% !important;
+        }
+
+        .mobile-left {
+          padding-bottom: 8px !important;
+          text-align: left !important;
+        }
+
+        .mobile-hide {
+          display: none !important;
+        }
+
+        .mobile-only {
+          display: inline !important;
+        }
+
+        .mobile-only-block {
+          display: block !important;
+        }
+
+        .email-title {
+          font-size: 28px !important;
+          line-height: 34px !important;
+        }
+
+        .cta-link {
+          box-sizing: border-box !important;
+          display: block !important;
+          text-align: center !important;
+          width: 100% !important;
+        }
+      }
+
     </style>
   </head>
 
-  <body>
+  <body style="margin: 0; padding: 0; background-color: #0d0f10; color: #e9ecef; font-family: Arial, Helvetica, sans-serif; letter-spacing: 0;">
     <%= yield %>
   </body>
 </html>
