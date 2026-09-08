@@ -31,8 +31,13 @@
 #  user_id  (user_id => users.id)
 #
 class BodyMetric < ApplicationRecord
+  ANALYTICS_KEYS = %w[lift_ratios strength_score_trend].freeze
+  ANALYTICS_UPDATE_COLUMNS = %w[weight_kg measured_at user_id].freeze
+
   belongs_to :user
 
+  after_commit :invalidate_strength_analytics_cache_after_create_destroy, on: %i[create destroy]
+  after_commit :invalidate_strength_analytics_cache_after_update, on: :update
   validates :measured_at, presence: true
   validates :weight_kg, numericality: { greater_than: 0, less_than: 500 }, allow_nil: true
   validates :chest_cm, :waist_cm, :hips_cm, :left_arm_cm, :right_arm_cm, :left_leg_cm, :right_leg_cm,
@@ -79,6 +84,16 @@ class BodyMetric < ApplicationRecord
   end
 
   private
+
+  def invalidate_strength_analytics_cache_after_create_destroy
+    DashboardAnalyticsCache.invalidate_for_user!(user_id, keys: ANALYTICS_KEYS)
+  end
+
+  def invalidate_strength_analytics_cache_after_update
+    return if (previous_changes.keys & ANALYTICS_UPDATE_COLUMNS).empty?
+
+    DashboardAnalyticsCache.invalidate_for_user!(user_id, keys: ANALYTICS_KEYS)
+  end
 
   # Ensure at least one metric is present (weight or measurement)
   def at_least_one_metric_present

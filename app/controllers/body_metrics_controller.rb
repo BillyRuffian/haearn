@@ -20,33 +20,9 @@ class BodyMetricsController < ApplicationController
       .pluck(:measured_at, :weight_kg)
       .map { |date, weight| [ date.to_date.to_s, weight ] }
 
-    # Calculate current Wilks score if we have recent weight
     @current_weight_kg = Current.user.body_metrics.current_weight_kg
-    if @current_weight_kg
-      # Get user's best lifts for Wilks calculation
-      @best_squat_kg = best_lift_for_exercise('Squat')
-      @best_bench_kg = best_lift_for_exercise('Bench Press')
-      @best_deadlift_kg = best_lift_for_exercise('Deadlift')
-
-      total_kg = [ @best_squat_kg, @best_bench_kg, @best_deadlift_kg ].compact.sum
-      if total_kg > 0
-        calculator = WilksCalculator.new(
-          bodyweight_kg: @current_weight_kg,
-          total_kg: total_kg,
-          sex: :male # TODO: Add sex to user profile
-        )
-        @wilks_score = calculator.calculate
-      end
-    end
-
-    # Bodyweight-relative strength for common lifts
+    @wilks_score = nil
     @relative_strength = {}
-    if @current_weight_kg&.> 0
-      %w[Squat Bench\ Press Deadlift Overhead\ Press].each do |exercise_name|
-        best_kg = best_lift_for_exercise(exercise_name)
-        @relative_strength[exercise_name] = (best_kg / @current_weight_kg).round(2) if best_kg
-      end
-    end
   end
 
   # GET /body_metrics/new

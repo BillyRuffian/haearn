@@ -39,10 +39,10 @@ export default class extends Controller {
 
     // Define rep ranges with labels and colors
     const ranges = [
-      { key: '1-5', label: 'Strength (1-5)', color: '#a33a0c', description: 'Heavy / Strength' },
-      { key: '6-10', label: 'Hypertrophy (6-10)', color: '#ff6b35', description: 'Size / Hypertrophy' },
-      { key: '11-15', label: 'Endurance (11-15)', color: '#f0a060', description: 'Muscular Endurance' },
-      { key: '16+', label: 'High Rep (16+)', color: '#71797E', description: 'High Rep / Conditioning' }
+      { key: '1-5', label: '1–5 reps', color: '#a33a0c' },
+      { key: '6-10', label: '6–10 reps', color: '#ff6b35' },
+      { key: '11-15', label: '11–15 reps', color: '#d4a574' },
+      { key: '16+', label: '16+ reps', color: '#71797E' }
     ]
 
     const labels = ranges.map(r => r.label)
@@ -67,6 +67,7 @@ export default class extends Controller {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? false : { duration: 250 },
         indexAxis: 'y',
         plugins: {
           legend: {
@@ -101,9 +102,9 @@ export default class extends Controller {
             },
             title: {
               display: true,
-              text: 'Number of Sets',
-              color: '#6a6a6a',
-              font: { size: 11 }
+              text: 'Working sets',
+              color: '#b0b0b0',
+              font: { size: 12 }
             }
           },
           y: {

@@ -9,13 +9,15 @@
 #  has_weight           :boolean
 #  name                 :string
 #  primary_muscle_group :string
+#  strength_lift_key    :string
 #  created_at           :datetime         not null
 #  updated_at           :datetime         not null
 #  user_id              :integer
 #
 # Indexes
 #
-#  index_exercises_on_user_id  (user_id)
+#  index_exercises_on_strength_lift_key  (strength_lift_key)
+#  index_exercises_on_user_id            (user_id)
 #
 # Foreign Keys
 #
@@ -30,6 +32,7 @@ class Exercise < ApplicationRecord
 
   # Three types of exercises based on how they're measured
   EXERCISE_TYPES = %w[reps time distance].freeze
+  STRENGTH_LIFT_KEYS = %w[squat bench deadlift overhead_press].freeze
 
   # Primary muscle groups for volume tracking and analytics
   # Used in dashboard to show per-muscle-group volume and recovery
@@ -81,6 +84,7 @@ class Exercise < ApplicationRecord
   validates :name, presence: true
   validates :exercise_type, presence: true, inclusion: { in: EXERCISE_TYPES }
   validates :primary_muscle_group, presence: true, inclusion: { in: MUSCLE_GROUPS }
+  validates :strength_lift_key, inclusion: { in: STRENGTH_LIFT_KEYS }, allow_nil: true
 
   scope :global, -> { where(user_id: nil) }
   scope :for_user, ->(user) { where(user_id: [ nil, user.id ]) }  # Global + user's custom

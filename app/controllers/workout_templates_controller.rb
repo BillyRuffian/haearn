@@ -13,6 +13,11 @@ class WorkoutTemplatesController < ApplicationController
     @template_blocks = @template.template_blocks.includes(
       template_exercises: [ :exercise, :machine ]
     ).ordered
+    @archived_template_exercises = TemplateExercise.removed
+      .joins(:template_block)
+      .where(template_blocks: { workout_template_id: @template.id })
+      .includes(:exercise, :machine, :template_block)
+      .order(Arel.sql('template_blocks.position ASC, template_exercises.id ASC'))
   end
 
   # GET /workout_templates/new

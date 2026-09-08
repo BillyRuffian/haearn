@@ -235,8 +235,8 @@ RSpec.describe DashboardAnalyticsCalculator do
         expect(tonnage.last(2).pluck(:volume)).to eq([ 400, 1000 ])
         expect(density.last).to include(volume: 1000, duration: 60, density: 17, gym: 'Grouped Gym')
         expect(muscles.fetch('chest')).to include(volume: 1000, sets: 2, days_since: 1)
-        expect(balance.fetch('Chest')).to include(raw_volume: 1000, value: 100)
-        expect(balance.fetch('Back')).to include(raw_volume: 400, value: 40)
+        expect(balance.fetch('Chest')).to include(raw_volume: 1000, value: 71.4)
+        expect(balance.fetch('Back')).to include(raw_volume: 400, value: 28.6)
       end
     end
 
@@ -255,6 +255,10 @@ RSpec.describe DashboardAnalyticsCalculator do
           user:, gym:, machine:, exercise:,
           finished_at: Time.zone.local(2026, 8, 5, 18), weight_kg: 100, reps: 5
         )
+        create_workout_set(
+          user:, gym:, machine:, exercise:,
+          finished_at: Time.zone.local(2026, 8, 9, 18), weight_kg: 300, reps: 10
+        )
         user.workouts.create!(
           gym:, started_at: Time.zone.local(2026, 8, 11, 18),
           finished_at: Time.zone.local(2026, 8, 11, 19)
@@ -263,8 +267,8 @@ RSpec.describe DashboardAnalyticsCalculator do
         result = described_class.new(user: user).calculate('week_comparison')
 
         expect(result).to eq(
-          this_week: { volume: 500, workouts: 2, sets: 1 },
-          last_week: { volume: 500, workouts: 1, sets: 1 }
+          this_week: { volume: 500, workouts: 2, sets: 1, range_label: 'Aug 10–Aug 13' },
+          last_week: { volume: 500, workouts: 1, sets: 1, range_label: 'Aug 3–Aug 6' }
         )
       end
     end
@@ -288,10 +292,40 @@ RSpec.describe DashboardAnalyticsCalculator do
         result = described_class.new(user: user).calculate('pr_timeline')
 
         expect(result).to contain_exactly(
-          hash_including(date: '2026-02-10', weight: 90, reps: 10, type: 'volume'),
-          hash_including(date: '2026-03-10', weight: 110, reps: 4, type: 'weight')
+          hash_including(
+            date: '2026-02-10', weight: 90, reps: 10, type: 'volume',
+            context: "#{exercise.name} — #{machine.name}", machine_id: machine.id,
+            set_load_volume: 900
+          ),
+          hash_including(
+            date: '2026-03-10', weight: 110, reps: 4, type: 'weight',
+            context: "#{exercise.name} — #{machine.name}", machine_id: machine.id,
+            set_load_volume: 440
+          )
         )
       end
+    end
+
+    it 'counts setful exercise occurrences and excludes setless workout rows' do
+      user, gym, machine, exercise = create_analytics_context('frequency-semantics')
+
+      setful_workout = create_workout_set(
+        user: user, gym: gym, machine: machine, exercise: exercise,
+        finished_at: 2.days.ago, weight_kg: 50, reps: 8
+      )
+      setful_exercise = setful_workout.workout_exercises.first
+      setful_exercise.exercise_sets.create!(
+        position: 2, weight_kg: 45, reps: 10, is_warmup: true,
+        completed_at: setful_workout.finished_at - 20.minutes
+      )
+
+      skipped_workout = user.workouts.create!(gym: gym, started_at: 1.day.ago - 1.hour, finished_at: 1.day.ago)
+      skipped_block = skipped_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
+      skipped_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
+
+      expect(described_class.new(user: user).calculate('exercise_frequency')).to eq([
+        { exercise: exercise.name, count: 1 }
+      ])
     end
 
     it 'detects plateaus from all-time progression for recently active exercises' do

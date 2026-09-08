@@ -17,6 +17,7 @@
 #  password_digest          :string           not null
 #  preferred_unit           :string
 #  progression_rep_target   :integer          default(10), not null
+#  strength_scoring_sex     :string
 #  weekly_summary_email     :boolean          default(FALSE), not null
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
@@ -82,6 +83,9 @@ class User < ApplicationRecord
 
   # Supported weight units
   UNITS = %w[kg lbs].freeze
+  STRENGTH_SCORING_SEXES = %w[male female].freeze
+
+  validates :strength_scoring_sex, inclusion: { in: STRENGTH_SCORING_SEXES }, allow_nil: true
 
   # Rest timer configuration (prevents too short or absurdly long rest periods)
   MIN_REST_SECONDS = 30   # 30 seconds minimum

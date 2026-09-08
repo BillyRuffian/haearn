@@ -1,12 +1,12 @@
     <!-- Training Period Totals -->
     <% if @training_period_totals.present? %>
-    <div class="row mt-5">
+    <div class="row mt-5" id="training-load">
       <div class="col-12">
-        <div class="card position-relative">
+        <div class="card position-relative analytics-card">
           <div class="card-body py-4">
             <h5 class="section-header">
               <i class="bi bi-minecart-loaded me-2"></i>Training Load
-              <small class="text-muted ms-2">Weight moved and time spent by analyzed period</small>
+              <small class="text-muted ms-2">Working load volume and elapsed session time by analyzed period</small>
             </h5>
             <div class="row g-3">
               <% @training_period_totals.each do |period| %>
@@ -15,7 +15,7 @@
                     <div class="stat-label mb-2"><%= period[:label] %></div>
                     <div class="d-flex align-items-baseline gap-1 mb-2">
                       <span class="h3 weight-display text-forge mb-0"><%= number_to_si(period[:volume]) %></span>
-                      <span class="text-muted small"><%= Current.user.preferred_unit %></span>
+                      <span class="text-muted small"><%= Current.user.preferred_unit == 'lbs' ? 'lb·reps' : 'kg·reps' %></span>
                     </div>
                     <div class="d-flex align-items-baseline gap-1 mb-2">
                       <span class="h5 weight-display text-iron mb-0"><%= period[:duration_label] %></span>
@@ -34,22 +34,47 @@
     </div>
     <% end %>
 
+    <!-- Current status -->
+    <section class="row g-3 mt-4" aria-labelledby="current-status-heading">
+      <h2 id="current-status-heading" class="visually-hidden">Current training status</h2>
+      <div class="col-sm-4">
+        <div class="card analytics-card h-100"><div class="card-body py-3">
+          <div class="stat-label">Week to date</div>
+          <div class="h3 weight-display text-forge mb-1"><%= @week_comparison_data[:this_week][:workouts] %></div>
+          <div class="analytics-caption">completed sessions · <%= @week_comparison_data[:this_week][:range_label] %></div>
+        </div></div>
+      </div>
+      <div class="col-sm-4">
+        <div class="card analytics-card h-100"><div class="card-body py-3">
+          <div class="stat-label">Consecutive-week streak</div>
+          <div class="h3 weight-display text-iron mb-1"><%= @streak_data[:current] %></div>
+          <div class="analytics-caption">weeks with at least one completed session</div>
+        </div></div>
+      </div>
+      <div class="col-sm-4">
+        <div class="card analytics-card h-100"><div class="card-body py-3">
+          <div class="stat-label">Last completed session</div>
+          <div class="h3 weight-display mb-1"><%= @streak_data[:last_workout_days_ago].nil? ? '—' : @streak_data[:last_workout_days_ago] %></div>
+          <div class="analytics-caption"><%= @streak_data[:last_workout_days_ago].nil? ? 'No completed workout yet' : 'calendar days ago' %></div>
+        </div></div>
+      </div>
+    </section>
+
     <!-- Workout Frequency Chart -->
     <div class="row mt-4">
       <div class="col-12">
-        <div class="card position-relative">
+        <div class="card position-relative analytics-card">
           <div class="card-body py-4">
-            <h5 class="section-header">
-              <i class="bi bi-bar-chart me-2"></i>Workout Frequency
-            </h5>
+            <h5 class="section-header"><i class="bi bi-bar-chart me-2"></i>Completed Workouts by Week <small class="text-muted ms-2">Last 8 calendar weeks</small></h5>
             <div data-controller="chart"
                  data-chart-type-value="bar"
                  data-chart-labels-value="<%= @workout_frequency.map { |w| w[:label] }.to_json %>"
                  data-chart-points-value="<%= @workout_frequency.map { |w| w[:count] }.to_json %>"
                  data-chart-label-value="Workouts"
                  data-chart-color-value="#ff6b35"
-                 style="height: 200px;">
-              <canvas data-chart-target="canvas"></canvas>
+                 class="analytics-chart"
+                 role="img" aria-label="Completed workouts in each of the last eight calendar weeks">
+              <canvas data-chart-target="canvas">Completed workout counts by week.</canvas>
             </div>
           </div>
         </div>
@@ -59,17 +84,17 @@
     <!-- Workout Consistency -->
     <div class="row mt-4">
       <div class="col-12">
-        <div class="card position-relative">
+        <div class="card position-relative analytics-card">
           <div class="card-body py-4">
             <h5 class="section-header">
-              <i class="bi bi-calendar3 me-2"></i>Workout Consistency
+              <i class="bi bi-calendar3 me-2"></i>Training Cadence <small class="text-muted ms-2">Weekly consistency and preferred training days</small>
             </h5>
             
             <div class="row g-4">
               <!-- Last 12 Weeks -->
               <div class="col-lg-7">
                 <h6 class="text-muted small mb-3">Last 12 Weeks</h6>
-                <div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; align-items: end; height: 120px;">
+                <div role="img" aria-label="Completed workout count for each of the last twelve calendar weeks" style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 6px; align-items: end; height: 120px;">
                   <% max_count = [@consistency_data[:twelve_weeks].map { |w| w[:count] }.max, 1].max %>
                   <% @consistency_data[:twelve_weeks].each do |week| %>
                     <div style="position: relative; height: 100%; display: flex; flex-direction: column; justify-content: flex-end;">
@@ -83,6 +108,7 @@
                         background: <%= week[:count] == 0 ? 'rgba(255,255,255,0.05)' : week[:count] >= 4 ? '#3d7ea6' : week[:count] >= 3 ? '#ff6b35' : week[:count] >= 2 ? '#b8860b' : '#71797E' %>;
                         border-radius: 3px;
                         min-height: 4px;"
+                        aria-label="Week of <%= week[:week_start] %>: <%= pluralize(week[:count], 'completed workout') %>"
                         title="<%= week[:week_start] %>: <%= pluralize(week[:count], 'workout') %>">
                       </div>
                     </div>
@@ -104,7 +130,7 @@
               <!-- Day of Week Pattern -->
               <div class="col-lg-5">
                 <h6 class="text-muted small mb-3">Training Days <span class="text-muted">(Last 90 days)</span></h6>
-                <div class="d-flex flex-column gap-2">
+                <div class="d-flex flex-column gap-2" role="img" aria-label="Completed workout counts by day of week over the last ninety days">
                   <% max_day_count = [@consistency_data[:day_pattern].map { |d| d[:count] }.max, 1].max %>
                   <% @consistency_data[:day_pattern].each do |day| %>
                     <div class="d-flex align-items-center">
@@ -136,19 +162,21 @@
     <% if @pr_timeline_data.present? && @pr_timeline_data.any? %>
     <div class="row mt-4">
       <div class="col-12">
-        <div class="card position-relative">
+        <div class="card position-relative analytics-card">
           <div class="card-body py-4">
             <h5 class="section-header">
-              <i class="bi bi-trophy me-2"></i>PR Timeline
+              <i class="bi bi-trophy me-2"></i>Personal Record Timeline <small class="text-muted ms-2">Heavier sets and best single-set load · last 12 months</small>
             </h5>
             <div data-controller="pr-timeline"
                  data-pr-timeline-data-value="<%= @pr_timeline_data.to_json %>"
-                 style="height: <%= [200, 40 + (@pr_timeline_data.map { |pr| pr[:exercise] }.uniq.count * 30)].max %>px;">
-              <canvas data-pr-timeline-target="canvas"></canvas>
+                 data-pr-timeline-unit-value="<%= Current.user.preferred_unit %>"
+                 data-pr-timeline-volume-unit-value="<%= Current.user.preferred_unit == 'lbs' ? 'lb·reps' : 'kg·reps' %>"
+                 class="analytics-chart analytics-chart--ranking"
+                 style="--analytics-chart-height: <%= [240, 70 + (@pr_timeline_data.map { |pr| pr[:context] }.uniq.count * 32)].max %>px;"
+                 role="img" aria-label="Personal record events by exact exercise and equipment context">
+              <canvas data-pr-timeline-target="canvas">Personal records by date and exercise context.</canvas>
             </div>
-            <div class="text-center mt-3">
-              <small class="text-muted">Bubble size represents relative weight</small>
-            </div>
+            <p class="analytics-caption mb-0">Each marker has equal visual weight. Orange marks a heavier working set; gold marks a higher single-set load volume.</p>
           </div>
         </div>
       </div>
@@ -157,10 +185,10 @@
     <!-- Recent PRs Table -->
     <%# Group PRs by exercise+date to combine weight and volume PRs on same day %>
     <% 
-      grouped_prs = @pr_timeline_data.group_by { |pr| [pr[:exercise], pr[:date]] }
+      grouped_prs = @pr_timeline_data.group_by { |pr| [pr[:context], pr[:date]] }
         .transform_values do |prs|
           {
-            exercise: prs.first[:exercise],
+            exercise: prs.first[:context],
             date: prs.first[:date],
             weight: prs.find { |p| p[:type] == 'weight' }&.dig(:weight),
             weight_reps: prs.find { |p| p[:type] == 'weight' }&.dig(:reps),
@@ -176,12 +204,12 @@
     <% if grouped_prs.any? %>
       <div class="row mt-4">
         <div class="col-12">
-          <div class="card position-relative">
+          <div class="card position-relative analytics-card">
             <div class="card-body py-4">
               <h5 class="section-header">
                 <i class="bi bi-list-ol me-2"></i>Recent Personal Records
               </h5>
-              <div class="table-responsive">
+              <div class="table-responsive analytics-table-wrap">
                 <table class="table table-dark table-hover mb-0">
                   <thead>
                     <tr class="table-header-sm">
@@ -204,18 +232,18 @@
                         <td class="text-center">
                           <% if pr[:has_weight_pr] && pr[:has_volume_pr] %>
                             <span class="badge badge-sm bg-forge me-1">
-                              <i class="bi bi-arrow-up"></i> MAX
+                              <i class="bi bi-arrow-up"></i> HEAVIER
                             </span>
                             <span class="badge badge-sm bg-iron">
-                              <i class="bi bi-graph-up"></i> VOL
+                              <i class="bi bi-graph-up"></i> SET LOAD
                             </span>
                           <% elsif pr[:has_weight_pr] %>
                             <span class="badge badge-sm bg-forge">
-                              <i class="bi bi-arrow-up"></i> MAX
+                              <i class="bi bi-arrow-up"></i> HEAVIER
                             </span>
                           <% else %>
                             <span class="badge badge-sm bg-iron">
-                              <i class="bi bi-graph-up"></i> VOL
+                              <i class="bi bi-graph-up"></i> SET LOAD
                             </span>
                           <% end %>
                         </td>
@@ -235,25 +263,26 @@
     <% end %>
 
     <!-- Rep Range Distribution -->
+    <div class="row mt-4" id="progress">
     <% if @rep_range_data.values.sum > 0 %>
-    <div class="row mt-4">
       <div class="col-md-6">
-        <div class="card position-relative">
+        <div class="card position-relative analytics-card">
           <div class="card-body py-4">
             <h5 class="section-header">
-              <i class="bi bi-bar-chart-steps me-2"></i>Rep Range Distribution
-              <small class="text-muted ms-2">(Last 30 days)</small>
+              <i class="bi bi-bar-chart-steps me-2"></i>Working Rep-Set Distribution
+              <small class="text-muted ms-2">Last 30 days</small>
             </h5>
             <div data-controller="rep-range-chart"
                  data-rep-range-chart-data-value="<%= @rep_range_data.to_json %>"
-                 style="height: 160px;">
-              <canvas data-rep-range-chart-target="canvas"></canvas>
+                 class="analytics-chart analytics-chart--compact"
+                 role="img" aria-label="Working set counts in four rep ranges over the last 30 days">
+              <canvas data-rep-range-chart-target="canvas">Working set counts by repetition range.</canvas>
             </div>
           </div>
         </div>
       </div>
       <div class="col-md-6">
-        <div class="card position-relative h-100">
+        <div class="card position-relative h-100 analytics-card">
           <div class="card-body py-4">
             <h5 class="section-header">
               <i class="bi bi-info-circle me-2"></i>Training Zones
@@ -261,41 +290,46 @@
             <div class="small">
               <div class="d-flex align-items-center mb-2">
                 <span class="badge me-2" style="background: #a33a0c; width: 60px;">1-5</span>
-                <span class="text-muted">Strength — Heavy loads, low reps</span>
+                <span class="text-muted">Commonly used for heavier strength work</span>
               </div>
               <div class="d-flex align-items-center mb-2">
                 <span class="badge me-2" style="background: #ff6b35; width: 60px;">6-10</span>
-                <span class="text-muted">Hypertrophy — Optimal for muscle growth</span>
+                <span class="text-muted">Commonly used for moderate-rep work</span>
               </div>
               <div class="d-flex align-items-center mb-2">
                 <span class="badge me-2" style="background: #f0a060; width: 60px;">11-15</span>
-                <span class="text-muted">Endurance — Muscular endurance focus</span>
+                <span class="text-muted">Commonly used for higher-rep work</span>
               </div>
               <div class="d-flex align-items-center">
                 <span class="badge me-2" style="background: #71797E; width: 60px;">16+</span>
-                <span class="text-muted">High rep — Conditioning, pump work</span>
+                <span class="text-muted">Very high-rep and conditioning work</span>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    <% else %>
+      <div class="col-12">
+        <div class="analytics-empty">Complete weighted working sets to see rep-range and progress analysis.</div>
+      </div>
     <% end %>
+    </div>
 
     <!-- Session Duration Trends -->
     <% if @session_duration_data.length > 2 %>
     <div class="row mt-4">
       <div class="col-12">
-        <div class="card position-relative">
+        <div class="card position-relative analytics-card">
           <div class="card-body py-4">
             <h5 class="section-header">
-              <i class="bi bi-clock-history me-2"></i>Session Duration Trends
-              <small class="text-muted ms-2">(Last <%= @session_duration_data.length %> workouts)</small>
+              <i class="bi bi-clock-history me-2"></i>Completed Session Duration
+              <small class="text-muted ms-2">Start-to-finish time · last <%= @session_duration_data.length %> sessions</small>
             </h5>
             <div data-controller="session-duration"
                  data-session-duration-data-value="<%= @session_duration_data.to_json %>"
-                 style="height: 200px;">
-              <canvas data-session-duration-target="canvas"></canvas>
+                 class="analytics-chart"
+                 role="img" aria-label="Elapsed duration of recent completed workout sessions">
+              <canvas data-session-duration-target="canvas">Recent completed session durations in minutes.</canvas>
             </div>
             <div class="text-center mt-2">
               <small class="text-muted">
@@ -312,28 +346,29 @@
     <% if @training_density_data.length > 2 %>
     <div class="row mt-4">
       <div class="col-12">
-        <div class="card position-relative">
+        <div class="card position-relative analytics-card">
           <div class="card-body py-4">
             <h5 class="section-header">
-              <i class="bi bi-speedometer2 me-2"></i>Training Density
-              <small class="text-muted ms-2">(Volume per minute)</small>
+              <i class="bi bi-speedometer2 me-2"></i>Working Load per Minute
+              <small class="text-muted ms-2">Last 20 completed sessions lasting at least 5 minutes</small>
             </h5>
             <div data-controller="chart"
                  data-chart-type-value="line"
                  data-chart-labels-value="<%= @training_density_data.map { |d| Date.parse(d[:date]).strftime('%b %d') }.to_json %>"
                  data-chart-points-value="<%= @training_density_data.map { |d| d[:density] }.to_json %>"
-                 data-chart-label-value="<%= Current.user.preferred_unit %>/min"
+                 data-chart-label-value="<%= Current.user.preferred_unit == 'lbs' ? 'lb·reps/min' : 'kg·reps/min' %>"
                  data-chart-color-value="#71797E"
                  data-chart-fill-value="true"
-                 style="height: 180px;">
-              <canvas data-chart-target="canvas"></canvas>
+                 class="analytics-chart analytics-chart--compact"
+                 role="img" aria-label="Working set load volume per minute for recent completed sessions">
+              <canvas data-chart-target="canvas">Working load volume per minute by session.</canvas>
             </div>
             <div class="text-center mt-2">
               <small class="text-muted">
                 <% avg_density = (@training_density_data.sum { |d| d[:density] } / @training_density_data.length.to_f).round %>
-                Average: <%= avg_density %> <%= Current.user.preferred_unit %>/min
+                Average: <%= avg_density %> <%= Current.user.preferred_unit == 'lbs' ? 'lb·reps/min' : 'kg·reps/min' %>
                 <span class="mx-2">•</span>
-                Higher = more efficient workouts
+                Compare only broadly similar sessions
               </small>
             </div>
           </div>
@@ -346,7 +381,7 @@
     <div class="row mt-4 g-4">
       <!-- Consistency Streaks -->
       <div class="col-md-6">
-        <div class="card position-relative h-100">
+        <div class="card position-relative h-100 analytics-card">
           <div class="card-body py-4">
             <h5 class="section-header">
               <i class="bi bi-fire me-2"></i>Consistency Streaks
@@ -398,27 +433,27 @@
 
       <!-- Week-over-Week Comparison -->
       <div class="col-md-6">
-        <div class="card position-relative h-100">
+        <div class="card position-relative h-100 analytics-card">
           <div class="card-body py-4">
             <h5 class="section-header">
-              <i class="bi bi-arrow-left-right me-2"></i>Week Comparison
+              <i class="bi bi-arrow-left-right me-2"></i>Week to Date <small class="text-muted ms-2">Compared with the same elapsed period last week</small>
             </h5>
-            <div class="table-responsive">
+            <div class="table-responsive analytics-table-wrap">
               <table class="table table-dark table-sm mb-0">
                 <thead>
                   <tr class="table-header-sm">
                     <th></th>
-                    <th class="text-end">This Week</th>
-                    <th class="text-end">Last Week</th>
+                    <th class="text-end">This week<br><small class="text-muted"><%= @week_comparison_data[:this_week][:range_label] %></small></th>
+                    <th class="text-end">Last week<br><small class="text-muted"><%= @week_comparison_data[:last_week][:range_label] %></small></th>
                     <th class="text-end">Change</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td class="text-muted">Volume</td>
+                    <td class="text-muted">Working load</td>
                     <td class="text-end">
                       <span class="weight-display"><%= number_to_si(@week_comparison_data[:this_week][:volume]) %></span>
-                      <span class="text-muted small"><%= Current.user.preferred_unit %></span>
+                      <span class="text-muted small"><%= Current.user.preferred_unit == 'lbs' ? 'lb·reps' : 'kg·reps' %></span>
                     </td>
                     <td class="text-end text-muted">
                       <%= number_to_si(@week_comparison_data[:last_week][:volume]) %>
@@ -477,24 +512,71 @@
       </div>
     </div>
 
+    <!-- Strength & Volume Analytics -->
+    <div class="row mt-4 g-4" id="strength-profile">
+      <% if @strength_curve_data.any? %>
+        <div class="col-12">
+          <div class="card position-relative analytics-card"><div class="card-body py-4" data-controller="strength-curve" data-strength-curve-data-value="<%= @strength_curve_data.to_json %>" data-strength-curve-unit-value="<%= Current.user.preferred_unit %>">
+            <h5 class="section-header"><i class="bi bi-graph-up-arrow me-2"></i>Best Logged Load by Rep Bucket <small class="text-muted ms-2">Exact exercise/equipment context · last 12 months</small></h5>
+            <label for="strength-curve-context" class="form-label small text-muted">Exercise and equipment</label>
+            <select id="strength-curve-context" class="form-select form-select-sm analytics-context-select mb-3" data-action="change->strength-curve#changeContext">
+              <% @strength_curve_data.each_with_index do |context, index| %><option value="<%= index %>"><%= context[:name] %></option><% end %>
+            </select>
+            <div class="analytics-chart" role="img" aria-label="Best logged weight in each repetition bucket for the selected exact exercise and equipment context"><canvas data-strength-curve-target="canvas">Best logged load by repetition bucket.</canvas></div>
+            <p class="analytics-caption mb-0 mt-2">Buckets with no qualifying working set are left blank; values are not interpolated.</p>
+          </div></div>
+        </div>
+      <% end %>
+      <div class="col-md-6">
+        <div class="card position-relative h-100 analytics-card"><div class="card-body py-4">
+          <h5 class="section-header"><i class="bi bi-bar-chart me-2"></i>Primary-Muscle Load Distribution <small class="text-muted ms-2">Working weighted rep sets</small></h5>
+          <% if @muscle_volume_distribution_data[:seven_days].any? || @muscle_volume_distribution_data[:thirty_days].any? %>
+            <div data-controller="muscle-group-chart" data-muscle-group-chart-seven-days-value="<%= @muscle_volume_distribution_data[:seven_days].to_json %>" data-muscle-group-chart-thirty-days-value="<%= @muscle_volume_distribution_data[:thirty_days].to_json %>" data-muscle-group-chart-colors-value="<%= @muscle_volume_distribution_data[:colors].to_json %>" data-muscle-group-chart-labels-value="<%= @muscle_volume_distribution_data[:labels].to_json %>" data-muscle-group-chart-unit-value="<%= Current.user.preferred_unit == 'lbs' ? 'lb·reps' : 'kg·reps' %>">
+              <label for="muscle-volume-period" class="visually-hidden">Analysis period</label>
+              <select id="muscle-volume-period" aria-label="Muscle load distribution period" class="form-select form-select-sm mb-2" data-muscle-group-chart-target="periodSelect" data-action="change->muscle-group-chart#changePeriod"><option value="seven_days">Last 7 calendar days</option><option value="thirty_days">Last 30 calendar days</option></select>
+              <div class="analytics-chart analytics-chart--tall" role="img" aria-label="Working load volume assigned to each exercise's primary muscle"><canvas data-muscle-group-chart-target="canvas">Working load volume by primary muscle group.</canvas></div>
+            </div>
+          <% else %><p class="text-muted small mb-0">Log completed weighted working sets to see volume by muscle group.</p><% end %>
+        </div></div>
+      </div>
+      <div class="col-md-6">
+        <div class="card position-relative h-100 analytics-card"><div class="card-body py-4">
+          <h5 class="section-header"><i class="bi bi-bar-chart me-2"></i>Relative Strength <small class="text-muted ms-2">Estimated 1RM divided by bodyweight</small></h5>
+          <% if @lift_ratio_data[:values].any? %>
+            <div data-controller="chart" data-chart-type-value="bar" data-chart-horizontal-value="true" data-chart-labels-value="<%= @lift_ratio_data[:labels].to_json %>" data-chart-points-value="<%= @lift_ratio_data[:values].to_json %>" data-chart-label-value="e1RM / bodyweight (×)" data-chart-color-value="#3d7ea6" class="analytics-chart" role="img" aria-label="Estimated one rep max divided by bodyweight for marked free-weight major lifts"><canvas data-chart-target="canvas">Relative strength ratios by major lift.</canvas></div>
+            <p class="analytics-caption mb-0">Completed, non-warmup free-weight sets from explicitly marked major lifts. Ratios are training estimates.</p>
+          <% else %><p class="text-muted small mb-0"><%= @lift_ratio_data[:reason] %></p><% end %>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="row mt-4">
+      <div class="col-12"><div class="card position-relative analytics-card"><div class="card-body py-4">
+        <h5 class="section-header"><i class="bi bi-trophy me-2"></i>Best-Known SBD Training Scores <small class="text-muted ms-2">Wilks and DOTS estimates over time</small></h5>
+        <% if @strength_score_trend_data[:points].any? %>
+          <div data-controller="chart" data-chart-type-value="line" data-chart-data-value="<%= { labels: @strength_score_trend_data[:points].map { |point| point[:date] }, datasets: [{ label: 'Wilks', data: @strength_score_trend_data[:points].map { |point| point[:wilks] }, borderColor: '#ff6b35', backgroundColor: 'rgba(255,107,53,.2)' }, { label: 'DOTS', data: @strength_score_trend_data[:points].map { |point| point[:dots] }, borderColor: '#3d7ea6', backgroundColor: 'rgba(61,126,166,.2)' }] }.to_json %>" class="analytics-chart analytics-chart--tall" role="img" aria-label="Wilks and DOTS training score estimates over time"><canvas data-chart-target="canvas">Wilks and DOTS training estimates over time.</canvas></div>
+          <p class="analytics-caption mb-0">Best-known free-weight SBD e1RM total paired with a prior weigh-in no more than 30 days old. Training estimate—not a meet score.</p>
+        <% else %><p class="text-muted small mb-0"><%= @strength_score_trend_data[:reason] %></p><% end %>
+      </div></div></div>
+    </div>
+
     <!-- Muscle Group Visualizations -->
+    <div class="row mt-4 g-4" id="muscle-training">
     <% if @muscle_group_data.any? || @muscle_balance_data.any? %>
-    <div class="row mt-4 g-4">
-      <!-- Body Map Recovery Indicator -->
       <% if @muscle_group_data.any? %>
       <div class="col-md-6">
-        <div class="card position-relative h-100">
+        <div class="card position-relative h-100 analytics-card">
           <div class="card-body py-4">
             <h5 class="section-header">
-              <i class="bi bi-person-arms-up me-2"></i>Muscle Recovery Map
-              <small class="text-muted ms-2">(Last 7 days)</small>
+              <i class="bi bi-person-arms-up me-2"></i>Primary-Muscle Training Recency
+              <small class="text-muted ms-2">Calendar days since last working set</small>
             </h5>
 
             <%# Color scale legend - compact inline %>
             <div class="d-flex align-items-center gap-1 mb-3 small">
-              <span class="text-muted">Rest</span>
-              <div class="recovery-scale-bar"></div>
-              <span class="text-muted">Ready</span>
+              <span class="text-muted">Recent</span>
+              <div class="recovery-scale-bar" aria-hidden="true"></div>
+              <span class="text-muted">Longer ago</span>
             </div>
 
             <% 
@@ -520,16 +602,16 @@
                   <% muscle_data = @muscle_group_data[muscle_group] %>
                   <% days_since = muscle_data[:days_since] %>
                   <%
-                    # Recovery percentage: 0 = just trained, 100 = fully recovered (4+ days)
-                    recovery_pct = [(days_since / 4.0 * 100), 100].min.round
+                    # Recency bar: longer bars mean more calendar days since the last working set
+                    recency_pct = [(days_since / 4.0 * 100), 100].min.round
                     bar_color = if days_since == 0
-                      '#a33232'      # danger red
+                      '#a33232'
                     elsif days_since == 1
-                      '#b8860b'      # warning gold
+                      '#b8860b'
                     elsif days_since <= 2
-                      '#3d7ea6'      # info blue
+                      '#3d7ea6'
                     else
-                      '#2d7a3e'      # success green (recovered / ready)
+                      '#71797E'
                     end
                     status_text = if days_since == 0
                       'Today'
@@ -541,10 +623,10 @@
                       '—'
                     end
                   %>
-                  <div class="recovery-row d-flex align-items-center mb-1">
-                    <span class="recovery-label"><%= Exercise::MUSCLE_GROUP_LABELS[muscle_group] %></span>
+                  <div class="recovery-row d-flex align-items-center mb-1" role="img" aria-label="<%= Exercise::MUSCLE_GROUP_LABELS[muscle_group] %>: last trained <%= days_since == 0 ? 'today' : pluralize(days_since, 'calendar day') + ' ago' %>">
+                    <span class="recovery-label" title="<%= Exercise::MUSCLE_GROUP_LABELS[muscle_group] %>"><%= Exercise::MUSCLE_GROUP_LABELS[muscle_group] %></span>
                     <div class="recovery-bar-track flex-grow-1 mx-2">
-                      <div class="recovery-bar-fill" style="width: <%= recovery_pct %>%; background: <%= bar_color %>;">
+                      <div class="recovery-bar-fill" style="width: <%= recency_pct %>%; background: <%= bar_color %>;">
                       </div>
                     </div>
                     <span class="recovery-days" style="color: <%= bar_color %>"><%= status_text %></span>
@@ -560,83 +642,97 @@
       <!-- Muscle Balance Spider Chart -->
       <% if @muscle_balance_data.any? %>
       <div class="col-md-6">
-        <div class="card position-relative h-100">
+        <div class="card position-relative h-100 analytics-card">
           <div class="card-body py-4">
             <h5 class="section-header">
-              <i class="bi bi-diagram-3 me-2"></i>Training Balance
-              <small class="text-muted ms-2">(Last 30 days)</small>
+              <i class="bi bi-bar-chart me-2"></i>Share of Assigned Load
+              <small class="text-muted ms-2">Percent of 30-day working load by primary muscle</small>
             </h5>
             <div data-controller="chart"
-                 data-chart-type-value="radar"
-                 data-chart-labels-value="<%= @muscle_balance_data.map { |d| d[:muscle] }.to_json %>"
-                 data-chart-points-value="<%= @muscle_balance_data.map { |d| d[:value] }.to_json %>"
-                 data-chart-label-value="Relative Volume"
+                 data-chart-type-value="bar"
+                 data-chart-horizontal-value="true"
+                 data-chart-labels-value="<%= @muscle_balance_data.sort_by { |d| -d[:value] }.map { |d| d[:muscle] }.to_json %>"
+                 data-chart-points-value="<%= @muscle_balance_data.sort_by { |d| -d[:value] }.map { |d| d[:value] }.to_json %>"
+                 data-chart-label-value="Share of assigned load (%)"
                  data-chart-color-value="#ff6b35"
-                 style="height: 280px;">
-              <canvas data-chart-target="canvas"></canvas>
+                 class="analytics-chart analytics-chart--tall"
+                 role="img" aria-label="Percent share of working load volume assigned to each primary muscle">
+              <canvas data-chart-target="canvas">Share of assigned load by primary muscle.</canvas>
             </div>
             <div class="text-center mt-2">
-              <small class="text-muted">Balanced training across all muscle groups helps prevent imbalances and injuries</small>
+              <small class="text-muted">This reflects each exercise’s assigned primary muscle, not total muscular contribution.</small>
             </div>
           </div>
         </div>
       </div>
       <% end %>
-    </div>
+    <% else %>
+      <div class="col-12">
+        <div class="analytics-empty">Complete weighted working sets on exercises with a primary muscle to see recency and load-share analysis.</div>
+      </div>
     <% end %>
+    </div>
 
     <!-- Exercise Frequency Ranking -->
+    <div class="row mt-4" id="history-signals">
     <% if @exercise_frequency_data.any? %>
-    <div class="row mt-4">
       <div class="col-12">
-        <div class="card position-relative">
+        <div class="card position-relative analytics-card">
           <div class="card-body py-4">
             <h5 class="section-header">
-              <i class="bi bi-bar-chart-line me-2"></i>Most Performed Exercises
-              <small class="text-muted ms-2">(Last 90 days)</small>
+              <i class="bi bi-bar-chart-line me-2"></i>Most Frequently Logged Exercises
+              <small class="text-muted ms-2">Recorded exercise occurrences with at least one set · last 90 days</small>
             </h5>
             <div data-controller="chart"
                  data-chart-type-value="bar"
                  data-chart-labels-value="<%= @exercise_frequency_data.map { |d| d[:exercise] }.to_json %>"
                  data-chart-points-value="<%= @exercise_frequency_data.map { |d| d[:count] }.to_json %>"
-                 data-chart-label-value="Sessions"
+                 data-chart-label-value="Logged occurrences"
                  data-chart-color-value="#ff6b35"
                  data-chart-horizontal-value="true"
-                 style="height: <%= [180, @exercise_frequency_data.length * 32].max %>px;">
-              <canvas data-chart-target="canvas"></canvas>
+                 class="analytics-chart analytics-chart--ranking"
+                 style="--analytics-chart-height: <%= [220, @exercise_frequency_data.length * 34].max %>px;"
+                 role="img" aria-label="Most frequently logged exercises in the last 90 days">
+              <canvas data-chart-target="canvas">Exercise occurrence ranking.</canvas>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    <% else %>
+      <div class="col-12">
+        <div class="analytics-empty">Record at least one set for an exercise to build frequency and history signals.</div>
+      </div>
     <% end %>
+    </div>
 
     <!-- Tonnage Tracker -->
     <% if @tonnage_data.any? && @tonnage_data.sum { |d| d[:volume] } > 0 %>
     <div class="row mt-4">
       <div class="col-12">
-        <div class="card position-relative">
+        <div class="card position-relative analytics-card">
           <div class="card-body py-4">
             <h5 class="section-header">
-              <i class="bi bi-graph-up-arrow me-2"></i>Tonnage Tracker
-              <small class="text-muted ms-2">(Weekly volume - last 12 weeks)</small>
+              <i class="bi bi-graph-up-arrow me-2"></i>Weekly Working Load
+              <small class="text-muted ms-2">External load × reps · last 12 calendar weeks</small>
             </h5>
             <div data-controller="chart"
                  data-chart-type-value="line"
                  data-chart-labels-value="<%= @tonnage_data.map { |d| d[:label] }.to_json %>"
                  data-chart-points-value="<%= @tonnage_data.map { |d| d[:volume] }.to_json %>"
-                 data-chart-label-value="Volume (<%= Current.user.preferred_unit %>)"
+                 data-chart-label-value="Load volume (<%= Current.user.preferred_unit == 'lbs' ? 'lb·reps' : 'kg·reps' %>)"
                  data-chart-color-value="#ff6b35"
                  data-chart-fill-value="true"
-                 style="height: 200px;">
-              <canvas data-chart-target="canvas"></canvas>
+                 class="analytics-chart"
+                 role="img" aria-label="Weekly working load volume over the last 12 calendar weeks">
+              <canvas data-chart-target="canvas">Weekly working load volume.</canvas>
             </div>
             <div class="text-center mt-2">
               <small class="text-muted">
                 <% total_tonnage = @tonnage_data.sum { |d| d[:volume] } %>
                 <% avg_tonnage = (total_tonnage / @tonnage_data.length.to_f).round %>
-                Total: <%= number_to_si(total_tonnage) %><%= Current.user.preferred_unit %> &middot;
-                Average: <%= number_to_si(avg_tonnage) %><%= Current.user.preferred_unit %>/week
+                <% load_unit = Current.user.preferred_unit == 'lbs' ? 'lb·reps' : 'kg·reps' %>
+                Total: <%= number_to_si(total_tonnage) %> <%= load_unit %> &middot;
+                Average: <%= number_to_si(avg_tonnage) %> <%= load_unit %>/week
               </small>
             </div>
           </div>
@@ -649,13 +745,13 @@
     <% if @plateau_data.any? %>
     <div class="row mt-4">
       <div class="col-12">
-        <div class="card position-relative border-warning" style="border-color: rgba(255, 193, 7, 0.3) !important;">
+        <div class="card position-relative border-warning analytics-card" style="border-color: rgba(255, 193, 7, 0.3) !important;">
           <div class="card-body py-4">
             <h5 class="section-header">
               <i class="bi bi-exclamation-triangle text-warning me-2"></i>Plateau Alert
-              <small class="text-muted ms-2">(No PR in 4+ weeks)</small>
+              <small class="text-muted ms-2">No heavier working set in 4+ weeks</small>
             </h5>
-            <div class="table-responsive">
+            <div class="table-responsive analytics-table-wrap">
               <table class="table table-dark table-sm mb-0">
                 <thead>
                   <tr class="table-header-sm">
@@ -687,7 +783,7 @@
             <div class="mt-3">
               <small class="text-muted">
                 <i class="bi bi-lightbulb me-1"></i>
-                Try varying rep ranges, adding volume, or taking a deload week to break through plateaus.
+                This is a heavier-set heuristic. Review the exact exercise history, rep ranges, fatigue, and training intent before changing the program.
               </small>
             </div>
           </div>

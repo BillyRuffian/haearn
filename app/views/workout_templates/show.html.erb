@@ -133,6 +133,26 @@
     
     </div>
 
+    <% if @archived_template_exercises.any? %>
+      <div class="card border-secondary mb-4">
+        <div class="card-body">
+          <h5 class="section-header mb-3"><i class="bi bi-archive me-2"></i>Archived Exercises <span class="text-muted small">(<%= @archived_template_exercises.size %>)</span></h5>
+          <% @archived_template_exercises.each do |template_exercise| %>
+            <div class="d-flex align-items-center justify-content-between py-2 border-top border-secondary">
+              <div>
+                <strong><%= template_exercise.exercise.name %></strong>
+                <% if template_exercise.machine %><span class="text-muted small ms-2"><i class="bi bi-gear me-1"></i><%= template_exercise.machine.name %></span><% end %>
+                <div class="text-muted small">Formerly in block <%= template_exercise.template_block.position %></div>
+              </div>
+              <%= button_to restore_workout_template_template_exercise_path(@template, template_exercise), method: :patch, class: "btn btn-outline-primary btn-sm", data: { turbo_confirm: "Restore this exercise to the template?" } do %>
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Restore
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
     <!-- Add Exercise Button -->
     <div class="d-grid mb-4">
       <%= link_to new_workout_template_template_exercise_path(@template),

@@ -4,6 +4,7 @@
 class TemplateExercisesController < ApplicationController
   before_action :set_template
   before_action :set_template_exercise, only: [ :edit, :update, :destroy ]
+  before_action :set_removed_template_exercise, only: [ :restore ]
 
   # GET /workout_templates/:workout_template_id/exercises/new
   # Shows exercise picker modal
@@ -72,9 +73,19 @@ class TemplateExercisesController < ApplicationController
   end
 
   # DELETE /workout_templates/:workout_template_id/exercises/:id
+  # Removes the exercise from current template behavior while preserving any
+  # instantiated workout exercises that reference it as historical context.
   def destroy
-    if @template_exercise.destroy
+    if @template_exercise.update(removed_at: Time.current)
       redirect_to @template, notice: 'Exercise removed from template.'
+    else
+      redirect_to @template, alert: @template_exercise.errors.full_messages.to_sentence
+    end
+  end
+
+  def restore
+    if @template_exercise.update(removed_at: nil)
+      redirect_to @template, notice: 'Exercise restored to template.'
     else
       redirect_to @template, alert: @template_exercise.errors.full_messages.to_sentence
     end
@@ -88,6 +99,13 @@ class TemplateExercisesController < ApplicationController
 
   def set_template_exercise
     @template_exercise = @template.template_exercises.find(params[:id])
+  end
+
+  def set_removed_template_exercise
+    @template_exercise = TemplateExercise.removed
+      .joins(:template_block)
+      .where(template_blocks: { workout_template_id: @template.id })
+      .find(params[:id])
   end
 
   def template_exercise_params

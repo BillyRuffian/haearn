@@ -52,6 +52,15 @@
     <%= form.text_field :description, class: "form-control", placeholder: "Optional description..." %>
   </div>
 
+  <div class="col-md-3">
+    <%= form.label :strength_lift_key, "Strength Lift", class: "form-label" %>
+    <%= form.select :strength_lift_key,
+        Exercise::STRENGTH_LIFT_KEYS.map { |key| [key.titleize, key] },
+        { include_blank: "Not a major lift" },
+        class: "form-select" %>
+    <small class="form-text text-muted">Use only for free-weight squat, bench, deadlift, or overhead press variants.</small>
+  </div>
+
   <div class="col-md-6">
     <%= form.label :form_cues, "Form Cues", class: "form-label" %>
     <%= form.text_area :form_cues,

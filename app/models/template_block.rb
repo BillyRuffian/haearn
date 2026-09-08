@@ -21,7 +21,8 @@
 #
 class TemplateBlock < ApplicationRecord
   belongs_to :workout_template
-  has_many :template_exercises, dependent: :destroy
+  has_many :all_template_exercises, class_name: 'TemplateExercise', dependent: :destroy
+  has_many :template_exercises, -> { active }, class_name: 'TemplateExercise'
 
   validates :workout_template, presence: true
   validates :position, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }

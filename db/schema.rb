@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_30_170000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_07_151200) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -117,8 +117,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_30_170000) do
     t.boolean "has_weight"
     t.string "name"
     t.string "primary_muscle_group"
+    t.string "strength_lift_key"
     t.datetime "updated_at", null: false
     t.integer "user_id"
+    t.index ["strength_lift_key"], name: "index_exercises_on_strength_lift_key"
     t.index ["user_id"], name: "index_exercises_on_user_id"
   end
 
@@ -274,6 +276,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_30_170000) do
     t.integer "exercise_id", null: false
     t.integer "machine_id"
     t.text "persistent_notes"
+    t.datetime "removed_at"
     t.integer "target_reps"
     t.integer "target_sets"
     t.decimal "target_weight_kg", precision: 8, scale: 2
@@ -282,6 +285,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_30_170000) do
     t.index ["exercise_id"], name: "index_template_exercises_on_exercise_id"
     t.index ["machine_id"], name: "index_template_exercises_on_machine_id"
     t.index ["template_block_id", "exercise_id"], name: "index_template_exercises_on_template_block_id_and_exercise_id"
+    t.index ["template_block_id", "removed_at"], name: "index_template_exercises_on_template_block_id_and_removed_at"
     t.index ["template_block_id"], name: "index_template_exercises_on_template_block_id"
   end
 
@@ -314,6 +318,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_30_170000) do
     t.string "password_digest", null: false
     t.string "preferred_unit"
     t.integer "progression_rep_target", default: 10, null: false
+    t.string "strength_scoring_sex"
     t.datetime "updated_at", null: false
     t.boolean "weekly_summary_email", default: false, null: false
     t.index ["admin"], name: "index_users_on_admin"

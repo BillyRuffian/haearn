@@ -85,9 +85,18 @@ export default class extends Controller {
     let defaultOptions = {
       responsive: true,
       maintainAspectRatio: false,
+      animation: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? false : { duration: 250 },
       plugins: {
         legend: {
-          display: false
+          display: Boolean(chartData?.datasets?.length > 1),
+          position: "bottom",
+          labels: {
+            color: "#d0d0d0",
+            font: { size: 12 },
+            usePointStyle: true,
+            boxWidth: 10,
+            padding: 14
+          }
         },
         tooltip: {
           backgroundColor: "rgba(20, 20, 22, 0.95)",
@@ -124,9 +133,9 @@ export default class extends Controller {
             color: 'rgba(255, 255, 255, 0.1)'
           },
           pointLabels: {
-            color: '#8a8a8a',
+            color: '#c4c4c4',
             font: {
-              size: 11,
+              size: 12,
               weight: '500'
             }
           },
@@ -147,10 +156,12 @@ export default class extends Controller {
             color: "rgba(255, 255, 255, 0.05)"
           },
           ticks: {
-            color: "#6a6a6a",
+            color: "#b0b0b0",
             font: {
-              size: 11
-            }
+              size: 12
+            },
+            maxTicksLimit: window.innerWidth < 576 ? 5 : 9,
+            maxRotation: 0
           }
         },
         y: {
@@ -158,12 +169,14 @@ export default class extends Controller {
             color: "rgba(255, 255, 255, 0.05)"
           },
           ticks: {
-            color: "#6a6a6a",
+            color: "#b0b0b0",
             font: {
-              size: 11
-            }
+              size: 12
+            },
+            maxTicksLimit: window.innerWidth < 576 ? 5 : 9,
+            maxRotation: 0
           },
-          beginAtZero: false
+          beginAtZero: this.typeValue === 'bar'
         }
       }
     }
@@ -177,7 +190,9 @@ export default class extends Controller {
       mergedOptions.indexAxis = 'y'
       // For horizontal bars, swap x/y grid styling
       mergedOptions.scales.x.beginAtZero = true
+      mergedOptions.scales.x.ticks.maxTicksLimit = window.innerWidth < 576 ? 4 : 7
       mergedOptions.scales.y.grid = { display: false }
+      mergedOptions.scales.y.ticks.autoSkip = false
     }
 
     this.chart = new Chart(ctx, {

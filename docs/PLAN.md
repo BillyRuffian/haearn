@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: August 30, 2026
+> Last Updated: September 7, 2026
 
 ## Overview
 
@@ -11,6 +11,9 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Redesign analytics for explicit time/unit semantics, same-elapsed week comparisons, exact equipment context, ranked comparison bars, accessible chart alternatives, reduced motion, responsive phone/desktop sizing, and guarded multi-viewport regressions
+- [x] Add template archive/restore UX and analytics for muscle volume distribution, strength curves, lift ratios, and Wilks/DOTS trends
+- [x] Allow template exercises with instantiated workout history to be removed from active template behavior without deleting historical links
 - [x] Enforce one active workout per user, redirect duplicate start attempts to it, and append launched templates to the active session
 - [x] Exclude setless skipped exercises from exercise history while preserving the latest recorded session in active-workout Last summaries and prefills
 - [x] Keep the active-fill swoosh bounded to remaining progress while final 4/3/2/1 cues pulse only the opaque-backed timer background
@@ -260,18 +263,18 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] **Workout Consistency Visualization** - Last 12 weeks bar chart + day-of-week pattern (replaced GitHub-style heatmap)
 - [x] **PR Timeline** - Scatter plot showing when PRs were hit across all lifts
 - [x] **Estimated 1RM Trend** - Track e1RM over time (more meaningful than raw weight)
-- [ ] **Volume Distribution Pie Chart** - Breakdown by muscle group (weekly/monthly)
-- [ ] **Lift Ratio Spider Chart** - Balance between major lifts (squat/bench/deadlift/OHP)
+- [x] **Volume Distribution Pie Chart** - Breakdown by muscle group (weekly/monthly)
+- [x] **Lift Ratio Spider Chart** - Balance between major lifts (squat/bench/deadlift/OHP)
 - [x] **Rep Range Distribution** - Bar chart showing % of sets in each rep range (1-5, 6-10, 10+)
 - [x] **Training Density** - Volume per minute/hour over time (workout efficiency)
 - [x] **Tonnage Tracker** - Total weight lifted per session/week/month (area chart)
-- [ ] **Strength Curve** - Performance at different rep ranges per exercise (are you better at 3s or 10s?)
+- [x] **Strength Curve** - Performance at different rep ranges per exercise (are you better at 3s or 10s?)
 - [x] **Session Duration Trends** - Are workouts getting longer/shorter?
 - [x] **Body Map Heatmap** - Visual showing which muscles trained recently (recovery indicator)
 - [x] **Exercise Frequency Ranking** - Bar chart of most-performed exercises
 - [x] **Consistency Streaks** - Current/longest streak visualizations
 - [x] **Week-over-Week Comparison** - Side-by-side volume bars for this week vs last
-- [ ] **Wilks/DOTS Score Over Time** - For powerlifters tracking relative strength
+- [x] **Wilks/DOTS Score Over Time** - Opt-in training estimate from free-weight SBD e1RMs and recent bodyweight
 - [x] **Plateau Detector** - Visual highlighting exercises with no PR in X weeks
 - [ ] **Training Split Adherence** - Planned vs actual sessions (donut chart)
 
@@ -631,7 +634,7 @@ $text-muted: #6c757d;
 - [x] Bodyweight log (morning weigh-ins) _(BodyMetric model with datetime, weight_kg, measurements in cm, trend charts)_
 - [x] Body measurements (arms, chest, waist, legs) _(Optional measurements: chest, waist, hips, left/right arms, left/right legs in cm)_
 - [x] Progress photos with date overlay _(ProgressPhoto model with Active Storage, category poses, date/weight overlay, comparison view)_
-- [x] Wilks/DOTS/IPF GL score calculation for powerlifters _(WilksCalculator service with 2020 formula, shows score + classification: novice → world class)_
+- [x] Wilks/DOTS training-score calculation for powerlifters _(requires an explicit scoring category; scores use free-weight SBD e1RM estimates and recent bodyweight, without meet-style classifications)_
 - [x] Bodyweight-relative strength tracking (e.g., 2x BW squat) _(Displays on exercise history PRs, shows ratio like "2.1x BW" with best lift @ bodyweight)_
 - [x] Mobile/PWA quick access for body metrics via Settings quick links _(Added a `Body Metrics` link to mobile Settings quick links; logging remains accessible from the Body Metrics page.)_
 

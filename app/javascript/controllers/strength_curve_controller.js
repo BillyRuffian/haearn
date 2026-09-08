@@ -5,7 +5,8 @@ import Chart from "chart.js/auto"
 export default class extends Controller {
   static targets = ["canvas"]
   static values = {
-    data: Array
+    data: Array,
+    unit: { type: String, default: "kg" }
   }
 
   // Color palette for different exercises
@@ -33,32 +34,21 @@ export default class extends Controller {
 
     if (!exercises || exercises.length === 0) return
 
+    this.selectedIndex = 0
     const repRanges = ["1-3", "4-6", "7-10", "11-15"]
-
-    const datasets = exercises.map((exercise, index) => {
-      const color = this.colors[index % this.colors.length]
-      const data = repRanges.map(range => exercise.ranges[range] || null)
-
-      return {
-        label: exercise.name,
-        data: data,
-        fill: false,
-        backgroundColor: color.bg,
-        borderColor: color.border,
-        pointBackgroundColor: color.border,
-        pointBorderColor: "#fff",
-        pointHoverBackgroundColor: "#fff",
-        pointHoverBorderColor: color.border,
-        borderWidth: 2,
-        pointRadius: 5,
-        pointHoverRadius: 7,
-        tension: 0.3,
-        spanGaps: true
-      }
-    })
+    const selected = exercises[this.selectedIndex]
+    const color = this.colors[0]
+    const datasets = [{
+      label: selected.name,
+      data: repRanges.map(range => selected.ranges[range] || null),
+      backgroundColor: color.border,
+      borderColor: color.border,
+      borderWidth: 1,
+      borderRadius: 5
+    }]
 
     this.chart = new Chart(ctx, {
-      type: "line",
+      type: "bar",
       data: {
         labels: repRanges.map(r => r + " reps"),
         datasets: datasets
@@ -66,6 +56,7 @@ export default class extends Controller {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? false : { duration: 250 },
         interaction: {
           mode: "index",
           intersect: false
@@ -76,7 +67,7 @@ export default class extends Controller {
               color: "rgba(255, 255, 255, 0.1)"
             },
             ticks: {
-              color: "#9e9e9e"
+              color: "#b0b0b0"
             }
           },
           y: {
@@ -84,25 +75,18 @@ export default class extends Controller {
               color: "rgba(255, 255, 255, 0.1)"
             },
             ticks: {
-              color: "#9e9e9e"
+              color: "#b0b0b0"
             },
             title: {
               display: true,
-              text: "Max Weight",
-              color: "#9e9e9e"
+              text: `Max Weight (${this.unitValue})`,
+              color: "#b0b0b0"
             }
           }
         },
         plugins: {
           legend: {
-            display: true,
-            position: "bottom",
-            labels: {
-              color: "#e0e0e0",
-              padding: 15,
-              usePointStyle: true,
-              pointStyle: "circle"
-            }
+            display: false
           },
           tooltip: {
             backgroundColor: "#1a1a1a",
@@ -116,12 +100,23 @@ export default class extends Controller {
               label: (context) => {
                 const value = context.parsed.y
                 if (value === null) return ` ${context.dataset.label}: No data`
-                return ` ${context.dataset.label}: ${value}`
+                return ` ${context.dataset.label}: ${value} ${this.unitValue}`
               }
             }
           }
         }
       }
     })
+  }
+
+  changeContext(event) {
+    if (!this.chart) return
+
+    this.selectedIndex = Number(event.target.value)
+    const exercise = this.dataValue[this.selectedIndex]
+    const repRanges = ["1-3", "4-6", "7-10", "11-15"]
+    this.chart.data.datasets[0].label = exercise.name
+    this.chart.data.datasets[0].data = repRanges.map(range => exercise.ranges[range] || null)
+    this.chart.update("none")
   }
 }

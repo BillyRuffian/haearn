@@ -174,7 +174,9 @@ Rails.application.routes.draw do
       patch :reorder_blocks
       post :toggle_pin
     end
-    resources :exercises, controller: 'template_exercises', as: 'template_exercises'
+    resources :exercises, controller: 'template_exercises', as: 'template_exercises' do
+      member { patch :restore }
+    end
     resources :blocks, controller: 'template_blocks', as: 'template_blocks', only: [ :destroy ]
   end
   post 'workouts/:workout_id/save_as_template', to: 'workout_templates#create_from_workout', as: :save_workout_as_template

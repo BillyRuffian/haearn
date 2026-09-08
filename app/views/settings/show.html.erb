@@ -133,6 +133,7 @@
                        value="<%= @user.default_rest_seconds %>"
                        data-rest-slider-target="slider"
                        data-action="input->rest-slider#updateDisplay">
+
                 <span class="rest-timer-display badge bg-primary fs-5" 
                       data-rest-slider-target="display"
                       style="min-width: 80px;">
@@ -144,6 +145,12 @@
                 <span><%= format_seconds(User::MAX_REST_SECONDS) %></span>
               </div>
               <div class="form-text">Default rest time between sets</div>
+            </div>
+
+            <div class="mb-4">
+              <%= form.label :strength_scoring_sex, "Relative-Strength Scoring Category", class: "form-label" %>
+              <%= form.select :strength_scoring_sex, [["— Not set —", nil], ["Male", "male"], ["Female", "female"]], {}, class: "form-select" %>
+              <div class="form-text">Used only for Wilks and DOTS training estimates. Leave unset to hide score calculations.</div>
             </div>
 
             <div class="mb-4">

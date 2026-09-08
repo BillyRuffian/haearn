@@ -44,6 +44,7 @@ class WorkoutTest < ActiveSupport::TestCase
 
     tokens = DashboardAnalyticsCache.invalidation_tokens
     assert_includes tokens, DashboardAnalyticsCache.invalidation_token(user_id: @workout.user_id, key: 'streaks')
+    assert_includes tokens, DashboardAnalyticsCache.invalidation_token(user_id: @workout.user_id, key: 'workout_frequency')
   end
 
   test 'does not invalidate dashboard analytics cache for non-analytics update' do

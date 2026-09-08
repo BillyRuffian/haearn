@@ -20,7 +20,11 @@ class DashboardAnalyticsCalculator
     'plateaus' => :plateaus,
     'training_density' => :training_density,
     'muscle_group_volume' => :muscle_group_volume,
-    'muscle_balance' => :muscle_balance
+    'muscle_balance' => :muscle_balance,
+    'muscle_volume_distribution' => :muscle_volume_distribution,
+    'strength_curves' => :strength_curves,
+    'lift_ratios' => :lift_ratios,
+    'strength_score_trend' => :strength_score_trend
   }.freeze
 
   def initialize(user:)
@@ -57,13 +61,13 @@ class DashboardAnalyticsCalculator
 
   def exercise_frequency
     @user.workout_exercises
-      .joins(:exercise, workout_block: :workout)
+      .joins(:exercise, :exercise_sets, workout_block: :workout)
       .where('workouts.finished_at >= ?', 90.days.ago)
       .where.not(workouts: { finished_at: nil })
       .group(Arel.sql('exercises.name'))
-      .order(Arel.sql('COUNT(*) DESC'))
+      .order(Arel.sql('COUNT(DISTINCT workout_exercises.id) DESC'))
       .limit(10)
-      .count
+      .count(Arel.sql('DISTINCT workout_exercises.id'))
       .map { |name, count| { exercise: name, count: count } }
   end
 
@@ -72,6 +76,7 @@ class DashboardAnalyticsCalculator
     since = 12.months.ago
     recent_sets = @user.exercise_sets
       .joins(workout_exercise: [ :exercise, { workout_block: :workout } ])
+      .left_joins(workout_exercise: :machine)
       .where('workouts.finished_at >= ?', since)
       .where.not(workouts: { finished_at: nil })
       .where(exercises: { has_weight: true })
@@ -82,6 +87,7 @@ class DashboardAnalyticsCalculator
         Arel.sql('workout_exercises.exercise_id'),
         Arel.sql('workout_exercises.machine_id'),
         Arel.sql('exercises.name'),
+        Arel.sql('machines.name'),
         :weight_kg,
         :reps,
         :completed_at,
@@ -93,7 +99,9 @@ class DashboardAnalyticsCalculator
 
     recent_sets.group_by { |exercise_id, machine_id, *| [ exercise_id, machine_id ] }.each do |combo, sets_for_combo|
       exercise_name = sets_for_combo.first[2]
-      all_sets = sets_for_combo.sort_by { |row| row[5] || row[6] }
+      machine_name = sets_for_combo.first[3]
+      context_label = machine_name ? "#{exercise_name} — #{machine_name}" : "#{exercise_name} — No equipment"
+      all_sets = sets_for_combo.sort_by { |row| row[6] || row[7] }
 
       next if all_sets.empty?
 
@@ -101,30 +109,23 @@ class DashboardAnalyticsCalculator
       best_volume = historical_volumes.fetch(combo, 0)
       has_previous_set = best_weight.positive? || best_volume.positive?
 
-      all_sets.each do |_exercise_id, _machine_id, _name, weight, reps, completed_at, created_at|
+      all_sets.each do |_exercise_id, machine_id, _name, _machine_name, weight, reps, completed_at, created_at|
         date = (completed_at || created_at).to_date
         volume = weight * reps
+        common = {
+          exercise: exercise_name,
+          context: context_label,
+          machine_id: machine_id,
+          date: date.to_s,
+          weight: @user.display_weight(weight).round(2),
+          reps: reps,
+          set_load_volume: display_volume(volume)
+        }
 
-        if weight > best_weight && has_previous_set
-          prs << {
-            exercise: exercise_name,
-            date: date.to_s,
-            weight: @user.display_weight(weight).round,
-            reps: reps,
-            type: 'weight'
-          }
-        end
+        prs << common.merge(type: 'weight') if weight > best_weight && has_previous_set
         best_weight = weight if weight > best_weight
 
-        if volume > best_volume && has_previous_set
-          prs << {
-            exercise: exercise_name,
-            date: date.to_s,
-            weight: @user.display_weight(weight).round,
-            reps: reps,
-            type: 'volume'
-          }
-        end
+        prs << common.merge(type: 'volume') if volume > best_volume && has_previous_set
         best_volume = volume if volume > best_volume
         has_previous_set = true
       end
@@ -185,23 +186,25 @@ class DashboardAnalyticsCalculator
   end
 
   def week_comparison
-    this_week_start = Date.current.beginning_of_week
-    last_week_start = (Date.current - 1.week).beginning_of_week
-    totals = comparison_totals(
-      this_week: this_week_start..this_week_start.end_of_week,
-      last_week: last_week_start..last_week_start.end_of_week
-    )
+    this_week_start = Time.current.beginning_of_week
+    elapsed = Time.current - this_week_start
+    last_week_start = this_week_start - 1.week
+    this_week_range = this_week_start..Time.current
+    last_week_range = last_week_start..(last_week_start + elapsed)
+    totals = comparison_totals(this_week: this_week_range, last_week: last_week_range)
 
     {
       this_week: {
         volume: display_volume(totals['this_week_volume']),
         workouts: totals['this_week_workouts'].to_i,
-        sets: totals['this_week_sets'].to_i
+        sets: totals['this_week_sets'].to_i,
+        range_label: compact_range_label(this_week_range)
       },
       last_week: {
         volume: display_volume(totals['last_week_volume']),
         workouts: totals['last_week_workouts'].to_i,
-        sets: totals['last_week_sets'].to_i
+        sets: totals['last_week_sets'].to_i,
+        range_label: compact_range_label(last_week_range)
       }
     }
   end
@@ -363,7 +366,7 @@ class DashboardAnalyticsCalculator
       result[muscle] = {
         volume: display_volume(volume),
         sets: sets,
-        days_since: last_trained ? ((Time.current - time_value(last_trained)) / 1.day).round : 999,
+        days_since: last_trained ? (Date.current - time_value(last_trained).to_date).to_i : 999,
         color: Exercise::MUSCLE_GROUP_COLORS[muscle] || '#71797E'
       }
     end
@@ -409,20 +412,107 @@ class DashboardAnalyticsCalculator
       .group(Arel.sql('exercises.primary_muscle_group'))
       .sum('COALESCE(exercise_sets.weight_kg, 0) * COALESCE(exercise_sets.reps, 0)')
 
-    max_volume = muscle_volumes.values.max || 1
+    total_volume = muscle_volumes.values.sum.to_f
 
-    Exercise::MUSCLE_GROUPS.map do |muscle|
+    Exercise::MUSCLE_GROUPS.filter_map do |muscle|
       raw_volume = (muscle_volumes[muscle] || 0).round
+      next if raw_volume.zero?
+
       {
         muscle: Exercise::MUSCLE_GROUP_LABELS[muscle],
-        value: (((muscle_volumes[muscle] || 0) / max_volume.to_f) * 100).round,
+        value: total_volume.positive? ? (((muscle_volumes[muscle] || 0) / total_volume) * 100).round(1) : 0,
         raw_volume: raw_volume,
         color: Exercise::MUSCLE_GROUP_COLORS[muscle]
       }
     end
   end
 
+  def muscle_volume_distribution
+    today = Date.current
+    seven_days_start = 6.days.ago.beginning_of_day
+    thirty_days_start = 29.days.ago.beginning_of_day
+    seven_condition = "workouts.finished_at >= #{connection.quote(seven_days_start)}"
+
+    rows = @user.exercise_sets
+      .joins(workout_exercise: [ :exercise, { workout_block: :workout } ])
+      .where(workouts: { finished_at: thirty_days_start..Time.current })
+      .where(is_warmup: false)
+      .where.not(exercises: { primary_muscle_group: nil })
+      .group(Arel.sql('exercises.primary_muscle_group'))
+      .pluck(
+        Arel.sql('exercises.primary_muscle_group'),
+        Arel.sql("COALESCE(SUM(CASE WHEN #{seven_condition} THEN COALESCE(exercise_sets.weight_kg, 0) * COALESCE(exercise_sets.reps, 0) ELSE 0 END), 0)"),
+        Arel.sql('COALESCE(SUM(COALESCE(exercise_sets.weight_kg, 0) * COALESCE(exercise_sets.reps, 0)), 0)')
+      )
+
+    seven_days = {}
+    thirty_days = {}
+    rows.each do |muscle, seven_volume, thirty_volume|
+      seven_days[muscle] = display_volume(seven_volume) if seven_volume.to_d.positive?
+      thirty_days[muscle] = display_volume(thirty_volume) if thirty_volume.to_d.positive?
+    end
+
+    {
+      seven_days: seven_days,
+      thirty_days: thirty_days,
+      labels: Exercise::MUSCLE_GROUP_LABELS,
+      colors: Exercise::MUSCLE_GROUP_COLORS,
+      seven_days_start: seven_days_start.to_date.iso8601,
+      thirty_days_start: thirty_days_start.to_date.iso8601,
+      end_date: today.iso8601
+    }
+  end
+
+  def strength_curves
+    rows = @user.exercise_sets
+      .joins(workout_exercise: [ :exercise, { workout_block: :workout } ])
+      .left_joins(workout_exercise: :machine)
+      .where('workouts.finished_at >= ?', 12.months.ago)
+      .where.not(workouts: { finished_at: nil })
+      .where(exercises: { has_weight: true })
+      .where(is_warmup: false)
+      .where.not(weight_kg: nil, reps: nil)
+      .where('exercise_sets.reps BETWEEN 1 AND 15')
+      .group(Arel.sql('workout_exercises.exercise_id'), Arel.sql('workout_exercises.machine_id'), Arel.sql('exercises.name'), Arel.sql('machines.name'))
+      .order(Arel.sql('MAX(workouts.finished_at) DESC, exercises.name ASC, workout_exercises.machine_id ASC'))
+      .limit(5)
+      .pluck(
+        Arel.sql('workout_exercises.exercise_id'), Arel.sql('workout_exercises.machine_id'), Arel.sql('exercises.name'), Arel.sql('machines.name'),
+        Arel.sql('MAX(CASE WHEN exercise_sets.reps BETWEEN 1 AND 3 THEN exercise_sets.weight_kg END)'),
+        Arel.sql('MAX(CASE WHEN exercise_sets.reps BETWEEN 4 AND 6 THEN exercise_sets.weight_kg END)'),
+        Arel.sql('MAX(CASE WHEN exercise_sets.reps BETWEEN 7 AND 10 THEN exercise_sets.weight_kg END)'),
+        Arel.sql('MAX(CASE WHEN exercise_sets.reps BETWEEN 11 AND 15 THEN exercise_sets.weight_kg END)')
+      )
+
+    rows.map do |exercise_id, machine_id, exercise_name, machine_name, one_to_three, four_to_six, seven_to_ten, eleven_to_fifteen|
+      machine_label = machine_id ? machine_name : 'No equipment'
+      {
+        exercise_id: exercise_id,
+        machine_id: machine_id,
+        name: "#{exercise_name} — #{machine_label}",
+        ranges: {
+          '1-3' => one_to_three && @user.display_weight(one_to_three).round(2),
+          '4-6' => four_to_six && @user.display_weight(four_to_six).round(2),
+          '7-10' => seven_to_ten && @user.display_weight(seven_to_ten).round(2),
+          '11-15' => eleven_to_fifteen && @user.display_weight(eleven_to_fifteen).round(2)
+        }
+      }
+    end
+  end
+
+  def lift_ratios
+    strength_analytics.lift_ratios
+  end
+
+  def strength_score_trend
+    strength_analytics.score_trend
+  end
+
   private
+
+  def strength_analytics
+    @strength_analytics ||= StrengthAnalyticsCalculator.new(user: @user)
+  end
 
   def historical_best_weights(since:)
     @user.exercise_sets
@@ -443,21 +533,14 @@ class DashboardAnalyticsCalculator
       .where(is_warmup: false)
       .where.not(weight_kg: nil, reps: nil)
       .where('exercise_sets.reps > 0')
-      .group(
-        Arel.sql('workout_exercises.id'),
-        Arel.sql('workout_exercises.exercise_id'),
-        Arel.sql('workout_exercises.machine_id')
-      )
+      .group(Arel.sql('workout_exercises.exercise_id'), Arel.sql('workout_exercises.machine_id'))
       .pluck(
         Arel.sql('workout_exercises.exercise_id'),
         Arel.sql('workout_exercises.machine_id'),
-        Arel.sql('SUM(exercise_sets.weight_kg * exercise_sets.reps)')
+        Arel.sql('MAX(exercise_sets.weight_kg * exercise_sets.reps)')
       )
 
-    rows.each_with_object(Hash.new(0)) do |(exercise_id, machine_id, volume), best_by_combo|
-      combo = [ exercise_id, machine_id ]
-      best_by_combo[combo] = volume if volume > best_by_combo[combo]
-    end
+    rows.to_h { |exercise_id, machine_id, volume| [ [ exercise_id, machine_id ], volume ] }
   end
 
   def weekly_counts(weeks:)
@@ -579,6 +662,10 @@ class DashboardAnalyticsCalculator
 
   def format_date(date)
     date.strftime('%b %-d, %Y')
+  end
+
+  def compact_range_label(range)
+    "#{range.begin.to_date.strftime('%b %-d')}–#{range.end.to_date.strftime('%b %-d')}"
   end
 
   def duration_label(minutes)

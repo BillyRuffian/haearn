@@ -2,10 +2,12 @@ import { Controller } from "@hotwired/stimulus"
 import Chart from "chart.js/auto"
 
 // PR Timeline - Scatter plot showing when PRs were hit across all lifts
-// Each exercise gets a row (y-axis), x-axis is time, point size = relative weight
+// Each exact exercise/equipment context gets a row; x-axis is time and every event marker has equal radius
 export default class extends Controller {
   static values = {
-    data: Array // Array of { exercise: string, date: string, weight: number, reps: number, type: string }
+    data: Array,
+    unit: { type: String, default: "kg" },
+    volumeUnit: { type: String, default: "kg·reps" }
   }
 
   static targets = ["canvas"]
@@ -34,38 +36,22 @@ export default class extends Controller {
     const prData = this.dataValue
     
     // Get unique exercises and assign y-indices
-    const exercises = [...new Set(prData.map(pr => pr.exercise))]
+    const exercises = [...new Set(prData.map(pr => pr.context || pr.exercise))]
     const exerciseIndex = Object.fromEntries(exercises.map((e, i) => [e, i]))
     
     // Group PRs by type for different colors
     const weightPRs = prData.filter(pr => pr.type === 'weight')
     const volumePRs = prData.filter(pr => pr.type === 'volume')
     
-    // Calculate max weight for scaling point sizes
-    const maxWeight = Math.max(...prData.map(pr => pr.weight || 0), 1)
-    
-    // Get date range for labels
-    const dates = prData.map(pr => new Date(pr.date))
-    const minDate = new Date(Math.min(...dates))
-    const maxDate = new Date(Math.max(...dates))
-    
-    // Create date labels (months between min and max)
-    const dateLabels = []
-    const current = new Date(minDate.getFullYear(), minDate.getMonth(), 1)
-    const end = new Date(maxDate.getFullYear(), maxDate.getMonth() + 1, 1)
-    while (current <= end) {
-      dateLabels.push(new Date(current))
-      current.setMonth(current.getMonth() + 1)
-    }
-    
-    // Transform data for Chart.js bubble format using numeric x values
-    const toScatterData = (prs, maxWeight) => prs.map(pr => ({
+    const toScatterData = (prs) => prs.map(pr => ({
       x: new Date(pr.date).getTime(),
-      y: exerciseIndex[pr.exercise],
-      r: Math.max(5, Math.min(18, (pr.weight / maxWeight) * 18)),
+      y: exerciseIndex[pr.context || pr.exercise],
+      r: 7,
       exercise: pr.exercise,
+      context: pr.context || pr.exercise,
       weight: pr.weight,
       reps: pr.reps,
+      setLoadVolume: pr.set_load_volume,
       type: pr.type,
       date: pr.date
     }))
@@ -73,7 +59,7 @@ export default class extends Controller {
     const ctx = this.canvasTarget.getContext("2d")
     
     // Calculate min/max for x-axis with padding
-    const allX = [...toScatterData(weightPRs, maxWeight), ...toScatterData(volumePRs, maxWeight)].map(d => d.x)
+    const allX = [...toScatterData(weightPRs), ...toScatterData(volumePRs)].map(d => d.x)
     const xMin = Math.min(...allX)
     const xMax = Math.max(...allX)
     const xPadding = (xMax - xMin) * 0.1 || 86400000 * 7 // 7 days padding if single point
@@ -83,15 +69,15 @@ export default class extends Controller {
       data: {
         datasets: [
           {
-            label: 'Weight PRs',
-            data: toScatterData(weightPRs, maxWeight),
+            label: 'Heavier set',
+            data: toScatterData(weightPRs),
             backgroundColor: 'rgba(255, 107, 53, 0.7)',
             borderColor: '#ff6b35',
             borderWidth: 1
           },
           {
-            label: 'Volume PRs',
-            data: toScatterData(volumePRs, maxWeight),
+            label: 'Best set load',
+            data: toScatterData(volumePRs),
             backgroundColor: 'rgba(184, 134, 11, 0.7)',
             borderColor: '#b8860b',
             borderWidth: 1
@@ -101,6 +87,7 @@ export default class extends Controller {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? false : { duration: 250 },
         plugins: {
           legend: {
             display: true,
@@ -124,7 +111,7 @@ export default class extends Controller {
               title: (items) => {
                 if (!items.length) return ''
                 const raw = items[0].raw
-                return raw.exercise
+                return raw.context
               },
               label: (context) => {
                 const raw = context.raw
@@ -133,11 +120,10 @@ export default class extends Controller {
                   day: 'numeric', 
                   year: 'numeric' 
                 })
-                const typeLabel = raw.type === 'weight' ? 'Weight PR' : 'Volume PR'
-                return [
-                  `${typeLabel}: ${raw.weight} × ${raw.reps} reps`,
-                  date
-                ]
+                const metric = raw.type === 'weight'
+                  ? `Heavier set: ${raw.weight} ${this.unitValue} × ${raw.reps}`
+                  : `Best set load: ${raw.setLoadVolume} ${this.volumeUnitValue}`
+                return [metric, date]
               }
             }
           }
@@ -151,9 +137,10 @@ export default class extends Controller {
               color: "rgba(255, 255, 255, 0.05)"
             },
             ticks: {
-              color: "#6a6a6a",
-              font: { size: 11 },
-              maxRotation: 45,
+              color: "#b0b0b0",
+              font: { size: 12 },
+              maxRotation: 0,
+              maxTicksLimit: window.innerWidth < 576 ? 4 : 8,
               callback: (value) => {
                 const date = new Date(value)
                 return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -170,12 +157,13 @@ export default class extends Controller {
               color: "rgba(255, 255, 255, 0.05)"
             },
             ticks: {
-              color: "#8a8a8a",
-              font: { size: 10 },
+              color: "#c4c4c4",
+              font: { size: 12 },
               stepSize: 1,
               callback: (value) => {
                 const idx = Math.round(value)
-                return exercises[idx] || ''
+                const label = exercises[idx] || ''
+                return window.innerWidth < 576 && label.length > 22 ? `${label.slice(0, 20)}…` : label
               }
             },
             title: {

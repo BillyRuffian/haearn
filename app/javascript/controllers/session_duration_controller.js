@@ -72,6 +72,7 @@ export default class extends Controller {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? false : { duration: 250 },
         interaction: {
           intersect: false,
           mode: 'index'

@@ -5,15 +5,15 @@
 module ExerciseSeedCatalog
   EXERCISES = [
     # === COMPOUND LIFTS ===
-    { name: "Bench Press", exercise_type: "reps", has_weight: true, description: "Flat horizontal press", primary_muscle_group: "chest" },
+    { name: "Bench Press", exercise_type: "reps", has_weight: true, description: "Flat horizontal press", primary_muscle_group: "chest", strength_lift_key: "bench" },
     { name: "Incline Bench Press", exercise_type: "reps", has_weight: true, description: "Incline horizontal press", primary_muscle_group: "chest" },
     { name: "Decline Bench Press", exercise_type: "reps", has_weight: true, description: "Decline horizontal press", primary_muscle_group: "chest" },
-    { name: "Back Squat", exercise_type: "reps", has_weight: true, description: "Back-loaded squat pattern", primary_muscle_group: "quadriceps" },
+    { name: "Back Squat", exercise_type: "reps", has_weight: true, description: "Back-loaded squat pattern", primary_muscle_group: "quadriceps", strength_lift_key: "squat" },
     { name: "Front Squat", exercise_type: "reps", has_weight: true, description: "Front-loaded squat pattern", primary_muscle_group: "quadriceps" },
-    { name: "Conventional Deadlift", exercise_type: "reps", has_weight: true, description: "Deadlift with conventional stance", primary_muscle_group: "back" },
+    { name: "Conventional Deadlift", exercise_type: "reps", has_weight: true, description: "Deadlift with conventional stance", primary_muscle_group: "back", strength_lift_key: "deadlift" },
     { name: "Sumo Deadlift", exercise_type: "reps", has_weight: true, description: "Deadlift with wide sumo stance", primary_muscle_group: "glutes" },
     { name: "Romanian Deadlift", exercise_type: "reps", has_weight: true, description: "Hip hinge emphasizing hamstrings", primary_muscle_group: "hamstrings" },
-    { name: "Overhead Press", exercise_type: "reps", has_weight: true, description: "Vertical overhead press", primary_muscle_group: "shoulders" },
+    { name: "Overhead Press", exercise_type: "reps", has_weight: true, description: "Vertical overhead press", primary_muscle_group: "shoulders", strength_lift_key: "overhead_press" },
     { name: "Bent-Over Row", exercise_type: "reps", has_weight: true, description: "Hip-hinged horizontal row", primary_muscle_group: "back" },
     { name: "Pendlay Row", exercise_type: "reps", has_weight: true, description: "Strict row from the floor each rep", primary_muscle_group: "back" },
 

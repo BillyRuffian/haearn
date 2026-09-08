@@ -31,10 +31,12 @@ class WilksCalculator
 
   attr_reader :bodyweight_kg, :total_kg, :sex
 
-  def initialize(bodyweight_kg:, total_kg:, sex: :male)
+  SEXES = %i[male female].freeze
+
+  def initialize(bodyweight_kg:, total_kg:, sex:)
     @bodyweight_kg = bodyweight_kg.to_f
     @total_kg = total_kg.to_f
-    @sex = sex.to_sym
+    @sex = sex.to_s.to_sym
   end
 
   # Calculate Wilks score
@@ -97,6 +99,6 @@ class WilksCalculator
   private
 
   def valid_inputs?
-    bodyweight_kg > 0 && bodyweight_kg < 300 && total_kg > 0 && total_kg < 2000
+    SEXES.include?(sex) && bodyweight_kg > 0 && bodyweight_kg < 300 && total_kg > 0 && total_kg < 2000
   end
 end

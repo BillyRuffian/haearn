@@ -8,7 +8,8 @@ export default class extends Controller {
     sevenDays: Object,
     thirtyDays: Object,
     colors: Object,
-    labels: Object
+    labels: Object,
+    unit: { type: String, default: "kg·reps" }
   }
 
   connect() {
@@ -27,7 +28,7 @@ export default class extends Controller {
     const data = this.getDataForPeriod(this.currentPeriod)
 
     this.chart = new Chart(ctx, {
-      type: "doughnut",
+      type: "bar",
       data: {
         labels: data.labels,
         datasets: [{
@@ -42,21 +43,21 @@ export default class extends Controller {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: "60%",
-        plugins: {
-          legend: {
-            display: true,
-            position: 'right',
-            labels: {
-              color: '#8a8a8a',
-              font: { size: 11 },
-              padding: 10,
-              boxWidth: 12,
-              boxHeight: 12,
-              usePointStyle: true,
-              pointStyle: 'circle'
-            }
+        indexAxis: "y",
+        animation: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? false : { duration: 250 },
+        scales: {
+          x: {
+            beginAtZero: true,
+            grid: { color: "rgba(255, 255, 255, 0.06)" },
+            ticks: { color: "#b0b0b0", maxTicksLimit: 5 }
           },
+          y: {
+            grid: { display: false },
+            ticks: { color: "#d0d0d0", font: { size: 12 } }
+          }
+        },
+        plugins: {
+          legend: { display: false },
           tooltip: {
             backgroundColor: "#1a1a1a",
             titleColor: "#e0e0e0",
@@ -67,17 +68,13 @@ export default class extends Controller {
             displayColors: true,
             callbacks: {
               label: (context) => {
-                const value = context.parsed
+                const value = context.parsed.x
                 const total = context.dataset.data.reduce((a, b) => a + b, 0)
-                const percentage = ((value / total) * 100).toFixed(1)
-                return ` ${this.formatNumber(value)} (${percentage}%)`
+                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : "0.0"
+                return ` ${this.formatNumber(value)} ${this.unitValue} · ${percentage}%`
               }
             }
           }
-        },
-        animation: {
-          animateRotate: true,
-          animateScale: true
         }
       }
     })
@@ -92,12 +89,14 @@ export default class extends Controller {
     const values = []
     const chartColors = []
 
-    Object.entries(rawData).forEach(([muscleGroup, volume]) => {
-      if (volume > 0) {
-        labels.push(labelMap[muscleGroup] || muscleGroup)
-        values.push(volume)
-        chartColors.push(colors[muscleGroup] || "#71797E")
-      }
+    const entries = Object.entries(rawData)
+      .filter(([, volume]) => volume > 0)
+      .sort((a, b) => b[1] - a[1])
+
+    entries.forEach(([muscleGroup, volume]) => {
+      labels.push(labelMap[muscleGroup] || muscleGroup)
+      values.push(volume)
+      chartColors.push(colors[muscleGroup] || "#71797E")
     })
 
     return { labels, values, colors: chartColors }
@@ -114,7 +113,7 @@ export default class extends Controller {
     this.chart.data.labels = data.labels
     this.chart.data.datasets[0].data = data.values
     this.chart.data.datasets[0].backgroundColor = data.colors
-    this.chart.update("active")
+    this.chart.update("none")
   }
 
   formatNumber(num) {

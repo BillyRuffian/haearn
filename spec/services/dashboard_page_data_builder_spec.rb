@@ -30,11 +30,19 @@ RSpec.describe DashboardPageDataBuilder do
         training_density
         muscle_group_volume
         muscle_balance
+        muscle_volume_distribution
+        strength_curves
+        lift_ratios
+        strength_score_trend
       ])
       expect(data[:pr_timeline_data]).to eq([ 'pr_timeline' ])
       expect(data[:consistency_data]).to eq([ 'consistency' ])
       expect(data[:training_period_totals]).to eq([ 'training_period_totals' ])
       expect(data[:muscle_balance_data]).to eq([ 'muscle_balance' ])
+      expect(data[:muscle_volume_distribution_data]).to eq([ 'muscle_volume_distribution' ])
+      expect(data[:strength_curve_data]).to eq([ 'strength_curves' ])
+      expect(data[:lift_ratio_data]).to eq([ 'lift_ratios' ])
+      expect(data[:strength_score_trend_data]).to eq([ 'strength_score_trend' ])
       expect(data).not_to have_key(:workouts_this_week)
       expect(data).not_to have_key(:fatigue_data)
     end

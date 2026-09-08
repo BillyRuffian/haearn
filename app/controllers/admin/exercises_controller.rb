@@ -135,7 +135,7 @@ module Admin
     end
 
     def exercise_params
-      params.require(:exercise).permit(:name, :exercise_type, :has_weight, :description, :primary_muscle_group)
+      params.require(:exercise).permit(:name, :exercise_type, :has_weight, :description, :primary_muscle_group, :strength_lift_key)
     end
   end
 end

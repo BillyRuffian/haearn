@@ -19,6 +19,7 @@
 #  password_digest          :string           not null
 #  preferred_unit           :string
 #  progression_rep_target   :integer          default(10), not null
+#  strength_scoring_sex     :string
 #  weekly_summary_email     :boolean          default(FALSE), not null
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null

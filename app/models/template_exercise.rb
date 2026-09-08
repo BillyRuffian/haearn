@@ -6,6 +6,7 @@
 #
 #  id                :integer          not null, primary key
 #  persistent_notes  :text
+#  removed_at        :datetime
 #  target_reps       :integer
 #  target_sets       :integer
 #  target_weight_kg  :decimal(8, 2)
@@ -21,6 +22,7 @@
 #  index_template_exercises_on_machine_id                         (machine_id)
 #  index_template_exercises_on_template_block_id                  (template_block_id)
 #  index_template_exercises_on_template_block_id_and_exercise_id  (template_block_id,exercise_id)
+#  index_template_exercises_on_template_block_id_and_removed_at   (template_block_id,removed_at)
 #
 # Foreign Keys
 #
@@ -33,6 +35,9 @@ class TemplateExercise < ApplicationRecord
   belongs_to :exercise
   belongs_to :machine, optional: true
   has_many :workout_exercises, dependent: :restrict_with_error
+
+  scope :active, -> { where(removed_at: nil) }
+  scope :removed, -> { where.not(removed_at: nil) }
 
   validates :template_block, presence: true
   validates :exercise, presence: true

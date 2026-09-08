@@ -59,6 +59,10 @@ class ExerciseSet < ApplicationRecord
     training_density
     muscle_group_volume
     muscle_balance
+    muscle_volume_distribution
+    strength_curves
+    lift_ratios
+    strength_score_trend
   ].freeze
   ANALYTICS_UPDATE_COLUMNS = %w[
     weight_kg

@@ -6,6 +6,7 @@ require 'set'
 class DashboardAnalyticsCache
   ANALYTICS_KEYS = %w[
     pr_timeline
+    workout_frequency
     consistency
     rep_range_distribution
     exercise_frequency
@@ -17,6 +18,10 @@ class DashboardAnalyticsCache
     training_density
     muscle_group_volume
     muscle_balance
+    muscle_volume_distribution
+    strength_curves
+    lift_ratios
+    strength_score_trend
   ].freeze
 
   METRIC_TYPES = %w[cache_hit cache_miss invalidation].freeze

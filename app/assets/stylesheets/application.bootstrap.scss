@@ -4045,7 +4045,7 @@ html {
   }
 }
 
-// Muscle Recovery Map
+// Primary-muscle training recency map
 .recovery-row {
   font-size: 0.82rem;
   line-height: 1;
@@ -4089,7 +4089,7 @@ html {
   width: 6rem;
   height: 6px;
   border-radius: 3px;
-  background: linear-gradient(to right, #a33232, #b8860b, #3d7ea6, #2d7a3e);
+  background: linear-gradient(to right, #a33232, #b8860b, #3d7ea6, #71797e);
 }
 
 // =====================================================
@@ -4194,5 +4194,191 @@ html {
     &:active {
       transform: scale(0.95);
     }
+  }
+}
+
+// =====================================================
+// Analytics presentation
+// =====================================================
+.analytics-page {
+  --analytics-grid: rgba(255, 255, 255, 0.07);
+
+  .analytics-hero {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem;
+    border: 1px solid rgba($forge-orange, 0.2);
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, rgba($forge-orange, 0.1), rgba($iron-light, 0.08));
+  }
+
+  .analytics-definition {
+    max-width: 48rem;
+    color: #b7b7b7;
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  .analytics-nav {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    scrollbar-width: thin;
+
+    a {
+      flex: 0 0 auto;
+      color: #c8c8c8;
+      border: 1px solid $iron-light;
+      border-radius: 999px;
+      padding: 0.45rem 0.8rem;
+      font-size: 0.78rem;
+      text-decoration: none;
+    }
+  }
+
+  .analytics-card {
+    height: 100%;
+
+    .card-body {
+      min-width: 0;
+    }
+  }
+
+  .analytics-card-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.65rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .analytics-card-subtitle,
+  .analytics-caption {
+    color: #aaa;
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+
+  .analytics-chart {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    height: 220px;
+  }
+
+  .analytics-chart--compact { height: 180px; }
+  .analytics-chart--tall { height: 300px; }
+  .analytics-chart--ranking { height: var(--analytics-chart-height, 240px); }
+
+  .analytics-chart canvas {
+    max-width: 100% !important;
+  }
+
+  .analytics-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    list-style: none;
+    color: #b8b8b8;
+    font-size: 0.78rem;
+  }
+
+  .analytics-summary strong {
+    color: #f0f0f0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .analytics-context-select {
+    max-width: 32rem;
+  }
+
+  .analytics-table-wrap {
+    position: relative;
+    overscroll-behavior-x: contain;
+  }
+
+  .analytics-table-wrap th:first-child,
+  .analytics-table-wrap td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: $iron-dark;
+  }
+
+  .analytics-empty {
+    display: grid;
+    place-items: center;
+    min-height: 9rem;
+    padding: 1rem;
+    color: #aaa;
+    text-align: center;
+  }
+
+  .section-header {
+    color: #c0c0c0;
+    line-height: 1.35;
+  }
+
+  .chart-label,
+  .chart-axis-label {
+    color: #aaa;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .analytics-page {
+    padding-top: 1rem !important;
+
+    .analytics-hero {
+      padding: 1rem;
+    }
+
+    .analytics-definition {
+      font-size: 0.82rem;
+    }
+
+    .card-body {
+      padding: 1rem;
+    }
+
+    .analytics-chart { height: 230px; }
+    .analytics-chart--compact { height: 190px; }
+    .analytics-chart--tall { height: 320px; }
+    .analytics-chart--ranking { height: max(230px, var(--analytics-chart-height, 240px)); }
+
+    .section-header small {
+      display: block;
+      margin: 0.25rem 0 0 !important;
+      letter-spacing: normal;
+      text-transform: none;
+    }
+
+    .analytics-table-wrap::after {
+      content: "Swipe table to see more →";
+      display: block;
+      padding-top: 0.4rem;
+      color: #929292;
+      font-size: 0.72rem;
+      text-align: right;
+    }
+
+    .recovery-label {
+      width: 6.5rem;
+      overflow: visible;
+      text-overflow: clip;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analytics-page .recovery-bar-fill {
+    transition: none;
   }
 }

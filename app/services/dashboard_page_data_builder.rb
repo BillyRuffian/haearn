@@ -26,7 +26,12 @@ class DashboardPageDataBuilder
   end
 
   def analytics_data
-    shared_analytics_data
+    shared_analytics_data.merge(
+      muscle_volume_distribution_data: analytics('muscle_volume_distribution'),
+      strength_curve_data: analytics('strength_curves'),
+      lift_ratio_data: analytics('lift_ratios'),
+      strength_score_trend_data: analytics('strength_score_trend')
+    )
   end
 
   private
@@ -56,14 +61,14 @@ class DashboardPageDataBuilder
 
   def workouts_this_week
     @user.workouts
-      .where(finished_at: 1.week.ago.beginning_of_day..Time.current)
+      .where(finished_at: Time.current.beginning_of_week..Time.current)
       .count
   end
 
   def volume_this_week
     volume = @user.workouts
       .joins(workout_exercises: :exercise_sets)
-      .where(finished_at: 1.week.ago.beginning_of_day..Time.current)
+      .where(finished_at: Time.current.beginning_of_week..Time.current)
       .where(exercise_sets: { is_warmup: false })
       .sum('exercise_sets.weight_kg * exercise_sets.reps')
 
