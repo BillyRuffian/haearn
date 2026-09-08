@@ -93,7 +93,9 @@ RSpec.describe 'Program Builder and Today’s Session', type: :request do
     expect(program.program_sessions.where(id: program_session.id)).to exist
 
     delete workout_template_template_exercise_path(template, template_exercise)
-    expect(template.template_exercises.where(id: template_exercise.id)).to exist
+    expect(template.template_exercises.where(id: template_exercise.id)).not_to exist
+    expect(template_exercise.reload.removed_at).to be_present
+    expect(template_exercise.template_block.all_template_exercises.where(id: template_exercise.id)).to exist
 
     get workout_path(workout)
     expect(response.body).to include('Prescribed', '2 × 5', '@ 90 kg')
