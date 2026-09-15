@@ -17,6 +17,27 @@ RSpec.describe 'Template exercise removal', type: :request do
 
   before { sign_in_as(user) }
 
+  it 'renders separate update and delete forms on both edit pages' do
+    [
+      [ edit_workout_template_template_exercise_path(template, template_exercise),
+        workout_template_template_exercise_path(template, template_exercise), 'Update Exercise' ],
+      [ edit_workout_template_path(template), workout_template_path(template), 'Update Template' ]
+    ].each do |edit_path, action_path, update_label|
+      get edit_path
+
+      expect(response).to have_http_status(:ok)
+      document = Nokogiri::HTML5(response.body)
+      forms = document.css('form').select { |form| form['action'] == action_path }
+      expect(forms.size).to eq(2)
+      update_form = forms.find { |form| form.at_css('input[name="_method"][value="patch"]') }
+      delete_form = forms.find { |form| form.at_css('input[name="_method"][value="delete"]') }
+      expect(update_form.css('input[name="_method"]').map { |input| input['value'] }).to eq([ 'patch' ])
+      expect(document.at_css("button[type='submit'][form='#{update_form['id']}']").text).to eq(update_label)
+      expect(delete_form.at_css('button[type="submit"]').text).to eq('Delete')
+      expect(delete_form.css('input[name^="template_exercise["], input[name^="workout_template["]')).to be_empty
+    end
+  end
+
   it 'removes the exercise from the template while retaining historical workout links' do
     expect do
       delete workout_template_template_exercise_path(template, template_exercise)
@@ -27,6 +48,12 @@ RSpec.describe 'Template exercise removal', type: :request do
     expect(template_exercise.reload.removed_at).to be_present
     expect(template_block.reload.template_exercises).to be_empty
     expect(historical_workout_exercise.reload.template_exercise).to eq(template_exercise)
+
+    user.update!(default_gym: gyms(:one))
+    post start_workout_workout_template_path(template)
+
+    expect(response).to redirect_to(workout_path(user.active_workout))
+    expect(user.active_workout.workout_exercises.where(template_exercise: template_exercise)).not_to exist
 
     get workout_template_path(template)
 

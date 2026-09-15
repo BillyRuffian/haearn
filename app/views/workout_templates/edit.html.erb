@@ -7,7 +7,7 @@
     </h1>
   </div>
 
-  <%= form_with model: @template, local: true do |f| %>
+  <%= form_with model: @template, local: true, id: "workout-template-edit-form" do |f| %>
     <% if @template.errors.any? %>
       <div class="alert alert-danger">
         <h5>Please fix the following errors:</h5>
@@ -33,13 +33,15 @@
       </div>
     </div>
 
-    <div class="d-flex gap-2">
-      <%= f.submit "Update Template", class: "btn btn-primary" %>
-      <%= link_to "Cancel", @template, class: "btn btn-outline-secondary" %>
-      <%= button_to "Delete", @template, 
-          method: :delete, 
-          class: "btn btn-outline-danger ms-auto",
-          data: { turbo_confirm: "Delete this template? This cannot be undone." } %>
-    </div>
   <% end %>
+
+  <div class="d-flex gap-2">
+    <%= button_tag "Update Template", type: :submit, form: "workout-template-edit-form", class: "btn btn-primary" %>
+    <%= link_to "Cancel", @template, class: "btn btn-outline-secondary" %>
+    <%= button_to "Delete", @template,
+        method: :delete,
+        class: "btn btn-outline-danger",
+        form_class: "ms-auto",
+        data: { turbo_confirm: "Delete this template? This cannot be undone." } %>
+  </div>
 </div>

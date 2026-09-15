@@ -11,6 +11,7 @@
   <%= form_with model: @template_exercise, 
                 url: workout_template_template_exercise_path(@template, @template_exercise),
                 method: :patch,
+                id: "template-exercise-edit-form",
                 local: true do |f| %>
     <% if @template_exercise.errors.any? %>
       <div class="alert alert-danger">
@@ -91,13 +92,15 @@
       </div>
     </div>
 
-    <div class="d-flex gap-2">
-      <%= f.submit "Update Exercise", class: "btn btn-primary" %>
-      <%= link_to "Cancel", @template, class: "btn btn-outline-secondary" %>
-      <%= button_to "Delete", workout_template_template_exercise_path(@template, @template_exercise),
-          method: :delete,
-          class: "btn btn-outline-danger ms-auto",
-          data: { turbo_confirm: "Remove this exercise from the template?" } %>
-    </div>
   <% end %>
+
+  <div class="d-flex gap-2">
+    <%= button_tag "Update Exercise", type: :submit, form: "template-exercise-edit-form", class: "btn btn-primary" %>
+    <%= link_to "Cancel", @template, class: "btn btn-outline-secondary" %>
+    <%= button_to "Delete", workout_template_template_exercise_path(@template, @template_exercise),
+        method: :delete,
+        class: "btn btn-outline-danger",
+        form_class: "ms-auto",
+        data: { turbo_confirm: "Remove this exercise from the template?" } %>
+  </div>
 </div>

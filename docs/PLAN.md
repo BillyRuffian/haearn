@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: September 8, 2026
+> Last Updated: September 15, 2026
 
 ## Overview
 
@@ -11,6 +11,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Fix stored template exercise deletion by separating update/delete forms on exercise and template edit pages; cover browser removal/restore, independent submission, and historical links
 - [x] Restore production boot after the dependency update by pinning `json` below 3.0 until the Rails JSON-decoding call path is keyword-compatible
 - [x] Redesign analytics for explicit time/unit semantics, same-elapsed week comparisons, exact equipment context, ranked comparison bars, accessible chart alternatives, reduced motion, responsive phone/desktop sizing, and guarded multi-viewport regressions
 - [x] Add template archive/restore UX and analytics for muscle volume distribution, strength curves, lift ratios, and Wilks/DOTS trends
