@@ -1,6 +1,6 @@
 <div data-controller="coaching-refresh"
      data-coaching-refresh-url-value="<%= workout_workout_analyses_path(workout) %>"
-     data-action="online@window->coaching-refresh:refresh visibilitychange@document->coaching-refresh:resume turbo:frame-load->coaching-refresh:frameLoaded">
+     data-action="online@window->coaching-refresh#refresh visibilitychange@document->coaching-refresh#resume turbo:frame-load->coaching-refresh#frameLoaded">
   <%= turbo_stream_from workout, :coaching %>
   <%= render 'workout_analyses/signal', workout: workout %>
   <%= render 'workout_analyses/panel', workout: workout, analysis: analysis %>

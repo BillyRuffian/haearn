@@ -11,6 +11,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Fix coaching lifecycle event bindings so background-tab completion and updates during an in-flight frame request refresh automatically
 - [x] Push completed/failed AI coaching changes through private Turbo Streams, preserving historical views and reconnect recovery; replace browser polling with a rust-orange pending spinner
 - [x] Show admin AI usage and estimated USD costs for workout and weekly reviews, using verified model rates and explicit missing-usage/pricing states
 - [x] Generate persisted weekly AI reviews before weekly email delivery, with immutable report snapshots, duplicate-job protection, bounded retries, and HTML/plain-text coaching

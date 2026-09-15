@@ -77,7 +77,7 @@ RUN_JS_SYSTEM_SPECS=1 bundle exec rspec spec/system/workout_coaching_spec.rb
 bundle exec rubocop
 ```
 
-Tests stub the OpenAI SDK boundary and exercise real context calculation, schema validation, job retries, persistence, and rendering. Coaching browser specs use committed fixtures and the test cable adapter (which supports real WebSockets), prove push delivery without polling or document navigation, and cover pinned history and missed-message recovery on reconnection. Browser coverage is guarded for environments without Chromium/socket support. Commit/rollback broadcast coverage lives in `spec/models/workout_analysis_broadcast_spec.rb`.
+Tests stub the OpenAI SDK boundary and exercise real context calculation, schema validation, job retries, persistence, and rendering. Coaching browser specs use committed fixtures and the test cable adapter (which supports real WebSockets), prove push delivery without polling or document navigation, and cover pinned history, missed-message recovery on reconnection, completion received while hidden, and completion arriving during an older frame request. Keep lifecycle actions bound with Stimulus `controller#method` syntax: the visibility and frame-load regressions must exercise the actual DOM events. Browser coverage is guarded for environments without Chromium/socket support. Commit/rollback broadcast coverage lives in `spec/models/workout_analysis_broadcast_spec.rb`.
 
 ## Weekly reviews and email delivery
 

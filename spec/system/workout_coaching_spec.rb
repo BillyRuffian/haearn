@@ -140,4 +140,58 @@ RSpec.describe 'Workout coaching panel', type: :system, js: true do
     expect(page).to have_css('turbo-cable-stream-source[connected]', visible: :all)
     within('#ai-coaching') { expect(page).to have_text(data.dig('overall', 'summary')) }
   end
+
+  it 'shows a completion received in a hidden tab when the tab becomes visible' do
+    workout = coaching_workout(user: user, exercise: exercises(:system_press))
+    analysis = workout.workout_analyses.sole
+    visit workout_path(workout)
+    expect(page).to have_css('turbo-cable-stream-source[connected]', visible: :all)
+    expect(page).to have_no_css('turbo-frame[busy]', visible: :all)
+    page.execute_script(<<~JS)
+      Object.defineProperty(document, 'hidden', { configurable: true, value: true })
+      document.querySelector('[data-coaching-refresh-target=signal]').dataset.beforeCompletion = 'true'
+    JS
+    data = coaching_response(Ai::WorkoutContextBuilder.new(workout).call)
+    allow(responses_api).to receive(:create).and_return(api_response(data))
+    AnalyseWorkoutJob.perform_now(analysis.id)
+    expect(page).to have_no_css('[data-before-completion]', visible: :all)
+    expect(page).to have_text('Coaching queued.')
+    page.execute_script(<<~JS)
+      delete document.hidden
+      document.dispatchEvent(new Event('visibilitychange'))
+    JS
+    within('#ai-coaching') { expect(page).to have_text(data.dig('overall', 'summary')) }
+  end
+
+  it 'applies a completion pushed while an older panel request is still in flight' do
+    workout = coaching_workout(user: user, exercise: exercises(:system_press))
+    analysis = workout.workout_analyses.sole
+    visit workout_path(workout)
+    expect(page).to have_css('turbo-cable-stream-source[connected]', visible: :all)
+    expect(page).to have_no_css('turbo-frame[busy]', visible: :all)
+    started, release = Queue.new, Queue.new
+    delayed = false
+    allow_any_instance_of(WorkoutAnalysesController).to receive(:index).and_wrap_original do |original, *args|
+      result = original.call(*args)
+      unless delayed
+        delayed = true
+        started << true
+        release.pop
+      end
+      result
+    end
+    page.execute_script(<<~JS)
+      document.querySelector('[data-coaching-refresh-target=signal]').dataset.beforeCompletion = 'true'
+      document.querySelector('turbo-frame.coaching-frame').reload()
+    JS
+    Timeout.timeout(5) { started.pop }
+    data = coaching_response(Ai::WorkoutContextBuilder.new(workout).call)
+    allow(responses_api).to receive(:create).and_return(api_response(data))
+    AnalyseWorkoutJob.perform_now(analysis.id)
+    expect(page).to have_no_css('[data-before-completion]', visible: :all)
+    release << true
+    within('#ai-coaching') { expect(page).to have_text(data.dig('overall', 'summary')) }
+  ensure
+    release << true if release
+  end
 end
