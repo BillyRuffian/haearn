@@ -1,0 +1,82 @@
+<%= turbo_frame_tag dom_id(workout, :coaching) do %>
+  <% busy = analysis && (analysis.pending? || analysis.processing?) && !analysis.stale? %>
+  <section id="ai-coaching" class="card mb-4 text-break" aria-labelledby="ai-coaching-heading"
+      data-controller="coaching-refresh"
+      data-coaching-refresh-active-value="<%= busy %>"
+      data-coaching-refresh-url-value="<%= workout_workout_analyses_path(workout) %>">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <h2 id="ai-coaching-heading" class="section-header mb-0"><i class="bi bi-stars me-2" aria-hidden="true"></i>AI Coaching</h2>
+        <% if analysis&.analysed_at %>
+          <small class="text-muted"><%= analysis.analysed_at.to_fs(:short) %></small>
+        <% end %>
+      </div>
+
+      <% if analysis&.completed? %>
+        <% data = analysis.response_data %>
+        <div class="d-flex flex-wrap gap-2 small mb-2">
+          <span class="badge text-bg-secondary"><%= data.dig('overall', 'rating').humanize %> session</span>
+          <span class="text-muted"><%= data.dig('overall', 'confidence').humanize %> confidence</span>
+        </div>
+        <p><%= analysis.summary %></p>
+        <% data.fetch('exercise_feedback').each do |feedback| %>
+          <% context = analysis.input_data.fetch('exercises').find { |item| item.values_at('exercise_id', 'machine_id') == feedback.values_at('exercise_id', 'machine_id') } %>
+          <article class="border border-secondary rounded p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+              <h3 class="h6 mb-0"><%= feedback['exercise_name'] %><small class="d-block text-muted mt-1"><%= context['machine_name'].presence || 'No equipment selected' %></small></h3>
+              <span class="badge <%= coaching_status_class(feedback['status']) %>"><%= feedback['status'].humanize %></span>
+            </div>
+            <p class="small mb-2"><%= feedback['summary'] %></p>
+            <% if feedback['observations'].any? %>
+              <ul class="small ps-3"><% feedback['observations'].each do |observation| %><li><%= observation %></li><% end %></ul>
+            <% end %>
+            <% target = feedback.fetch('next_session') %>
+            <% if target.values.any?(&:present?) %>
+              <div class="bg-dark rounded p-2 small">
+                <strong class="d-block mb-1">Next session</strong>
+                <div class="d-flex flex-wrap gap-2 mb-1">
+                  <% if (weight = coaching_target_weight(feedback, context)) %><span><%= weight %></span><% end %>
+                  <% if target['sets'] %><span><%= pluralize(target['sets'], 'set') %></span><% end %>
+                  <% if target['target_reps'] %><span><%= target['target_reps'].join(' / ') %> reps</span><% end %>
+                </div>
+                <% if target['instruction'] %><p class="mb-0"><%= target['instruction'] %></p><% end %>
+              </div>
+            <% end %>
+          </article>
+        <% end %>
+        <% { 'workout_observations' => 'Workout observations', 'programme_recommendations' => 'Programme recommendations' }.each do |key, title| %>
+          <% if data.fetch(key).any? %>
+            <h3 class="h6"><%= title %></h3>
+            <ul class="small ps-3"><% data.fetch(key).each do |item| %><li><%= item %></li><% end %></ul>
+          <% end %>
+        <% end %>
+      <% elsif busy %>
+        <p role="status" class="text-muted mb-2"><%= analysis.processing? ? 'Analysing your workout and recent progress…' : 'Coaching queued. Your workout is saved.' %></p>
+      <% elsif analysis %>
+        <p role="status" class="text-muted">Coaching is unavailable for this attempt. Your workout is saved. You can retry below.</p>
+      <% else %>
+        <p class="text-muted">Get coaching based on this workout and your recent training history.</p>
+      <% end %>
+
+      <div class="d-flex gap-2 flex-wrap align-items-center">
+        <% unless busy %>
+          <%= button_to analysis&.completed? ? 'Reanalyse workout' : (analysis ? 'Retry coaching' : 'Analyse workout'),
+              workout_workout_analyses_path(workout), class: 'btn btn-outline-primary btn-sm',
+              form: { data: { turbo_frame: '_top' } } %>
+        <% end %>
+        <%= link_to 'Refresh', workout_workout_analyses_path(workout), class: 'btn btn-outline-secondary btn-sm' %>
+      </div>
+      <% versions = workout.workout_analyses.newest_first.limit(10).pluck(:id, :status, :created_at) %>
+      <% if versions.size > 1 %>
+        <details class="mt-3 small">
+          <summary class="text-muted">Previous analyses</summary>
+          <ul class="mt-2 ps-3">
+            <% versions.each do |id, status, date| %>
+              <li><%= link_to "#{date.to_fs(:short)} · #{status.humanize} · ##{id}", workout_workout_analysis_path(workout, id) %></li>
+            <% end %>
+          </ul>
+        </details>
+      <% end %>
+    </div>
+  </section>
+<% end %>

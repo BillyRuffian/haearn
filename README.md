@@ -267,3 +267,7 @@ The active improvement track in [docs/PLAN.md](/home/nbt/Projects/Haearn/docs/PL
 - frontend behavior coverage for critical Stimulus flows
 - contributor/onboarding improvements
 - further analytics/query cleanup
+
+## AI workout coaching
+
+Completed workouts can receive asynchronous, versioned AI feedback. See [AI Coaching setup and architecture](docs/AI_COACHING.md) for OpenAI credentials, background jobs, retries, manual analysis, and tests.

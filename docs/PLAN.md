@@ -11,6 +11,12 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Add asynchronous, versioned AI workout coaching through the official OpenAI Responses API
+  - [x] Persist analysis lifecycle/history and enqueue safely after workout completion
+  - [x] Build bounded exact-equipment history and independently tested progression/weekly metrics
+  - [x] Validate structured coaching output, handle retries/failures, and record token usage
+  - [x] Display completed-workout coaching states with refresh, retry, and reanalysis
+  - [x] Document configuration/manual use and verify request, job, service, and browser regressions
 - [x] Fix stored template exercise deletion by separating update/delete forms on exercise and template edit pages; cover browser removal/restore, independent submission, and historical links
 - [x] Restore production boot after the dependency update by pinning `json` below 3.0 until the Rails JSON-decoding call path is keyword-compatible
 - [x] Redesign analytics for explicit time/unit semantics, same-elapsed week comparisons, exact equipment context, ranked comparison bars, accessible chart alternatives, reduced motion, responsive phone/desktop sizing, and guarded multi-viewport regressions

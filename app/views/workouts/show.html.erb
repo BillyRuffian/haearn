@@ -262,6 +262,10 @@
     </div>
   <% end %>
 
+  <% if @workout.completed? %>
+    <%= render 'workout_analyses/panel', workout: @workout, analysis: @workout.workout_analyses.newest_first.first %>
+  <% end %>
+
   <!-- Add Exercise Button (active workouts only) -->
   <% if @workout.in_progress? %>
     <%= link_to add_exercise_workout_path(@workout), 

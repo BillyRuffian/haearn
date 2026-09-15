@@ -27,6 +27,8 @@ gem 'bcrypt', '~> 3.1.7'
 # CSV support (no longer bundled in Ruby 4)
 gem 'csv'
 gem 'webpush'
+gem 'openai'
+gem 'json_schemer'
 
 # Authorization
 gem 'pundit'

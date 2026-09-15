@@ -42,6 +42,7 @@ class Workout < ApplicationRecord
   has_many :workout_blocks, -> { order(:position) }, dependent: :destroy
   has_many :workout_exercises, through: :workout_blocks
   has_many :exercise_sets, through: :workout_exercises
+  has_many :workout_analyses, dependent: :destroy
 
   validates :gym, presence: { message: 'must be selected' }
   validates :user_id,
@@ -56,6 +57,8 @@ class Workout < ApplicationRecord
   scope :in_progress, -> { where(finished_at: nil) }
   after_commit :invalidate_dashboard_analytics_cache_after_create_destroy, on: %i[create destroy]
   after_commit :invalidate_dashboard_analytics_cache_after_update, on: :update
+  after_commit :request_workout_coaching, on: %i[create update],
+    if: -> { completed? && previous_changes.key?('finished_at') && previous_changes['finished_at'].first.nil? }
 
   # Check workout state
   def in_progress?
@@ -103,13 +106,22 @@ class Workout < ApplicationRecord
 
   # Mark workout as complete by setting finished_at timestamp
   def finish!
-    transaction do
+    with_lock do
+      return if completed?
+
       update!(finished_at: Time.current)
       program_session_execution&.complete_from_workout!
     end
   end
 
   private
+
+  def request_workout_coaching
+    Ai::RequestWorkoutAnalysis.call(self, automatic: true)
+  rescue StandardError => error
+    # The workout is already committed. A queue/database failure must not break logging.
+    Rails.logger.error("AI coaching scheduling failed workout_id=#{id} error_class=#{error.class.name}")
+  end
 
   def invalidate_dashboard_analytics_cache_after_create_destroy
     DashboardAnalyticsCache.invalidate_for_user!(user_id, keys: ANALYTICS_KEYS)

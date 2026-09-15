@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_07_151200) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_15_120000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -328,6 +328,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_07_151200) do
     t.index ["updated_at"], name: "index_users_on_updated_at"
   end
 
+  create_table "workout_analyses", force: :cascade do |t|
+    t.datetime "analysed_at"
+    t.datetime "created_at", null: false
+    t.string "error_message"
+    t.json "input_data"
+    t.string "model", null: false
+    t.string "processing_token"
+    t.string "prompt_version", null: false
+    t.string "request_key", null: false
+    t.json "response_data"
+    t.string "response_id"
+    t.string "status", default: "pending", null: false
+    t.text "summary"
+    t.json "token_usage"
+    t.datetime "updated_at", null: false
+    t.datetime "workout_finished_at", null: false
+    t.integer "workout_id", null: false
+    t.index ["request_key"], name: "index_workout_analyses_on_request_key", unique: true
+    t.index ["workout_id", "id"], name: "index_workout_analyses_on_workout_id_and_id"
+    t.index ["workout_id"], name: "index_workout_analyses_on_active_workout", unique: true, where: "status IN ('pending', 'processing')"
+    t.index ["workout_id"], name: "index_workout_analyses_on_workout_id"
+    t.check_constraint "status IN ('pending', 'processing', 'completed', 'failed')", name: "workout_analysis_status"
+  end
+
   create_table "workout_blocks", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "position"
@@ -409,6 +433,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_07_151200) do
   add_foreign_key "template_exercises", "template_blocks"
   add_foreign_key "training_programs", "users"
   add_foreign_key "users", "gyms", column: "default_gym_id"
+  add_foreign_key "workout_analyses", "workouts"
   add_foreign_key "workout_blocks", "workouts"
   add_foreign_key "workout_exercises", "exercises"
   add_foreign_key "workout_exercises", "machines"
