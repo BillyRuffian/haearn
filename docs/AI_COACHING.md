@@ -55,7 +55,17 @@ analysis.reload.token_usage
 
 Network errors, timeouts, rate limits, HTTP 408/409, and server errors retry at most three times using Active Job's increasing delays. Retries reuse the same row and input snapshot. SDK retries are disabled to avoid multiplying requests. An interrupted network request may still have consumed API tokens; exactly-once remote execution cannot be guaranteed. Authentication, malformed JSON, refusal, incomplete output, invalid schema, or mismatched exercises fail without automatic retry. Retry manually after addressing the cause. Missing/deleted workouts are ignored safely.
 
-Diagnostics store controlled error codes/classes and log analysis IDs/error classes, never API exception messages or response bodies. Token usage includes input/output totals and cached/reasoning counts when returned. It is usage telemetry, not a computed bill.
+Diagnostics store controlled error codes/classes and log analysis IDs/error classes, never API exception messages or response bodies. Token usage includes input/output totals and cached/reasoning counts when returned. The admin dashboard estimates costs from this telemetry; it does not retrieve a provider invoice.
+
+### Admin cost reporting
+
+The admin dashboard's **AI usage & estimated costs** section covers reviews requested in the rolling last 30 days, with explicit timestamps and timezone. It groups workout coaching and weekly reviews by the model saved on each record, including failed reviews when a response supplied usage. Two indexed, grouped SQL queries aggregate usage without loading private prompts, notes, or individual review records, and no provider API call occurs when viewing the panel.
+
+`Ai::TokenPricing` contains standard USD rates verified on September 15, 2026 against [OpenAI's GPT-5 mini documentation](https://developers.openai.com/api/docs/models/gpt-5-mini): $0.25 per million uncached input tokens, $0.025 cached input, and $2.00 output, for `gpt-5-mini` and `gpt-5-mini-2025-08-07`. Cached tokens are subtracted from total input before applying the uncached rate. Reasoning tokens are already included in output and are never added again. Calculations retain decimal precision until display.
+
+Missing/invalid usage and unknown model pricing are shown separately; they never silently count as zero spend. Genuine recorded zero usage remains zero. Totals cover only responses with known prices. Verify another model's official rate before adding its exact ID; do not infer pricing from a name prefix. Keep the verification date/source current when updating rates.
+
+These are estimates of saved responses at the listed rates, not historical invoices. The tables retain one usage snapshot per review, so interrupted requests without usage, superseded responses, or overwritten retry responses may have incurred additional charges. Deleted reviews no longer contribute. Taxes, credits, special service tiers and negotiated account pricing are excluded. Reconcile actual charges in the provider's billing dashboard; the application does not need an organization billing/admin key for this report.
 
 ## Tests
 
@@ -86,6 +96,6 @@ For an authorized operational resend, first establish that the provider did not 
 
 Mailer previews and direct `weekly_report` calls without a review still render the original statistics layout. Scheduled delivery always uses the persisted review pipeline. Tests use a stubbed OpenAI SDK and the test email adapter; they do not call OpenAI or send real email.
 
-A live-model evaluation set, explicit per-user goals, and cost reporting remain useful follow-ups. Coaching does not alter training prescriptions automatically.
+A live-model evaluation set, explicit per-user goals, and invoice reconciliation remain useful follow-ups. Coaching does not alter training prescriptions automatically.
 
 API references: [Official Ruby SDK](https://developers.openai.com/api/reference/ruby), [Structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs), [GPT-5 mini capabilities](https://developers.openai.com/api/docs/models/gpt-5-mini).

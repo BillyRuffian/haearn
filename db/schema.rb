@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_15_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_15_150000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -350,6 +350,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_130000) do
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
     t.date "week_start", null: false
+    t.index ["created_at"], name: "index_weekly_training_reviews_on_created_at"
     t.index ["delivery_status", "status", "retry_at"], name: "index_weekly_reviews_on_recovery"
     t.index ["user_id", "week_start"], name: "index_weekly_training_reviews_on_user_id_and_week_start", unique: true
     t.index ["user_id"], name: "index_weekly_training_reviews_on_user_id"
@@ -374,6 +375,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_130000) do
     t.datetime "updated_at", null: false
     t.datetime "workout_finished_at", null: false
     t.integer "workout_id", null: false
+    t.index ["created_at"], name: "index_workout_analyses_on_created_at"
     t.index ["request_key"], name: "index_workout_analyses_on_request_key", unique: true
     t.index ["workout_id", "id"], name: "index_workout_analyses_on_workout_id_and_id"
     t.index ["workout_id"], name: "index_workout_analyses_on_active_workout", unique: true, where: "status IN ('pending', 'processing')"

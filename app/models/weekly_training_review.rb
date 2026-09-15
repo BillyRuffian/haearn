@@ -28,6 +28,7 @@
 # Indexes
 #
 #  index_weekly_reviews_on_recovery                         (delivery_status,status,retry_at)
+#  index_weekly_training_reviews_on_created_at              (created_at)
 #  index_weekly_training_reviews_on_user_id                 (user_id)
 #  index_weekly_training_reviews_on_user_id_and_week_start  (user_id,week_start) UNIQUE
 #

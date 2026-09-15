@@ -1,0 +1,56 @@
+<section class="card mb-4" id="ai-costs" aria-labelledby="ai-costs-heading">
+  <div class="card-header">
+    <h2 class="h5 mb-0" id="ai-costs-heading"><i class="bi bi-cpu me-2" aria-hidden="true"></i>AI usage &amp; estimated costs</h2>
+  </div>
+  <div class="card-body">
+    <p class="text-muted">Reviews requested in the last 30 days: <%= @ai_usage[:since].strftime('%d %b %Y %H:%M') %>–<%= @ai_usage[:through].strftime('%d %b %Y %H:%M %Z') %>.</p>
+    <% if @ai_usage[:rows].empty? %>
+      <p>No AI reviews requested in this period. Costs will appear when token usage is available.</p>
+    <% else %>
+      <div class="row g-3 mb-3">
+        <div class="col-12 col-sm-6">
+          <div class="stat-label">Estimated cost of priced responses (USD)</div>
+          <div class="fs-3 text-rust"><%= ai_cost_usd(@ai_usage[:estimated_cost_usd]) %></div>
+          <div class="small text-muted"><%= pluralize(@ai_usage[:priced_reviews], 'review') %> with usage and known pricing</div>
+        </div>
+        <div class="col-12 col-sm-6">
+          <div>Usage unavailable: <strong><%= @ai_usage[:missing_usage_reviews] %></strong></div>
+          <div>Recorded responses without pricing: <strong><%= @ai_usage[:unpriced_reviews] %></strong></div>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <caption>Recorded usage by feature and model. Cached input is included in total input; output includes reasoning tokens.</caption>
+          <thead><tr>
+            <th scope="col">Feature / model</th>
+            <th scope="col" class="text-end">Reviews with usage / requested</th>
+            <th scope="col" class="text-end">Input tokens</th>
+            <th scope="col" class="text-end">Cached input</th>
+            <th scope="col" class="text-end">Output tokens</th>
+            <th scope="col" class="text-end">Estimated USD</th>
+          </tr></thead>
+          <tbody>
+            <% @ai_usage[:rows].each do |row| %>
+              <tr>
+                <th scope="row"><%= row[:feature] %><span class="d-block small text-muted text-break"><%= row[:model] %></span></th>
+                <td class="text-end"><%= row[:recorded_reviews] %> / <%= row[:reviews] %></td>
+                <td class="text-end"><%= row[:recorded_reviews].positive? ? number_with_delimiter(row[:input_tokens]) : '—' %></td>
+                <td class="text-end"><%= row[:recorded_reviews].positive? ? number_with_delimiter(row[:cached_tokens]) : '—' %></td>
+                <td class="text-end"><%= row[:recorded_reviews].positive? ? number_with_delimiter(row[:output_tokens]) : '—' %></td>
+                <td class="text-end text-nowrap"><%= ai_cost_usd(row[:estimated_cost_usd]) %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
+    <p class="small text-muted mb-2">Estimates use saved responses and standard USD token rates. Failed reviews with recorded usage are included. Unreported requests, overwritten retry responses, taxes, credits, and account-specific pricing are excluded; this is not an invoice.</p>
+    <p class="small text-muted mb-0">
+      <%= link_to 'OpenAI GPT-5 mini pricing', Ai::TokenPricing::SOURCE_URL %>, verified <%= Ai::TokenPricing::VERIFIED_ON.strftime('%d %b %Y') %>:
+      <%= number_to_currency(Ai::TokenPricing::GPT_5_MINI[:input], precision: 3, strip_insignificant_zeros: true) %> input /
+      <%= number_to_currency(Ai::TokenPricing::GPT_5_MINI[:cached_input], precision: 3, strip_insignificant_zeros: true) %> cached input /
+      <%= number_to_currency(Ai::TokenPricing::GPT_5_MINI[:output]) %> output per million tokens.
+      Applies to gpt-5-mini and its 2025-08-07 snapshot. Other models show unavailable pricing.
+    </p>
+  </div>
+</section>

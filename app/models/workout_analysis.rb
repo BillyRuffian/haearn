@@ -23,6 +23,7 @@
 # Indexes
 #
 #  index_workout_analyses_on_active_workout     (workout_id) UNIQUE WHERE status IN ('pending', 'processing')
+#  index_workout_analyses_on_created_at         (created_at)
 #  index_workout_analyses_on_request_key        (request_key) UNIQUE
 #  index_workout_analyses_on_workout_id         (workout_id)
 #  index_workout_analyses_on_workout_id_and_id  (workout_id,id)

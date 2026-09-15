@@ -16,6 +16,7 @@ module Admin
       @registration_data = registration_chart_data
       @popular_exercises = popular_exercises_data
       @system_info = system_info_data
+      @ai_usage = AiUsageReport.new.call
     end
 
     private
