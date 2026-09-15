@@ -40,28 +40,10 @@ module Ai
       return {} if @groups.empty? || @workout.started_at.nil?
 
       matching = @groups.keys.map { |exercise_id, machine_id| WorkoutExercise.where(exercise_id: exercise_id, machine_id: machine_id) }.reduce(&:or)
-      sessions = matching.joins(:workout, :exercise_sets).merge(Workout.completed)
+      scope = matching.joins(:workout).merge(Workout.completed)
         .where(workouts: { user_id: @workout.user_id, finished_at: ..@workout.finished_at })
         .where('workouts.started_at < :date OR (workouts.started_at = :date AND workouts.id < :id)', date: @workout.started_at, id: @workout.id)
-        .where.not(exercise_sets: { completed_at: nil })
-        .select('workouts.id AS workout_id, workouts.started_at, workout_exercises.exercise_id, workout_exercises.machine_id').distinct
-      ranked = WorkoutExercise.from('coaching_sessions').select(
-        'coaching_sessions.*, ROW_NUMBER() OVER (PARTITION BY exercise_id, machine_id ORDER BY started_at DESC, workout_id DESC) AS session_rank'
-      )
-      selected = WorkoutExercise.with(coaching_sessions: sessions, ranked_coaching_sessions: ranked)
-        .from('ranked_coaching_sessions').where('session_rank <= ?', @history_sessions).order('session_rank')
-        .pluck(Arel.sql('workout_id'), Arel.sql('exercise_id'), Arel.sql('machine_id'))
-        .map { |workout_id, exercise_id, machine_id| { 'workout_id' => workout_id, 'exercise_id' => exercise_id, 'machine_id' => machine_id } }
-      exercises = matching.joins(:workout).where(workouts: { id: selected.map { |row| row['workout_id'] } })
-        .includes(:exercise_sets, :workout, :workout_block).to_a
-      groups = exercises.group_by { |entry| [ entry.exercise_id, entry.machine_id, entry.workout.id ] }
-      selected.group_by { |row| [ row['exercise_id'], row['machine_id'] ] }.transform_values do |rows|
-        rows.map do |row|
-          entries = groups.fetch([ row['exercise_id'], row['machine_id'], row['workout_id'] ])
-            .sort_by { |entry| [ entry.workout_block.position, entry.position, entry.id ] }
-          { workout_id: row['workout_id'], started_at: entries.first.workout.started_at.iso8601, sets: working_sets(entries) }
-        end
-      end
+      TrainingSessionHistory.new(scope: scope, limit: @history_sessions).call
     end
 
     def recent_frequency
@@ -95,19 +77,7 @@ module Ai
     end
 
     def working_sets(entries)
-      entries.flat_map do |entry|
-        entry.exercise_sets.select { |set| set.completed_at && !set.is_warmup }
-          .sort_by { |set| [ set.completed_at, set.position, set.id ] }.map do |set|
-            {
-              weight_kg: set.weight_kg&.to_f, reps: set.reps, rpe: set.rpe&.to_f, rir: set.rir,
-              duration_seconds: set.duration_seconds, distance_meters: set.distance_meters&.to_f,
-              set_type: set.set_type, is_failed: set.is_failed, spotter_assisted: set.spotter_assisted,
-              is_amrap: set.is_amrap, partial_reps: set.partial_reps, pain_flag: set.pain_flag,
-              equipment: set.equipment_list, band_tension_kg: set.band_tension_kg&.to_f,
-              chain_weight_kg: set.chain_weight_kg&.to_f
-            }.compact
-          end
-      end
+      TrainingSessionData.working_sets(entries)
     end
 
     def prescribed_target(entries)

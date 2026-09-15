@@ -13,6 +13,14 @@ module Ai
         ENV.fetch('OPENAI_WORKOUT_PROMPT_VERSION', 'workout-v1')
       end
 
+      def weekly_model
+        ENV.fetch('OPENAI_WEEKLY_MODEL', model)
+      end
+
+      def weekly_prompt_version
+        ENV.fetch('OPENAI_WEEKLY_PROMPT_VERSION', 'weekly-v1')
+      end
+
       def timeout
         integer('OPENAI_WORKOUT_TIMEOUT', 90, 5..300)
       end

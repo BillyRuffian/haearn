@@ -3,6 +3,16 @@ require 'rails_helper'
 RSpec.describe Ai::WorkoutContextBuilder do
   include_context 'AI coaching'
 
+  it 'provides per-exercise form notes for the current and previous sessions' do
+    prior = coaching_workout(at: Time.utc(2026, 9, 1))
+    prior.workout_exercises.sole.update!(session_notes: 'Touch and go reps')
+    current = coaching_workout
+    current.workout_exercises.sole.update!(session_notes: 'Paused reps with slower lowering')
+    context = described_class.new(current).call['exercises'].sole
+    expect(context.to_json).to include('Paused reps with slower lowering')
+    expect(context['history'].sole['exercise_notes'].sole['session_notes']).to eq('Touch and go reps')
+  end
+
   it 'selects bounded, exact-equipment, setful history by visible date without crossing users or future sessions' do
     older = coaching_workout(at: Time.utc(2026, 9, 1), reps: [ 10, 10, 8, 9 ])
     recent = coaching_workout(at: Time.utc(2026, 9, 8), reps: [ 10, 10, 9, 9 ])

@@ -1,0 +1,27 @@
+<tr>
+  <td class="email-gutter" style="padding: 24px 30px 32px; color: #c3c8cb; font-size: 14px; line-height: 22px;">
+    <h2 style="margin: 0 0 14px; color: #ffffff; font-size: 22px;">Your weekly AI review</h2>
+    <% if @weekly_coaching %>
+      <p><strong><%= @weekly_coaching.dig('overall', 'rating').humanize %></strong> · Confidence: <%= @weekly_coaching.dig('overall', 'confidence') %></p>
+      <p><%= @weekly_coaching.dig('overall', 'summary') %></p>
+      <% @weekly_coaching.fetch('exercise_feedback').each do |feedback| %>
+        <% context = @review.input_data.fetch('exercises').find { |entry| entry['exercise_id'] == feedback['exercise_id'] && entry['machine_id'] == feedback['machine_id'] } %>
+        <h3 style="margin: 22px 0 6px; color: #ffffff; font-size: 16px;"><%= feedback['exercise_name'] %> · <%= context['machine_name'].presence || 'Free weight / no machine' %></h3>
+        <p style="margin: 0 0 8px;"><strong><%= feedback['status'].humanize %></strong> — <%= feedback['summary'] %></p>
+        <% feedback.fetch('observations').each do |observation| %><p><%= observation %></p><% end %>
+        <% target = weekly_coaching_target(feedback, context) %>
+        <% if target.present? %><p><strong>Next session:</strong> <%= target %></p><% end %>
+      <% end %>
+      <% if @weekly_coaching.fetch('weekly_observations').any? %>
+        <h3 style="color: #ffffff; font-size: 16px;">Across the week</h3>
+        <% @weekly_coaching.fetch('weekly_observations').each do |observation| %><p><%= observation %></p><% end %>
+      <% end %>
+      <% if @weekly_coaching.fetch('next_week_priorities').any? %>
+        <h3 style="color: #ffffff; font-size: 16px;">Next week</h3>
+        <% @weekly_coaching.fetch('next_week_priorities').each do |priority| %><p><%= priority %></p><% end %>
+      <% end %>
+    <% else %>
+      <p>Your AI review was unavailable this week. Your training statistics are included above.</p>
+    <% end %>
+  </td>
+</tr>

@@ -13,6 +13,8 @@ Set `OPENAI_API_KEY` in the Rails **web and job worker** environment, or add an 
 | `OPENAI_WORKOUT_HISTORY_SESSIONS` | `6` | Prior sessions per exact exercise/machine, clamped to 1–8 |
 | `OPENAI_WORKOUT_MAX_OUTPUT_TOKENS` | `6000` | Output budget including reasoning, clamped to 1,000–16,000 |
 | `OPENAI_WORKOUT_PROMPT_VERSION` | `workout-v1` | Version defined in `Ai::Prompts`; retain old versions for queued jobs |
+| `OPENAI_WEEKLY_MODEL` | workout model | Model for weekly reviews |
+| `OPENAI_WEEKLY_PROMPT_VERSION` | `weekly-v1` | Weekly prompt version |
 
 All defaults live in `Ai::Config`. The model and prompt version are captured on each analysis record. An unknown prompt version fails the attempt safely. The request uses strict JSON-schema output, no tools, no conversation history, and `store: false`. API retention remains subject to the OpenAI account's policies. The API receives exercise/equipment names, limited workout/setup notes, set values, and local metrics; it receives no account email, user profile, photos, or full database export. The compact input snapshot is stored locally for reproducibility. Treat it as private workout data.
 
@@ -34,6 +36,8 @@ Warmups and sets without completion timestamps are omitted from working-set metr
 Programmed targets use `ProgramSessionExecution.prescription`, never later edits to a template. Workouts launched directly from mutable templates have no immutable target snapshot, so target attainment is unknown. Hypertrophy is the default goal because there is no structured goal field in the current user/program models. Raw and equipped flags and machine ratios are included for interpretation. Numeric recommended weights remain kg; the panel converts them to the recorded machine display unit/ratio or the user's preferred unit.
 
 The input is capped at 120 KB, notes at 400 characters, and historical sessions at eight. Oversized inputs fail safely rather than silently claiming analysis of omitted exercises. No automatic full-history backfill occurs.
+
+Both workout and weekly contexts include per-exercise session notes and persistent setup notes for current and historical sessions. Repeated exercise occurrences retain their own notes and IDs. Prompts explicitly consider form, tempo, range-of-motion, and setup changes when interpreting performance; embedded instructions in notes remain untrusted data. Previously saved input snapshots stay unchanged; request a new workout analysis to incorporate newly edited notes.
 
 ## Manual use, retries, and operations
 
@@ -57,14 +61,31 @@ Diagnostics store controlled error codes/classes and log analysis IDs/error clas
 
 ```sh
 bundle exec rspec spec/services/training_progression_calculator_spec.rb spec/services/ai_workout_context_builder_spec.rb spec/services/ai_workout_analysis_schema_spec.rb spec/helpers/workout_analyses_helper_spec.rb spec/jobs/analyse_workout_job_spec.rb spec/requests/workout_coaching_spec.rb
+bundle exec rspec spec/jobs/weekly_training_review_job_spec.rb spec/services/ai_weekly_context_builder_spec.rb spec/mailers/weekly_summary_mailer_spec.rb
 RUN_JS_SYSTEM_SPECS=1 bundle exec rspec spec/system/workout_coaching_spec.rb
 bundle exec rubocop
 ```
 
 Tests stub the OpenAI SDK boundary and exercise real context calculation, schema validation, job retries, persistence, and rendering. Browser coverage is guarded for environments without Chromium/socket support.
 
-## Future weekly review
+## Weekly reviews and email delivery
 
-Reuse `TrainingProgressionCalculator`, `TrainingWeeklyMetrics`, `Ai::Client#structured_response`, and versioned `Ai::Prompts`. Add a weekly context/schema and its own persisted review/job when that feature is requested. A live-model coaching evaluation set, explicit per-user goals, and cost reporting are useful follow-ups; this implementation does not alter training prescriptions automatically.
+The existing Sunday 06:00 schedule still selects the **previous completed Monday–Sunday week**, using workout completion dates in the Rails application timezone. It does not select the Sunday currently in progress. Only users with weekly email enabled are queued, and delivery checks that preference again.
+
+1. `SendWeeklySummariesJob` creates or finds one `WeeklyTrainingReview` per user/week, enforced by a unique database index. The reporting week is carried in this record through every subsequent job.
+2. `WeeklyTrainingReviewJob` atomically claims preparation with an ownership token. It saves the existing calculator's email statistics, preferred units, and `Ai::WeeklyContextBuilder` input in one database transaction, before any network call. Retries reuse these snapshots even if workouts or notes change later.
+3. The context includes every exercise/equipment pair and session from the report week, plus bounded earlier matching history. Per-exercise progression metrics compare the latest session against earlier sessions. `Ai::WeeklyReviewAnalyser` uses the shared API boundary, validates the weekly response schema and exact exercise identities, and saves response metadata and coaching. It never waits for individual workout analyses.
+4. Only a completed review or terminal failure with saved statistics may queue `DeliverWeeklySummaryJob`. Transient API failures have a persisted three-attempt limit and increasing delays. Missing credentials, refused/incomplete/invalid responses, or exhausted retries produce a statistics email with a short AI-unavailable message. A statistics preparation failure remains recoverable and cannot send an empty email.
+5. Delivery atomically claims the record before SMTP. Both HTML and text parts render the saved coaching and statistics, including exercise/equipment feedback, converted numeric targets, weekly observations, and next-week priorities. Repeated or overlapping delivery jobs cannot reuse the claim. The message has a stable review-specific Message-ID.
+
+`RecoverWeeklyTrainingReviewsJob` runs every ten minutes. It repairs lost preparation/delivery enqueue steps and stale AI claims. Ownership tokens prevent superseded workers from publishing results. The database is never held locked while waiting for OpenAI or SMTP.
+
+**SMTP ambiguity:** if sending raises or a process disappears after claiming delivery, the record becomes `delivery_status: uncertain` and is not automatically resent. SMTP cannot guarantee exactly-once delivery when a server accepts a message before a connection fails. Inspect the provider's delivery logs using the stable Message-ID before deciding whether an uncertain message needs a resend. Record IDs/statuses and error classes are logged; secret credentials, input notes, and provider response bodies are not.
+
+For an authorized operational resend, first establish that the provider did not accept the email, then change that review's `delivery_status` to `pending` and enqueue `DeliverWeeklySummaryJob` with its ID. Preserve its completed response and saved statistics. Do not reset uncertain records in bulk. `sent` means the delivery adapter accepted the message, not that a recipient opened or received it.
+
+Mailer previews and direct `weekly_report` calls without a review still render the original statistics layout. Scheduled delivery always uses the persisted review pipeline. Tests use a stubbed OpenAI SDK and the test email adapter; they do not call OpenAI or send real email.
+
+A live-model evaluation set, explicit per-user goals, and cost reporting remain useful follow-ups. Coaching does not alter training prescriptions automatically.
 
 API references: [Official Ruby SDK](https://developers.openai.com/api/reference/ruby), [Structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs), [GPT-5 mini capabilities](https://developers.openai.com/api/docs/models/gpt-5-mini).

@@ -57,6 +57,7 @@ class User < ApplicationRecord
   has_many :progress_photos, dependent: :destroy
   has_many :admin_audit_logs, foreign_key: :admin_user_id, dependent: :nullify, inverse_of: :admin_user
   belongs_to :default_gym, class_name: 'Gym', optional: true
+  has_many :weekly_training_reviews, dependent: :destroy
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 

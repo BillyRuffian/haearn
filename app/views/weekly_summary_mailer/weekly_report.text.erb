@@ -17,10 +17,10 @@ Workouts: <%= @summary[:this_week][:workout_count] %>
   Average: <%= weekly_summary_number(@summary[:vs_average][:avg_workout_count]) %>
 <% end %>
 
-Volume moved: <%= number_with_delimiter(WeightConverter.from_kg(@summary[:this_week][:total_volume_kg], @user.preferred_unit).round) %> <%= @user.preferred_unit %>
+Volume moved: <%= number_with_delimiter(WeightConverter.from_kg(@summary[:this_week][:total_volume_kg], @report_unit).round) %> <%= @report_unit %>
 <% if @summary[:vs_average] %>
   <%= weekly_summary_comparison(@summary[:vs_average][:volume_pct], @summary[:vs_average][:baseline_weeks]) %>
-  Average: <%= number_with_delimiter(WeightConverter.from_kg(@summary[:vs_average][:avg_volume_kg], @user.preferred_unit).round) %> <%= @user.preferred_unit %>
+  Average: <%= number_with_delimiter(WeightConverter.from_kg(@summary[:vs_average][:avg_volume_kg], @report_unit).round) %> <%= @report_unit %>
 <% end %>
 
 Working sets: <%= @summary[:this_week][:total_sets] %>
@@ -47,14 +47,14 @@ HIGHLIGHTS
 <% if @summary[:new_prs].any? %>
 NEW PERSONAL RECORDS
 <% @summary[:new_prs].each do |pr| %>
-- <%= pr[:exercise_name] %>: <%= number_with_delimiter(WeightConverter.from_kg(pr[:value_kg], @user.preferred_unit).round) %> <%= @user.preferred_unit %> x <%= pr[:reps] %>
+- <%= pr[:exercise_name] %>: <%= number_with_delimiter(WeightConverter.from_kg(pr[:value_kg], @report_unit).round) %> <%= @report_unit %> x <%= pr[:reps] %>
 <% end %>
 
 <% end %>
 <% if @summary[:top_exercises].any? %>
 TOP EXERCISES BY VOLUME
 <% @summary[:top_exercises].each_with_index do |exercise, index| %>
-<%= index + 1 %>. <%= exercise[:exercise_name] %>: <%= number_with_delimiter(WeightConverter.from_kg(exercise[:volume_kg], @user.preferred_unit).round) %> <%= @user.preferred_unit %> / <%= pluralize(exercise[:set_count], 'set') %>
+<%= index + 1 %>. <%= exercise[:exercise_name] %>: <%= number_with_delimiter(WeightConverter.from_kg(exercise[:volume_kg], @report_unit).round) %> <%= @report_unit %> / <%= pluralize(exercise[:set_count], 'set') %>
 <% end %>
 
 <% end %>
@@ -72,6 +72,8 @@ A quiet week does not erase the work already done. Start the next session when y
 
 Start a workout: <%= new_workout_url %>
 <% end %>
+
+<%= render "ai_review" if @review %>
 
 Haearn - Hardcore weightlifting tracking
 Manage email preferences: <%= settings_url %>

@@ -19,6 +19,11 @@ production:
     queue: default
     schedule: every Sunday at 6am
 
+  recover_weekly_training_reviews:
+    class: RecoverWeeklyTrainingReviewsJob
+    queue: default
+    schedule: every 10 minutes
+
   purge_old_audit_logs:
     class: PurgeOldAuditLogsJob
     queue: default

@@ -11,6 +11,8 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Generate persisted weekly AI reviews before weekly email delivery, with immutable report snapshots, duplicate-job protection, bounded retries, and HTML/plain-text coaching
+- [x] Include per-exercise session/setup notes from current and historical sessions in workout and weekly AI reviews, with explicit form/tempo/setup comparison guidance
 - [x] Add asynchronous, versioned AI workout coaching through the official OpenAI Responses API
   - [x] Persist analysis lifecycle/history and enqueue safely after workout completion
   - [x] Build bounded exact-equipment history and independently tested progression/weekly metrics

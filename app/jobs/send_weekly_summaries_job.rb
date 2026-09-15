@@ -3,9 +3,9 @@ class SendWeeklySummariesJob < ApplicationJob
 
   # This job runs every Sunday to send weekly workout summaries
   # to users who have opted in (weekly_summary_email = true)
-  def perform
+  def perform(week_start = nil)
     # Send for the previous week (last Monday to Sunday)
-    week_start = Time.current.beginning_of_week - 1.week
+    week_start = (week_start || Time.current.beginning_of_week - 1.week).to_date.beginning_of_week
 
     users = User.where(weekly_summary_email: true)
 
@@ -13,9 +13,10 @@ class SendWeeklySummariesJob < ApplicationJob
 
     users.find_each do |user|
       begin
-        WeeklySummaryMailer.weekly_report(user: user, week_start: week_start).deliver_later
+        review = WeeklyTrainingReview.request!(user: user, week_start: week_start)
+        WeeklyTrainingReviewJob.perform_later(review.id) if review.delivery_pending?
       rescue => e
-        Rails.logger.error "Failed to send weekly summary to user #{user.id}: #{e.message}"
+        Rails.logger.error "Failed to queue weekly summary user_id=#{user.id} error_class=#{e.class.name}"
         # Continue to next user - don't let one failure stop all emails
       end
     end

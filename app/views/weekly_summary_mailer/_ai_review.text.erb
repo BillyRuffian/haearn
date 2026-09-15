@@ -1,0 +1,32 @@
+YOUR WEEKLY AI REVIEW
+<% if @weekly_coaching %>
+<%= @weekly_coaching.dig('overall', 'rating').humanize %> · Confidence: <%= @weekly_coaching.dig('overall', 'confidence') %>
+<%= @weekly_coaching.dig('overall', 'summary') %>
+<% @weekly_coaching.fetch('exercise_feedback').each do |feedback| %>
+<% context = @review.input_data.fetch('exercises').find { |entry| entry['exercise_id'] == feedback['exercise_id'] && entry['machine_id'] == feedback['machine_id'] } %>
+
+<%= feedback['exercise_name'] %> · <%= context['machine_name'].presence || 'Free weight / no machine' %>
+<%= feedback['status'].humanize %>: <%= feedback['summary'] %>
+<% feedback.fetch('observations').each do |observation| %>
+- <%= observation %>
+<% end %>
+<% target = weekly_coaching_target(feedback, context) %>
+<% if target.present? %>Next session: <%= target %><% end %>
+<% end %>
+<% if @weekly_coaching.fetch('weekly_observations').any? %>
+
+ACROSS THE WEEK
+<% @weekly_coaching.fetch('weekly_observations').each do |observation| %>
+- <%= observation %>
+<% end %>
+<% end %>
+<% if @weekly_coaching.fetch('next_week_priorities').any? %>
+
+NEXT WEEK
+<% @weekly_coaching.fetch('next_week_priorities').each do |priority| %>
+- <%= priority %>
+<% end %>
+<% end %>
+<% else %>
+Your AI review was unavailable this week. Your training statistics are included above.
+<% end %>

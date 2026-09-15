@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_15_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_15_130000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -328,6 +328,35 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_120000) do
     t.index ["updated_at"], name: "index_users_on_updated_at"
   end
 
+  create_table "weekly_training_reviews", force: :cascade do |t|
+    t.datetime "analysed_at"
+    t.integer "attempts", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.string "delivery_error"
+    t.datetime "delivery_started_at"
+    t.string "delivery_status", default: "pending", null: false
+    t.string "error_message"
+    t.json "input_data"
+    t.string "model", null: false
+    t.string "processing_token"
+    t.string "prompt_version", null: false
+    t.json "response_data"
+    t.string "response_id"
+    t.datetime "retry_at"
+    t.datetime "sent_at"
+    t.string "status", default: "pending", null: false
+    t.json "summary_data"
+    t.json "token_usage"
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
+    t.date "week_start", null: false
+    t.index ["delivery_status", "status", "retry_at"], name: "index_weekly_reviews_on_recovery"
+    t.index ["user_id", "week_start"], name: "index_weekly_training_reviews_on_user_id_and_week_start", unique: true
+    t.index ["user_id"], name: "index_weekly_training_reviews_on_user_id"
+    t.check_constraint "delivery_status IN ('pending', 'sending', 'sent', 'uncertain', 'skipped')", name: "weekly_review_delivery_status"
+    t.check_constraint "status IN ('pending', 'processing', 'completed', 'failed')", name: "weekly_review_status"
+  end
+
   create_table "workout_analyses", force: :cascade do |t|
     t.datetime "analysed_at"
     t.datetime "created_at", null: false
@@ -433,6 +462,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_120000) do
   add_foreign_key "template_exercises", "template_blocks"
   add_foreign_key "training_programs", "users"
   add_foreign_key "users", "gyms", column: "default_gym_id"
+  add_foreign_key "weekly_training_reviews", "users"
   add_foreign_key "workout_analyses", "workouts"
   add_foreign_key "workout_blocks", "workouts"
   add_foreign_key "workout_exercises", "exercises"

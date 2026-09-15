@@ -270,4 +270,4 @@ The active improvement track in [docs/PLAN.md](/home/nbt/Projects/Haearn/docs/PL
 
 ## AI workout coaching
 
-Completed workouts can receive asynchronous, versioned AI feedback. See [AI Coaching setup and architecture](docs/AI_COACHING.md) for OpenAI credentials, background jobs, retries, manual analysis, and tests.
+Completed workouts can receive asynchronous, versioned AI feedback. Weekly emails include a persisted AI review prepared before delivery. Both review types include per-exercise session and setup notes from current and historical sessions. See [AI Coaching setup and architecture](docs/AI_COACHING.md) for OpenAI credentials, background jobs, retries, delivery recovery, manual analysis, and tests.

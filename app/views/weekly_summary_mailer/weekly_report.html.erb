@@ -2,7 +2,7 @@
   stats = @summary[:this_week]
   comparison = @summary[:vs_average]
   baseline_weeks = comparison&.fetch(:baseline_weeks)
-  unit = @user.preferred_unit
+  unit = @report_unit
   display_volume = WeightConverter.from_kg(stats[:total_volume_kg], unit).round
 %>
 <span class="preheader">
@@ -105,7 +105,7 @@
               <td class="email-gutter" style="padding: 18px 30px 0;">
                 <h2 style="margin: 0 0 13px; font-size: 18px; line-height: 24px; color: #ffffff; letter-spacing: 0;">Highlights</h2>
                 <% @summary[:highlights].each do |highlight| %>
-                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 8px; border-left: 3px solid <%= highlight[:type] == :missed_week ? '#d6a74f' : '#70c58b' %>;">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 8px; border-left: 3px solid <%= highlight[:type].to_s == 'missed_week' ? '#d6a74f' : '#70c58b' %>;">
                     <tr><td bgcolor="#202427" style="padding: 13px 15px; background-color: #202427; font-size: 14px; line-height: 21px; color: #d9dddf;"><%= highlight[:message] %></td></tr>
                   </table>
                 <% end %>
@@ -180,6 +180,8 @@
             </td>
           </tr>
         <% end %>
+
+        <%= render "ai_review" if @review %>
 
         <tr>
           <td class="email-gutter" align="center" bgcolor="#111315" style="padding: 22px 30px; background-color: #111315; border-top: 1px solid #303438;">
