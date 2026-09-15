@@ -263,7 +263,7 @@
   <% end %>
 
   <% if @workout.completed? %>
-    <%= render 'workout_analyses/panel', workout: @workout, analysis: @workout.workout_analyses.newest_first.first %>
+    <%= render 'workout_analyses/live_panel', workout: @workout, analysis: @workout.workout_analyses.newest_first.first %>
   <% end %>
 
   <!-- Add Exercise Button (active workouts only) -->

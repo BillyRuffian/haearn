@@ -38,6 +38,34 @@ class WorkoutAnalysis < ApplicationRecord
   enum :status, %w[pending processing completed failed].index_with(&:itself), validate: true
   validates :request_key, :model, :prompt_version, :workout_finished_at, presence: true
 
+  after_create_commit :broadcast_coaching_change
+  after_update_commit :broadcast_coaching_change, if: :saved_change_to_status?
+
+  # Job ownership checks use atomic SQL updates, which bypass model callbacks.
+  def self.update_and_broadcast(scope, **attributes)
+    ids = scope.pluck(:workout_id)
+    updated = scope.update_all(**attributes)
+    if updated.positive?
+      ActiveRecord.after_all_transactions_commit do
+        ids.uniq.each { |workout_id| broadcast_coaching_change_for(workout_id) }
+      end
+    end
+    updated
+  end
+
+  def self.broadcast_coaching_change_for(workout_id)
+    workout = Workout.find_by(id: workout_id)
+    return unless workout&.completed?
+
+    # Send only an invalidation marker. The frame fetches fresh, owner-authorized
+    # HTML, including correct form tokens, rather than broadcasting private advice.
+    Turbo::StreamsChannel.broadcast_replace_to(workout, :coaching,
+      target: ActionView::RecordIdentifier.dom_id(workout, :coaching_signal),
+      partial: 'workout_analyses/signal', locals: { workout: workout })
+  rescue StandardError => error
+    Rails.logger.warn("AI coaching broadcast failed workout_id=#{workout_id} error_class=#{error.class.name}")
+  end
+
   scope :newest_first, -> { order(id: :desc) }
   scope :in_flight, -> { where(status: %w[pending processing]) }
 
@@ -47,5 +75,11 @@ class WorkoutAnalysis < ApplicationRecord
 
   def fail_safely!(code)
     update!(status: 'failed', error_message: code, processing_token: nil)
+  end
+
+  private
+
+  def broadcast_coaching_change
+    self.class.broadcast_coaching_change_for(workout_id)
   end
 end

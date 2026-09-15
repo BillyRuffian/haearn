@@ -25,6 +25,6 @@ class WorkoutAnalysesController < ApplicationController
 
   def render_panel
     response.headers['Cache-Control'] = 'no-store'
-    render partial: 'workout_analyses/panel', locals: { workout: @workout, analysis: @analysis }
+    render partial: 'workout_analyses/panel', locals: { workout: @workout, analysis: @analysis, live: action_name == 'index' }
   end
 end

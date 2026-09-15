@@ -29,6 +29,8 @@ RSpec.describe 'Workout coaching', type: :request do
     analysis = workout.workout_analyses.sole
     get workout_path(workout)
     expect(response.body).to include('AI Coaching', 'Coaching queued.', 'data-coaching-refresh-active-value="true"')
+    expect(response.body).to include('turbo-cable-stream-source', 'signed-stream-name', "coaching_signal_workout_#{workout.id}")
+    expect(Nokogiri::HTML(response.body).at_css('#ai-coaching [role="status"] .spinner-border.text-rust')).to be_present
     analysis.update!(status: 'processing')
     get workout_workout_analyses_path(workout)
     expect(response.body).to include('Analysing your workout')

@@ -4382,3 +4382,14 @@ html {
     transition: none;
   }
 }
+// Keep coaching steady while a pushed update fetches its replacement content.
+turbo-frame.coaching-frame[busy] {
+  opacity: 1;
+}
+
+// Keep the waiting indicator visible without motion for users who request it.
+@media (prefers-reduced-motion: reduce) {
+  .coaching-pending-spinner {
+    animation: none;
+  }
+}
