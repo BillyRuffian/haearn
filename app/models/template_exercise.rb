@@ -46,4 +46,11 @@ class TemplateExercise < ApplicationRecord
   validates :target_weight_kg, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
 
   delegate :workout_template, to: :template_block
+
+  def restore_to_template!
+    template_block.with_lock do
+      template_block.update!(removed_at: nil)
+      update!(removed_at: nil)
+    end
+  end
 end

@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: September 15, 2026
+> Last Updated: September 17, 2026
 
 ## Overview
 
@@ -11,6 +11,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Remove whole template blocks without breaking historical exercise links; exclude removed blocks from future workouts and restore their container when restoring an archived exercise
 - [x] Fix coaching lifecycle event bindings so background-tab completion and updates during an in-flight frame request refresh automatically
 - [x] Push completed/failed AI coaching changes through private Turbo Streams, preserving historical views and reconnect recovery; replace browser polling with a rust-orange pending spinner
 - [x] Show admin AI usage and estimated USD costs for workout and weekly reviews, using verified model rates and explicit missing-usage/pricing states

@@ -5,6 +5,7 @@
 #
 #  id                  :integer          not null, primary key
 #  position            :integer          default(0), not null
+#  removed_at          :datetime
 #  rest_seconds        :integer          default(90)
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
@@ -12,8 +13,9 @@
 #
 # Indexes
 #
-#  index_template_blocks_on_workout_template_id               (workout_template_id)
-#  index_template_blocks_on_workout_template_id_and_position  (workout_template_id,position)
+#  index_template_blocks_on_workout_template_id                 (workout_template_id)
+#  index_template_blocks_on_workout_template_id_and_position    (workout_template_id,position)
+#  index_template_blocks_on_workout_template_id_and_removed_at  (workout_template_id,removed_at)
 #
 # Foreign Keys
 #
@@ -31,6 +33,16 @@ class TemplateBlock < ApplicationRecord
   accepts_nested_attributes_for :template_exercises, allow_destroy: true
 
   scope :ordered, -> { order(:position) }
+  scope :active, -> { where(removed_at: nil) }
+
+  # Keep the block and its exercise IDs available to historical workouts.
+  def remove_from_template!
+    with_lock do
+      removed_at = Time.current
+      template_exercises.update_all(removed_at: removed_at, updated_at: removed_at)
+      update!(removed_at: removed_at)
+    end
+  end
 
   # Check if this is a superset (has multiple exercises)
   def superset?

@@ -51,6 +51,38 @@ RSpec.describe 'Stored template editing', type: :system, js: true do
     expect(historical_exercise.reload.template_exercise).to eq(template_exercise)
   end
 
+  it 'cancels then removes an entire used superset block and can restore an exercise' do
+    sibling = template_block.template_exercises.create!(exercise: exercises(:bench_press))
+    visit workout_template_path(template)
+
+    within("[data-block-id='#{template_block.id}'] .card-header") do
+      find('[data-bs-toggle="dropdown"]').click
+      dismiss_confirm('Delete this entire block?') { click_button 'Delete Block' }
+    end
+    expect(page).to have_css("[data-block-id='#{template_block.id}']")
+    expect(template_block.reload.removed_at).to be_nil
+
+    within("[data-block-id='#{template_block.id}'] .card-header") do
+      find('[data-bs-toggle="dropdown"]').click unless has_button?('Delete Block', wait: 0)
+      accept_confirm('Delete this entire block?') { click_button 'Delete Block' }
+    end
+    expect(page).to have_text('Block removed from template.')
+    expect(page).to have_no_css("[data-block-id='#{template_block.id}']")
+    expect(page).to have_text(/No Exercises Yet/i)
+    expect(template.reload.template_blocks).to be_empty
+    expect(sibling.reload.removed_at).to be_present
+    expect(historical_exercise.reload.template_exercise).to eq(template_exercise)
+
+    restore_path = restore_workout_template_template_exercise_path(template, template_exercise)
+    within("form[action='#{restore_path}']") do
+      accept_confirm('Restore this exercise to the template?') { click_button 'Restore' }
+    end
+    expect(page).to have_text('Exercise restored to template.')
+    expect(page).to have_css("[data-block-id='#{template_block.id}']")
+    expect(template_block.reload.template_exercises).to contain_exactly(template_exercise)
+    expect(sibling.reload.removed_at).to be_present
+  end
+
   it 'updates template details and deletes an unused template from its edit page' do
     unused_template = user.workout_templates.create!(name: 'Unused Template')
     visit edit_workout_template_path(unused_template)

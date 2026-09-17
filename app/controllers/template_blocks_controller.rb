@@ -7,11 +7,10 @@ class TemplateBlocksController < ApplicationController
 
   # DELETE /workout_templates/:workout_template_id/blocks/:id
   def destroy
-    if @template_block.destroy
-      redirect_to @template, notice: 'Block removed from template.'
-    else
-      redirect_to @template, alert: @template_block.errors.full_messages.to_sentence
-    end
+    @template_block.remove_from_template!
+    redirect_to @template, notice: 'Block removed from template.', status: :see_other
+  rescue ActiveRecord::RecordInvalid => error
+    redirect_to @template, alert: error.record.errors.full_messages.to_sentence, status: :see_other
   end
 
   private

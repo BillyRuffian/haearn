@@ -84,11 +84,10 @@ class TemplateExercisesController < ApplicationController
   end
 
   def restore
-    if @template_exercise.update(removed_at: nil)
-      redirect_to @template, notice: 'Exercise restored to template.'
-    else
-      redirect_to @template, alert: @template_exercise.errors.full_messages.to_sentence
-    end
+    @template_exercise.restore_to_template!
+    redirect_to @template, notice: 'Exercise restored to template.', status: :see_other
+  rescue ActiveRecord::RecordInvalid => error
+    redirect_to @template, alert: error.record.errors.full_messages.to_sentence, status: :see_other
   end
 
   private
@@ -121,6 +120,6 @@ class TemplateExercisesController < ApplicationController
   end
 
   def next_block_position
-    @template.template_blocks.maximum(:position).to_i + 1
+    @template.all_template_blocks.maximum(:position).to_i + 1
   end
 end

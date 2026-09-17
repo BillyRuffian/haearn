@@ -20,7 +20,8 @@
 #
 class WorkoutTemplate < ApplicationRecord
   belongs_to :user
-  has_many :template_blocks, dependent: :destroy
+  has_many :all_template_blocks, class_name: 'TemplateBlock', dependent: :destroy
+  has_many :template_blocks, -> { active }, class_name: 'TemplateBlock'
   has_many :template_exercises, through: :template_blocks
   has_many :program_sessions, dependent: :restrict_with_error
 

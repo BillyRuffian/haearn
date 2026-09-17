@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_15_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_17_120000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -264,10 +264,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_150000) do
   create_table "template_blocks", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "position", default: 0, null: false
+    t.datetime "removed_at"
     t.integer "rest_seconds", default: 90
     t.datetime "updated_at", null: false
     t.integer "workout_template_id", null: false
     t.index ["workout_template_id", "position"], name: "index_template_blocks_on_workout_template_id_and_position"
+    t.index ["workout_template_id", "removed_at"], name: "index_template_blocks_on_workout_template_id_and_removed_at"
     t.index ["workout_template_id"], name: "index_template_blocks_on_workout_template_id"
   end
 
