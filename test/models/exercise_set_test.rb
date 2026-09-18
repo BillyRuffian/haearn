@@ -60,14 +60,14 @@ class ExerciseSetTest < ActiveSupport::TestCase
     @set.update!(reps: @set.reps + 1)
 
     tokens = DashboardAnalyticsCache.invalidation_tokens
-    assert_includes tokens, DashboardAnalyticsCache.invalidation_token(user_id: @set.workout.user_id, key: 'plateaus')
+    assert_includes tokens, DashboardAnalyticsCache.invalidation_token(user_id: @set.workout.user_id, key: 'pr_timeline')
   end
 
   test 'does not invalidate dashboard analytics cache for non-analytics update' do
     @set.update!(pain_note: 'minor discomfort')
 
     tokens = DashboardAnalyticsCache.invalidation_tokens
-    assert_not_includes tokens, DashboardAnalyticsCache.invalidation_token(user_id: @set.workout.user_id, key: 'plateaus')
+    assert_not_includes tokens, DashboardAnalyticsCache.invalidation_token(user_id: @set.workout.user_id, key: 'pr_timeline')
   end
 
   def create_pr_scope_candidate(previous_weight:, current_weight:, equipped: false)

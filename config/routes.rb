@@ -118,10 +118,12 @@ Rails.application.routes.draw do
     get :export_prs, on: :member
   end
 
-  # Notifications (performance analytics alerts)
+  # Notifications and rest timer delivery
   resources :notifications, only: [ :index ] do
     collection do
       get :feed
+      get :status
+      post :presence
       patch :mark_all_read
       post :rest_timer_expired
     end
@@ -208,7 +210,9 @@ Rails.application.routes.draw do
       patch :reorder_blocks
       get :share_text
     end
-    resources :workout_analyses, only: [ :index, :show, :create ]
+    resources :workout_analyses, only: [ :index, :show, :create ] do
+      post :read, on: :member
+    end
     resources :workout_exercises, only: [ :show, :edit, :update, :destroy ] do
       resources :exercise_sets, only: [ :create, :edit, :update, :destroy ] do
         member do

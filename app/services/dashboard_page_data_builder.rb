@@ -19,8 +19,6 @@ class DashboardPageDataBuilder
       prs_this_month: prs_this_month(pr_timeline_data),
       current_weight_kg: @user.body_metrics.current_weight_kg,
       recent_workouts: recent_workouts,
-      fatigue_data: fatigue_data,
-      readiness_alerts: readiness_alerts,
       today_session: today_session_data
     )
   end
@@ -48,7 +46,6 @@ class DashboardPageDataBuilder
       week_comparison_data: analytics('week_comparison'),
       tonnage_data: analytics('tonnage'),
       training_period_totals: analytics('training_period_totals'),
-      plateau_data: analytics('plateaus'),
       training_density_data: analytics('training_density'),
       muscle_group_data: analytics('muscle_group_volume'),
       muscle_balance_data: analytics('muscle_balance')
@@ -85,57 +82,6 @@ class DashboardPageDataBuilder
       .where.not(finished_at: nil)
       .order(finished_at: :desc)
       .limit(5)
-  end
-
-  def fatigue_data
-    workout = @user.active_workout
-    return [] unless workout
-
-    workout.workout_exercises.includes(:exercise, :machine, :exercise_sets).filter_map do |workout_exercise|
-      next if workout_exercise.exercise_sets.working.empty?
-
-      analyzer = FatigueAnalyzer.new(workout_exercise: workout_exercise, user: @user)
-      analysis = analyzer.analyze
-      next unless analysis
-
-      {
-        workout_exercise: workout_exercise,
-        analysis: analysis,
-        message: analyzer.status_message,
-        color: analyzer.status_color
-      }
-    end
-  end
-
-  def readiness_alerts
-    recent_combos = @user.workouts
-      .where.not(finished_at: nil)
-      .where('finished_at >= ?', 30.days.ago)
-      .joins(workout_exercises: :exercise)
-      .pluck(Arel.sql('DISTINCT exercises.id, workout_exercises.machine_id'))
-      .first(10)
-
-    exercise_ids = recent_combos.map(&:first).compact.uniq
-    machine_ids = recent_combos.map(&:last).compact.uniq
-    exercises_by_id = Exercise.where(id: exercise_ids).index_by(&:id)
-    machines_by_id = Machine.where(id: machine_ids).index_by(&:id)
-
-    recent_combos.filter_map do |exercise_id, machine_id|
-      exercise = exercises_by_id[exercise_id]
-      next unless exercise
-
-      machine = machine_id ? machines_by_id[machine_id] : nil
-      checker = ProgressionReadinessChecker.new(exercise: exercise, user: @user, machine: machine)
-      readiness = checker.check_readiness
-      next unless readiness
-
-      {
-        exercise: exercise,
-        machine: machine,
-        readiness: readiness,
-        message: checker.readiness_message
-      }
-    end
   end
 
   def session_duration_data

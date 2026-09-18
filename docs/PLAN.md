@@ -11,6 +11,11 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Persist AI review completion notifications exactly once, with foreground-aware push delivery and recovery
+- [x] Synchronize PWA unread badges through service-worker status checks, review/read actions, resume, and sign-out
+- [x] Verify AI notification delivery, presence, read authorization, service-worker badge lifecycle, and browser integration (RSpec: 253 examples, 0 failures, 40 guarded browser skips; focused browser suite: 9 passed; worker lifecycle: 12 passed; Minitest: 296 tests, 0 failures; RuboCop: 300 files clean; Brakeman: 0 warnings)
+- [x] Retire legacy progression/readiness, plateau, fatigue, volume-drop, and streak-risk advice across workout logging, history, dashboard, analytics, settings, and notification delivery; keep AI reviews, factual charts, PRs, and rest timers
+- [x] Verify retired-hint rendering, persisted alert suppression, AI reviews, and rest-timer delivery regressions (full RSpec: 231 examples, 0 failures, 38 guarded browser skips; full Minitest: 296 tests, 0 failures; focused notification browser checks: 2 passed; RuboCop clean)
 - [x] Handle blank/zero RPE/RIR combinations as unrecorded in clipboard summaries, with regressions for every nil/zero pair on working and warmup sets
 - [x] Omit RPE/RIR from plaintext workout copies when both values are zero, preserving session notes, warmup labels, and RIR 0 paired with a recorded RPE
 - [x] Include per-exercise session notes and recorded set RPE/RIR (including RIR 0) in the workout plaintext clipboard summary
@@ -75,7 +80,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
   - [x] Add a browser-level regression for the offline confidence widget queued/error/retry state
   - [x] Add a browser-level regression for set duplicate plus inline edit save/cancel flows
   - [x] Add a browser-level regression for the rest timer panel swap/default display/sweep animation contract
-- [x] Realign workout logging request/view contracts so completed workouts hide add-exercise entry points, rest-timer stage panels stay present, and completed workouts show grouped progression updates
+- [x] Realign workout logging request/view contracts so completed workouts hide add-exercise entry points, rest-timer stage panels stay present, and completed workouts show AI coaching (legacy grouped progression updates retired)
 - [x] Repair shared fixture integrity for `users(:system)` / session-backed browser specs and restore a full green test baseline
 - [x] Make the Minitest harness honor `PARALLEL_WORKERS=1` and default SQLite test runs to single-process mode to avoid `database is locked` failures
 - [x] Gate JS system specs behind explicit CI opt-in (`RUN_JS_SYSTEM_SPECS=1`) so the default GitHub Actions test job stays deterministic while a dedicated browser job can still run them
@@ -200,7 +205,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Show previous workout's sets for reference
 - [x] Turbo Stream for instant feedback
 - [x] "+1 Rep" quick button from previous set
-- [x] Show progression updates as a grouped summary after workout completion (not during active set entry)
+- [x] Show AI coaching after workout completion; legacy grouped progression updates retired in September 2026
 - [x] Apply deterministic add-set prefill order (blank with no history; first set from prior session set 1; subsequent sets from immediate prior current set, including warmup/modifier fields)
 - [x] Make the set-form "Last" button copy the full previous-session payload, including warmup/AMRAP and extended tracking flags
 - [x] Hide the per-exercise add-set trigger while any inline set edit form is active in that exercise card
@@ -292,7 +297,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] **Consistency Streaks** - Current/longest streak visualizations
 - [x] **Week-over-Week Comparison** - Side-by-side volume bars for this week vs last
 - [x] **Wilks/DOTS Score Over Time** - Opt-in training estimate from free-weight SBD e1RMs and recent bodyweight
-- [x] **Plateau Detector** - Visual highlighting exercises with no PR in X weeks
+- [x] **Plateau Detector retired** — replaced by contextual AI review feedback
 - [ ] **Training Split Adherence** - Planned vs actual sessions (donut chart)
 
 ---
@@ -624,9 +629,9 @@ $text-muted: #6c757d;
 ### 8.2 Auto-Regulation & Suggestions
 - [x] RPE (Rate of Perceived Exertion) logging per set
 - [x] RIR (Reps in Reserve) tracking
-- [x] Auto-suggest weight increases based on performance _(ProgressionSuggester analyzes RPE/RIR trends, suggests when RPE < 8 or RIR > 2, dynamic increments 2.5-10kg, shown inline during workout and in exercise history)_
-- [x] Fatigue indicator (compare current vs typical performance) _(FatigueAnalyzer compares volume/reps/RPE to 10-session baseline, shows 4 status levels on dashboard and during active workout)_
-- [x] "Ready to progress" notifications when hitting rep targets consistently _(ProgressionReadinessChecker alerts when hitting reps for 3+ sessions, shown on dashboard with detailed analysis)_
+- [x] Retire heuristic weight-increase suggestions; AI reviews now provide next-session guidance
+- [x] Retire heuristic fatigue indicators from dashboard and active workouts
+- [x] Retire "Ready to progress" notifications and their rep-target setting
 
 ### 8.3 1RM Calculator & Projections
 - [x] Calculate estimated 1RM from any set (Epley, Brzycki formulas) _(OneRmCalculator service, shown on exercise history)_
@@ -675,7 +680,7 @@ $text-muted: #6c757d;
 - [x] Volume per muscle group (7-day recovery map on dashboard)
 - [ ] Training frequency heatmap
 - [ ] Exercise balance analysis (push/pull ratio, anterior/posterior)
-- [x] Plateau detection (no PR in X weeks)
+- [x] Retire heuristic plateau alerts in favor of AI reviews
 - [x] Workout consistency streaks
 
 ### 9.3 Comparison Tools
@@ -735,7 +740,7 @@ $text-muted: #6c757d;
 ### 11.2 Auto-Fill Weight From Last Session
 - [x] Pre-fill weight (and reps) inputs from the corresponding set of the previous session
 - [x] "Copy last" button on set form for one-tap population
-- [x] Progression suggester can override with its recommended weight
+- [x] Preserve history-based set prefills without heuristic progression overrides
 
 ### 11.3 Workout Pinning / Favorites on Dashboard
 - [x] Pin/favorite workouts or templates for quick access
@@ -866,11 +871,11 @@ $text-muted: #6c757d;
 ## Phase 16: Notification System
 
 ### 16.1 In-App + Push Notifications
-- [x] Build notification preferences (readiness alerts, streak risk, reminders, PR events) _(User-level toggles added in Settings for readiness/plateau/streak/volume-drop and rest timer in-app/push notifications; services/controllers now honor these preferences)_
+- [x] Honor rest-timer notification preferences; legacy advice preferences are no longer exposed or honored
 - [x] Implement in-app notification center (recent alerts, read/unread state) _(Dynamic bell dropdown + dashboard panel powered by `notifications_center_controller`, polling JSON feed with mark-read/mark-all-read actions; rest timer expiry now enters the same in-app feed for consistency)_
 - [x] Add Web Push subscription + delivery pipeline for PWA users _(Added `PushSubscription` persistence, subscription/unsubscribe endpoints, VAPID-backed `WebPushNotificationService`, and Settings-driven browser subscription flow via `notification_permission_controller`.)_
   - [x] Added `bin/rails web_push:generate_keys` task for OpenSSL 3-compatible VAPID key generation.
-- [x] Trigger notifications from progression/readiness/streak events _(PerformanceNotificationService generates plateau/readiness/streak risk/volume drop alerts and stores deduped notifications per user)_
+- [x] Retire progression/readiness/plateau/streak-risk/volume-drop notifications, including saved alerts and push delivery; retain rest-timer delivery
 - [x] Calibrate notification sensitivity (week-to-date volume drop guardrails; machine-scoped fatigue baseline comparisons)
 - [ ] Add delivery audit + retry logic for failed notification sends
 

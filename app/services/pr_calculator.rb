@@ -4,7 +4,7 @@
 # PR logic is complex and needs to be consistent across:
 # - Live workout tracking ("You just hit a PR!")
 # - Exercise history page (showing all-time PRs)
-# - Dashboard analytics (PR timeline, plateau detection)
+# - Dashboard analytics (PR timeline)
 #
 # Types of PRs Tracked:
 # 1. Weight PR: Heaviest weight lifted (regardless of reps)

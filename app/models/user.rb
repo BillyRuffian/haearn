@@ -8,6 +8,7 @@
 #  default_rest_seconds     :integer          default(90)
 #  email_address            :string           not null
 #  name                     :string
+#  notify_ai_analysis_push  :boolean          default(TRUE), not null
 #  notify_plateau           :boolean          default(TRUE), not null
 #  notify_readiness         :boolean          default(TRUE), not null
 #  notify_rest_timer_in_app :boolean          default(TRUE), not null
@@ -71,11 +72,6 @@ class User < ApplicationRecord
     less_than_or_equal_to: 300,
     allow_nil: true
   }
-  validates :progression_rep_target, numericality: {
-    only_integer: true,
-    greater_than_or_equal_to: 5,
-    less_than_or_equal_to: 20
-  }
 
   # Scopes
   scope :active, -> { where(deactivated_at: nil) }
@@ -92,11 +88,6 @@ class User < ApplicationRecord
   MIN_REST_SECONDS = 30   # 30 seconds minimum
   MAX_REST_SECONDS = 300  # 5 minutes maximum
   DEFAULT_REST_SECONDS = 90  # 90 seconds default (good for most exercises)
-
-  # Progression readiness rep target (determines when user is ready to progress)
-  MIN_PROGRESSION_REP_TARGET = 5
-  MAX_PROGRESSION_REP_TARGET = 20
-  DEFAULT_PROGRESSION_REP_TARGET = 10
 
   # Always return a unit, default to kg if not set
   def preferred_unit
@@ -165,15 +156,18 @@ class User < ApplicationRecord
   end
 
   # Check if user has enabled in-app notifications for a given kind
-  # @param kind [String] notification kind (e.g., 'readiness', 'plateau', 'streak_risk', 'volume_drop')
+  # @param kind [String] notification kind
   # @return [Boolean]
   def notification_enabled_for?(kind)
+    return false unless Notification::KINDS.include?(kind)
+
     column = "notify_#{kind}"
     respond_to?(column) ? public_send(column) : true
   end
 
   def web_push_enabled_for?(kind)
     return notify_rest_timer_push? if kind == 'rest_timer'
+    return notify_ai_analysis_push? if kind == 'workout_analysis'
 
     notification_enabled_for?(kind)
   end

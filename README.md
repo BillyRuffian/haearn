@@ -1,6 +1,6 @@
 # Haearn
 
-Haearn is a serious weightlifting tracker built with Rails 8 for lifters who care about exact machine setup, normalized weight data, supersets, progression signals, and a fast mobile logging flow.
+Haearn is a serious weightlifting tracker built with Rails 8 for lifters who care about exact machine setup, normalized weight data, supersets, AI workout reviews, and a fast mobile logging flow.
 
 The app is opinionated in a few important ways:
 
@@ -105,7 +105,7 @@ bin/rails web_push:generate_keys
 - dashboard page assembly: [dashboard_page_data_builder.rb](/home/nbt/Projects/Haearn/app/services/dashboard_page_data_builder.rb)
 - dashboard analytics calculations: [dashboard_analytics_calculator.rb](/home/nbt/Projects/Haearn/app/services/dashboard_analytics_calculator.rb)
 - analytics caching: [dashboard_analytics_cache.rb](/home/nbt/Projects/Haearn/app/services/dashboard_analytics_cache.rb)
-- notifications: [performance_notification_service.rb](/home/nbt/Projects/Haearn/app/services/performance_notification_service.rb)
+- notifications: [notification.rb](/home/nbt/Projects/Haearn/app/models/notification.rb)
 - push delivery: [web_push_notification_service.rb](/home/nbt/Projects/Haearn/app/services/web_push_notification_service.rb)
 
 ## Core Domain Model
@@ -152,8 +152,10 @@ User
 
 #### Persisted Notifications
 
-- readiness, plateau, streak-risk, volume-drop, and rest timer notifications are saved in the database
+- rest timer notifications are saved in the database; legacy readiness, plateau, streak-risk, and volume-drop advice is retired and hidden
 - in-app notifications and browser push use the same persisted notification records
+- completed AI workout reviews appear in Notifications; push alerts are sent when the app is away, subject to the AI push preference and browser permission
+- supported installed PWAs show the unread-review count on their app icon; viewing reviews, marking notifications read, resuming the app, and signing out reconcile the badge
 
 ## Main User Flows
 
@@ -164,7 +166,7 @@ User
 3. Add exercises, optionally attaching them to a specific machine
 4. Log sets inline with Turbo Streams
 5. Let the rest timer auto-start after each logged set
-6. Finish the workout and view progression suggestions on the completed workout page
+6. Finish the workout and view its AI coaching review
 
 ### Exercise History
 

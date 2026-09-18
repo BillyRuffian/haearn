@@ -147,7 +147,7 @@ RSpec.describe 'Workout UI regressions', type: :request do
     get workout_path(workout)
 
     expect(response).to have_http_status(:ok)
-    expect(response.body).to include('data-controller="offline rest-timer"')
+    expect(Nokogiri::HTML(response.body).at_css('body')['data-controller'].split).to include('offline', 'rest-timer', 'app-notifications')
     expect(response.body).to include('data-rest-timer-duration-value="150"')
     expect(response.body).to include('data-rest-timer-default-duration-value="150"')
     expect(response.body).to include('>2:30<')
@@ -199,7 +199,7 @@ RSpec.describe 'Workout UI regressions', type: :request do
 
     expect(response).to have_http_status(:ok)
     expect(response.media_type).to eq('text/javascript')
-    expect(response.body).to include("const CACHE_VERSION = 'haearn-v7'")
+    expect(response.body).to include("const CACHE_VERSION = 'haearn-v8'")
   end
 
   it 'uses machine display unit for set-level rows while user preference stays kg' do
@@ -1031,16 +1031,7 @@ RSpec.describe 'Workout UI regressions', type: :request do
     expect(response.body).to include('50kg × 8')
   end
 
-  it 'shows progression updates only after workout completion' do
-    allow_any_instance_of(ProgressionSuggester).to receive(:suggest).and_return(
-      {
-        current_weight_kg: 40.0,
-        suggested_weight_kg: 45.0,
-        increase_kg: 5.0,
-        reasons: [ 'consistently hitting 10 reps' ]
-      }
-    )
-
+  it 'omits legacy progression updates from active and completed workouts' do
     active_workout = user.workouts.create!(gym: gym, started_at: Time.current, finished_at: nil)
     active_block = active_workout.workout_blocks.create!(position: 1, rest_seconds: 90)
     active_block.workout_exercises.create!(exercise: exercise, machine: machine, position: 1)
@@ -1055,7 +1046,7 @@ RSpec.describe 'Workout UI regressions', type: :request do
 
     get workout_path(completed_workout)
     expect(response).to have_http_status(:ok)
-    expect(response.body).to include('Progression Updates')
-    expect(response.body).to include('Ready to progress.')
+    expect(response.body).not_to include('Progression Updates')
+    expect(response.body).not_to include('Ready to progress.')
   end
 end

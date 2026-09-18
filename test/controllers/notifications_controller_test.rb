@@ -6,7 +6,7 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
     sign_in_as(@user)
 
     @notification = @user.notifications.create!(
-      kind: 'streak_risk',
+      kind: 'rest_timer',
       severity: 'warning',
       title: 'Test Notification',
       message: 'Time to train.',
@@ -18,7 +18,7 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
   test 'should get index' do
     get notifications_path
     assert_response :success
-    assert_select 'h1', text: /Performance Notifications/
+    assert_select 'h1', text: /Notifications/
   end
 
   test 'should return feed json' do
@@ -28,7 +28,7 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
     payload = JSON.parse(response.body)
     assert payload.key?('unread_count')
     assert payload.key?('notifications')
-    assert payload['notifications'].any? { |n| n['title'] == 'Test Notification' }
+    assert_empty payload['notifications']
   end
 
   test 'feed should exclude rest timer notifications from center payload and unread count' do
@@ -57,23 +57,10 @@ class NotificationsControllerTest < ActionDispatch::IntegrationTest
     assert @notification.read?
   end
 
-  test 'should mark all notifications as read' do
-    second = @user.notifications.create!(
-      kind: 'volume_drop',
-      severity: 'warning',
-      title: 'Second Notification',
-      message: 'Volume dropped.',
-      dedupe_key: "test:#{SecureRandom.hex(4)}",
-      metadata: {}
-    )
-
+  test 'mark all read leaves rest timer notifications outside the center untouched' do
     patch mark_all_read_notifications_path, as: :json
     assert_response :success
-
-    @notification.reload
-    second.reload
-    assert @notification.read?
-    assert second.read?
+    assert_not @notification.reload.read?
   end
 
   test 'should create rest timer notification' do

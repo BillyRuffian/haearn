@@ -34,6 +34,7 @@
 #
 class WorkoutAnalysis < ApplicationRecord
   belongs_to :workout
+  has_one :notification, dependent: :destroy
 
   enum :status, %w[pending processing completed failed].index_with(&:itself), validate: true
   validates :request_key, :model, :prompt_version, :workout_finished_at, presence: true

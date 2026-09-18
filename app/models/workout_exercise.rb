@@ -41,7 +41,6 @@ class WorkoutExercise < ApplicationRecord
   ANALYTICS_KEYS = %w[
     pr_timeline
     exercise_frequency
-    plateaus
     muscle_group_volume
     muscle_balance
     muscle_volume_distribution

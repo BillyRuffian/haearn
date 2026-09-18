@@ -55,7 +55,6 @@ class ExerciseSet < ApplicationRecord
     rep_range_distribution
     week_comparison
     tonnage
-    plateaus
     training_density
     muscle_group_volume
     muscle_balance

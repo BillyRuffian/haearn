@@ -57,8 +57,8 @@ namespace :performance do
         end
       end
 
-      benchmark.call('performance_notification_service#refresh!') do
-        PerformanceNotificationService.new(user: user).refresh!
+      benchmark.call('active_notifications') do
+        user.notifications.active.recent.limit(20).load
       end
     ensure
       Current.session = original_session

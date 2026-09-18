@@ -15,38 +15,6 @@ RSpec.describe 'Equipment-free analysis' do
   end
   let(:machine) { gym.machines.create!(name: 'Analysis Stack', equipment_type: 'machine', display_unit: 'kg') }
 
-  it 'keeps progression suggestions scoped to equipment-free sessions' do
-    travel_to Time.zone.local(2026, 8, 13, 12) do
-      create_session(machine: nil, finished_at: 6.days.ago, weight: 60, reps: 10, rpe: 7)
-      create_session(machine: machine, finished_at: 5.days.ago, weight: 100, reps: 10, rpe: 7)
-      current = create_session(machine: nil, finished_at: nil, weight: 60, reps: 10, rpe: 7)
-
-      expect(ProgressionSuggester.new(workout_exercise: current, user: user).suggest).to be_nil
-
-      create_session(machine: nil, finished_at: 4.days.ago, weight: 60, reps: 10, rpe: 7)
-      expect(ProgressionSuggester.new(workout_exercise: current, user: user).suggest).to include(sessions_analyzed: 2)
-    end
-  end
-
-  it 'keeps readiness and fatigue baselines scoped to equipment-free sessions' do
-    travel_to Time.zone.local(2026, 8, 13, 12) do
-      create_session(machine: nil, finished_at: 8.days.ago, weight: 60, reps: 10)
-      create_session(machine: nil, finished_at: 6.days.ago, weight: 60, reps: 10)
-      create_session(machine: machine, finished_at: 5.days.ago, weight: 100, reps: 10)
-
-      checker = ProgressionReadinessChecker.new(exercise: exercise, user: user, machine: nil)
-      expect(checker.check_readiness).to be_nil
-
-      create_session(machine: nil, finished_at: 4.days.ago, weight: 60, reps: 10)
-      checker = ProgressionReadinessChecker.new(exercise: exercise, user: user, machine: nil)
-      expect(checker.check_readiness).to include(sessions_analyzed: 3)
-
-      current = create_session(machine: nil, finished_at: nil, weight: 55, reps: 10)
-      fatigue = FatigueAnalyzer.new(workout_exercise: current, user: user).analyze
-      expect(fatigue).to include(sessions_analyzed: 3)
-    end
-  end
-
   it 'calculates equipment-free PRs independently from machine-backed PRs' do
     equipment_free = create_session(machine: nil, finished_at: 2.days.ago, weight: 80, reps: 5)
     create_session(machine: machine, finished_at: 1.day.ago, weight: 200, reps: 5)
@@ -69,18 +37,6 @@ RSpec.describe 'Equipment-free analysis' do
 
       expect(weight_prs).to contain_exactly(hash_including(weight: 90, reps: 5))
     end
-  end
-
-  it 'builds an exact equipment-free history target for web push' do
-    notification = user.notifications.build(
-      kind: 'readiness',
-      metadata: { exercise_id: exercise.id, machine_id: nil }
-    )
-    service = WebPushNotificationService.new(user: user)
-
-    expect(service.send(:notification_path, notification)).to eq(
-      "/exercises/#{exercise.id}/history?machine_id=none"
-    )
   end
 
   private

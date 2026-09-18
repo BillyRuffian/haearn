@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_17_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_18_100000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -53,6 +53,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_120000) do
     t.index ["admin_user_id"], name: "index_admin_audit_logs_on_admin_user_id"
     t.index ["created_at"], name: "index_admin_audit_logs_on_created_at"
     t.index ["target_user_id"], name: "index_admin_audit_logs_on_target_user_id"
+  end
+
+  create_table "app_presences", force: :cascade do |t|
+    t.string "client_id", null: false
+    t.datetime "expires_at", null: false
+    t.integer "sequence", default: 0, null: false
+    t.integer "session_id", null: false
+    t.index ["expires_at"], name: "index_app_presences_on_expires_at"
+    t.index ["session_id", "client_id"], name: "index_app_presences_on_session_id_and_client_id", unique: true
+    t.index ["session_id"], name: "index_app_presences_on_session_id"
   end
 
   create_table "body_metrics", force: :cascade do |t|
@@ -157,15 +167,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_120000) do
     t.string "kind", null: false
     t.text "message", null: false
     t.json "metadata", default: {}, null: false
+    t.datetime "push_processed_at"
     t.datetime "read_at"
     t.string "severity", default: "info", null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
+    t.integer "workout_analysis_id"
+    t.index ["kind", "push_processed_at"], name: "index_notifications_on_kind_and_push_processed_at"
     t.index ["user_id", "created_at"], name: "index_notifications_on_user_id_and_created_at"
     t.index ["user_id", "dedupe_key"], name: "index_notifications_on_user_id_and_dedupe_key", unique: true
     t.index ["user_id", "read_at"], name: "index_notifications_on_user_id_and_read_at"
     t.index ["user_id"], name: "index_notifications_on_user_id"
+    t.index ["workout_analysis_id"], name: "index_notifications_on_workout_analysis_id", unique: true
   end
 
   create_table "program_cycles", force: :cascade do |t|
@@ -311,6 +325,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_120000) do
     t.integer "default_rest_seconds", default: 90
     t.string "email_address", null: false
     t.string "name"
+    t.boolean "notify_ai_analysis_push", default: true, null: false
     t.boolean "notify_plateau", default: true, null: false
     t.boolean "notify_readiness", default: true, null: false
     t.boolean "notify_rest_timer_in_app", default: true, null: false
@@ -445,12 +460,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_120000) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "admin_audit_logs", "users", column: "admin_user_id"
   add_foreign_key "admin_audit_logs", "users", column: "target_user_id"
+  add_foreign_key "app_presences", "sessions"
   add_foreign_key "body_metrics", "users"
   add_foreign_key "exercise_sets", "workout_exercises"
   add_foreign_key "exercises", "users"
   add_foreign_key "gyms", "users"
   add_foreign_key "machines", "gyms"
   add_foreign_key "notifications", "users"
+  add_foreign_key "notifications", "workout_analyses"
   add_foreign_key "program_cycles", "training_programs"
   add_foreign_key "program_cycles", "users"
   add_foreign_key "program_session_executions", "program_cycles"

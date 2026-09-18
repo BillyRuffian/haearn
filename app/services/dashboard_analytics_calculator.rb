@@ -17,7 +17,6 @@ class DashboardAnalyticsCalculator
     'week_comparison' => :week_comparison,
     'tonnage' => :tonnage_tracker,
     'training_period_totals' => :training_period_totals,
-    'plateaus' => :plateaus,
     'training_density' => :training_density,
     'muscle_group_volume' => :muscle_group_volume,
     'muscle_balance' => :muscle_balance,
@@ -257,63 +256,6 @@ class DashboardAnalyticsCalculator
         range_label: range_label(start_date, end_date)
       }
     end
-  end
-
-  def plateaus
-    active_exercise_ids = @user.workout_exercises
-      .joins(:exercise_sets, workout_block: :workout)
-      .where('workouts.finished_at >= ?', 90.days.ago)
-      .where.not(workouts: { finished_at: nil })
-      .where(exercise_sets: { is_warmup: false })
-      .where.not(exercise_sets: { weight_kg: nil })
-      .distinct
-      .select(:exercise_id)
-
-    set_rows = @user.exercise_sets
-      .joins(workout_exercise: [ :exercise, { workout_block: :workout } ])
-      .where.not(workouts: { finished_at: nil })
-      .where(exercises: { has_weight: true })
-      .where(workout_exercises: { exercise_id: active_exercise_ids })
-      .where(is_warmup: false)
-      .where.not(weight_kg: nil)
-      .order(Arel.sql('workout_exercises.exercise_id ASC, workouts.finished_at ASC'))
-      .pluck(
-        Arel.sql('workout_exercises.exercise_id'),
-        Arel.sql('exercises.name'),
-        :weight_kg,
-        Arel.sql('workouts.finished_at')
-      )
-
-    set_rows.group_by(&:first).filter_map do |_exercise_id, all_sets|
-      exercise_name = all_sets.first[1]
-
-      next if all_sets.length < 3
-
-      best_weight = 0
-      last_pr_date = nil
-
-      all_sets.each do |_id, _name, weight, finished_at|
-        next unless weight > best_weight
-
-        best_weight = weight
-        last_pr_date = finished_at.to_date
-      end
-
-      next unless last_pr_date
-
-      weeks_since_pr = ((Date.current - last_pr_date) / 7).to_i
-      last_workout_date = all_sets.last[3].to_date
-      days_since_last_workout = (Date.current - last_workout_date).to_i
-
-      if weeks_since_pr >= 4 && days_since_last_workout <= 30
-        {
-          exercise: exercise_name,
-          weeks_since_pr: weeks_since_pr,
-          best_weight: @user.display_weight(best_weight).round,
-          last_pr_date: last_pr_date.strftime('%b %d')
-        }
-      end
-    end.sort_by { |plateau| -plateau[:weeks_since_pr] }.first(5)
   end
 
   def training_density

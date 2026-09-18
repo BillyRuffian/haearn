@@ -214,8 +214,7 @@ RSpec.describe 'Core functionality', type: :request do
     patch settings_path, params: {
       user: {
         preferred_unit: 'lbs',
-        default_rest_seconds: 120,
-        progression_rep_target: 12
+        default_rest_seconds: 120
       }
     }
 
@@ -223,7 +222,6 @@ RSpec.describe 'Core functionality', type: :request do
     user.reload
     expect(user.preferred_unit).to eq('lbs')
     expect(user.default_rest_seconds).to eq(120)
-    expect(user.progression_rep_target).to eq(12)
   end
 
   it 'uses the user default rest when workout logging creates a new block' do

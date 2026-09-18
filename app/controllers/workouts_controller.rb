@@ -51,27 +51,8 @@ class WorkoutsController < ApplicationController
       @workout_blocks.flat_map(&:workout_exercises)
     )
     @editing_notes = params[:editing_notes].present?
-
-
-    # Fatigue Analysis for active workout
-    @fatigue_data = []
-    if @workout.in_progress?
-      @workout.workout_exercises.includes(:exercise, :machine, :exercise_sets).each do |we|
-        next if we.exercise_sets.working.empty? # Skip if no working sets yet
-
-        analyzer = FatigueAnalyzer.new(workout_exercise: we, user: Current.user)
-        analysis = analyzer.analyze
-        next unless analysis # Skip if insufficient data
-
-        @fatigue_data << {
-          workout_exercise: we,
-          analysis: analysis,
-          message: analyzer.status_message,
-          color: analyzer.status_color
-        }
-      end
-    else
-      @progression_updates = build_progression_updates
+    if @workout.completed?
+      @workout_analysis = params[:analysis_id].present? ? @workout.workout_analyses.find(params[:analysis_id]) : @workout.workout_analyses.newest_first.first
     end
   end
 
@@ -317,19 +298,5 @@ class WorkoutsController < ApplicationController
     Date.strptime(params[:month], '%Y-%m').beginning_of_month
   rescue ArgumentError
     Date.current.beginning_of_month
-  end
-
-  def build_progression_updates
-    @workout.workout_exercises.includes(:exercise, :machine).filter_map do |workout_exercise|
-      next unless workout_exercise.exercise.has_weight?
-
-      suggestion = ProgressionSuggester.new(
-        workout_exercise: workout_exercise,
-        user: Current.user
-      ).suggest
-      next unless suggestion
-
-      { workout_exercise: workout_exercise, suggestion: suggestion }
-    end
   end
 end

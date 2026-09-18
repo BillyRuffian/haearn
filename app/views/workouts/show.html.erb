@@ -174,46 +174,6 @@
     </div>
   <% end %>
 
-  <!-- Fatigue Indicators (Active Workout Only) -->
-  <% if @workout.in_progress? && @fatigue_data.any? %>
-    <div class="card mb-4">
-      <div class="card-body">
-        <h6 class="section-header">
-          <i class="bi bi-activity me-2"></i>Performance Analysis
-        </h6>
-        <% @fatigue_data.each_with_index do |data, index| %>
-          <% analysis = data[:analysis] %>
-          <% we = data[:workout_exercise] %>
-          <div class="alert alert-<%= data[:color] %> mb-<%= index == @fatigue_data.count - 1 ? '0' : '2' %>">
-            <div class="d-flex align-items-start">
-              <div class="flex-fill">
-                <h6 class="mb-1 fw-bold">
-                  <%= we.exercise.name %><% if we.machine %> (<%= we.machine.name %>)<% end %>
-                </h6>
-                <p class="mb-2 small"><%= data[:message] %></p>
-                <div class="d-flex gap-2 flex-wrap small text-white-50">
-                  <span>
-                    <i class="bi bi-clipboard-data me-1"></i>
-                    <%= pluralize(analysis[:sessions_analyzed], 'session') %> baseline
-                  </span>
-                  <span>
-                    Current: <%= WeightConverter.from_kg(analysis[:current_performance][:volume_kg], Current.user.preferred_unit).round %> vol
-                  </span>
-                  <span>
-                    Baseline: <%= WeightConverter.from_kg(analysis[:baseline_performance][:volume_kg], Current.user.preferred_unit).round %> vol
-                  </span>
-                  <% if analysis[:current_performance][:avg_rpe] %>
-                    <span>RPE <%= analysis[:current_performance][:avg_rpe].round(1) %></span>
-                  <% end %>
-                </div>
-              </div>
-            </div>
-          </div>
-        <% end %>
-      </div>
-    </div>
-  <% end %>
-
   <!-- Exercise Blocks -->
   <div id="workout_blocks">
     <%= turbo_frame_tag "workout_exercises", 
@@ -227,43 +187,8 @@
     <% end %>
   </div>
 
-  <% if @progression_updates.present? %>
-    <div class="card mb-4">
-      <div class="card-body">
-        <h6 class="section-header">
-          <i class="bi bi-arrow-up-circle me-2"></i>Progression Updates
-        </h6>
-        <div class="d-flex flex-column gap-3">
-          <% @progression_updates.each do |update| %>
-            <% suggestion = update[:suggestion] %>
-            <% workout_exercise = update[:workout_exercise] %>
-            <div class="border rounded p-3 bg-dark bg-opacity-25">
-              <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-                <div>
-                  <h6 class="mb-1 fw-bold">
-                    <%= workout_exercise.exercise.name %><% if workout_exercise.machine %> (<%= workout_exercise.machine.name %>)<% end %>
-                  </h6>
-                  <p class="mb-1 text-success fw-semibold">Ready to progress.</p>
-                  <p class="mb-0 small text-muted">
-                    You've been <%= suggestion[:reasons].join(", ") %>. Try increasing from
-                    <%= Current.user.format_weight(suggestion[:current_weight_kg]) %><%= Current.user.preferred_unit %>
-                    to
-                    <%= Current.user.format_weight(suggestion[:suggested_weight_kg]) %><%= Current.user.preferred_unit %>.
-                  </p>
-                </div>
-                <div class="small text-muted text-nowrap">
-                  +<%= Current.user.format_weight(suggestion[:increase_kg]) %><%= Current.user.preferred_unit %>
-                </div>
-              </div>
-            </div>
-          <% end %>
-        </div>
-      </div>
-    </div>
-  <% end %>
-
   <% if @workout.completed? %>
-    <%= render 'workout_analyses/live_panel', workout: @workout, analysis: @workout.workout_analyses.newest_first.first %>
+    <%= render 'workout_analyses/live_panel', workout: @workout, analysis: @workout_analysis, live: params[:analysis_id].blank? %>
   <% end %>
 
   <!-- Add Exercise Button (active workouts only) -->

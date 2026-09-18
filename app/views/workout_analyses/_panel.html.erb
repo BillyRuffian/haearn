@@ -1,6 +1,10 @@
 <%= turbo_frame_tag dom_id(workout, :coaching), class: 'coaching-frame' do %>
   <% busy = analysis && (analysis.pending? || analysis.processing?) && !analysis.stale? %>
   <section id="ai-coaching" class="card mb-4 text-break" aria-labelledby="ai-coaching-heading"
+      <% if analysis&.completed? %>
+        data-coaching-refresh-target="review"
+        data-review-read-url="<%= read_workout_workout_analysis_path(workout, analysis) %>"
+      <% end %>
       data-coaching-live="<%= local_assigns.fetch(:live, true) %>"
       data-coaching-refresh-active-value="<%= busy %>">
     <div class="card-body">

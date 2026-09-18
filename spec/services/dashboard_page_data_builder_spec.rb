@@ -26,7 +26,6 @@ RSpec.describe DashboardPageDataBuilder do
         week_comparison
         tonnage
         training_period_totals
-        plateaus
         training_density
         muscle_group_volume
         muscle_balance
@@ -72,8 +71,8 @@ RSpec.describe DashboardPageDataBuilder do
       expect(data[:prs_this_month]).to eq(1)
       expect(data[:current_weight_kg]).to eq(user.body_metrics.current_weight_kg)
       expect(data[:recent_workouts]).to all(be_a(Workout))
-      expect(data[:fatigue_data]).to eq([])
-      expect(data[:readiness_alerts]).to eq([])
+      expect(data).not_to have_key(:fatigue_data)
+      expect(data).not_to have_key(:readiness_alerts)
     end
   end
 

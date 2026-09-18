@@ -38,6 +38,8 @@ class WebPushNotificationService
 
     payload = {
       title: notification.title,
+      unread_count: @user.notifications.center.unread.count,
+      user_id: @user.id,
       options: {
         body: notification.message,
         icon: '/icon.png',
@@ -45,6 +47,7 @@ class WebPushNotificationService
         tag: "haearn-#{notification.kind}-#{notification.id}",
         data: {
           notification_id: notification.id,
+          user_id: @user.id,
           kind: notification.kind,
           path: notification_path(notification)
         }
@@ -63,27 +66,7 @@ class WebPushNotificationService
   private
 
   def notification_path(notification)
-    case notification.kind
-    when 'readiness', 'plateau'
-      exercise_id = notification.metadata['exercise_id']
-      machine_id = notification.metadata['machine_id']
-      return '/' unless exercise_id
-
-      if notification.kind == 'readiness'
-        "/exercises/#{exercise_id}/history?machine_id=#{machine_id.presence || 'none'}"
-      else
-        "/exercises/#{exercise_id}/history"
-      end
-    when 'streak_risk'
-      '/workouts/new'
-    when 'volume_drop'
-      '/workouts'
-    when 'rest_timer'
-      workout_id = notification.metadata['workout_id']
-      workout_id.present? ? "/workouts/#{workout_id}" : '/'
-    else
-      '/notifications'
-    end
+    notification.action_path
   end
 
   def send_payload!(subscription:, payload:)

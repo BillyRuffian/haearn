@@ -185,7 +185,6 @@ RSpec.describe DashboardAnalyticsCalculator do
         'week_comparison' => 1,
         'tonnage' => 1,
         'training_period_totals' => 3,
-        'plateaus' => 1,
         'training_density' => 1,
         'muscle_group_volume' => 1,
         'muscle_balance' => 1,
@@ -326,33 +325,6 @@ RSpec.describe DashboardAnalyticsCalculator do
       expect(described_class.new(user: user).calculate('exercise_frequency')).to eq([
         { exercise: exercise.name, count: 1 }
       ])
-    end
-
-    it 'detects plateaus from all-time progression for recently active exercises' do
-      travel_to Time.zone.local(2026, 8, 13, 12, 0, 0) do
-        user, gym, machine, exercise = create_analytics_context('plateau-history')
-        create_workout_set(
-          user:, gym:, machine:, exercise:,
-          finished_at: Time.zone.local(2025, 1, 10, 18), weight_kg: 100, reps: 5
-        )
-        create_workout_set(
-          user:, gym:, machine:, exercise:,
-          finished_at: Time.zone.local(2025, 3, 10, 18), weight_kg: 90, reps: 5
-        )
-        create_workout_set(
-          user:, gym:, machine:, exercise:,
-          finished_at: Time.zone.local(2026, 7, 30, 18), weight_kg: 80, reps: 5
-        )
-
-        result = described_class.new(user: user).calculate('plateaus')
-
-        expect(result).to contain_exactly(
-          exercise: exercise.name,
-          weeks_since_pr: 82,
-          best_weight: 100,
-          last_pr_date: 'Jan 10'
-        )
-      end
     end
   end
 

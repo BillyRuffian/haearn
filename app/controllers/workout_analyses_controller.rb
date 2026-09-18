@@ -17,6 +17,13 @@ class WorkoutAnalysesController < ApplicationController
     redirect_to workout_path(@workout, anchor: 'ai-coaching'), notice: message, status: :see_other
   end
 
+  def read
+    analysis = @workout.workout_analyses.completed.find(params[:id])
+    Current.user.notifications.where(workout_analysis: analysis).unread.update_all(read_at: Time.current, updated_at: Time.current)
+    response.headers['Cache-Control'] = 'no-store'
+    head :ok
+  end
+
   private
 
   def set_workout

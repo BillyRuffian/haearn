@@ -22,4 +22,5 @@
 # Multiple sessions allowed (user can be logged in on multiple devices)
 class Session < ApplicationRecord
   belongs_to :user
+  has_many :app_presences, dependent: :delete_all
 end

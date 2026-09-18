@@ -8,6 +8,7 @@
 #  default_rest_seconds     :integer          default(90)
 #  email_address            :string           not null
 #  name                     :string
+#  notify_ai_analysis_push  :boolean          default(TRUE), not null
 #  notify_plateau           :boolean          default(TRUE), not null
 #  notify_readiness         :boolean          default(TRUE), not null
 #  notify_rest_timer_in_app :boolean          default(TRUE), not null

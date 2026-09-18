@@ -68,11 +68,27 @@ Missing/invalid usage and unknown model pricing are shown separately; they never
 
 These are estimates of saved responses at the listed rates, not historical invoices. The tables retain one usage snapshot per review, so interrupted requests without usage, superseded responses, or overwritten retry responses may have incurred additional charges. Deleted reviews no longer contribute. Taxes, credits, special service tiers and negotiated account pricing are excluded. Reconcile actual charges in the provider's billing dashboard; the application does not need an organization billing/admin key for this report.
 
+## Completion notifications and PWA badges
+
+Successful workout reviews create one `workout_analysis` notification in the same transaction as the completed result. The notification links to that exact analysis version. Failed/superseded results do not notify. Existing completed reviews are not backfilled. Notification text stays generic; training notes and AI output are not sent in push payloads.
+
+`app_notifications_controller` reports visible, focused authenticated windows every 15 seconds, with independent per-window sequence numbers and a 45-second server lease. Hide/blur/pagehide sends an immediate release; leases cover abrupt closures or lost requests. Any visible window suppresses completion push. Delivery checks visibility and read status again, plus the existing AI push preference, subscription and VAPID configuration. An abrupt shutdown can suppress a push until its last lease expires. All successful reviews still appear in Notifications.
+
+`RecoverAnalysisNotificationsJob` runs every minute to recover unclaimed notifications whose enqueue failed. Delivery claims `push_processed_at` before external I/O to avoid duplicate alerts; the push service retains its bounded transient retries and invalid-subscription pruning. A process crash after claiming can lose a push and is not automatically replayed. The persisted unread review remains available regardless of push delivery.
+
+Reviews are marked read by an authorized POST when visible on screen, or by opening/marking read in Notifications. Background frame fetches and hidden tabs do not mark them read. The notification center and icon badge use the same unread count, excluding rest timers and retired training hints.
+
+The service worker fetches uncached, authenticated `/notifications/status` on push receipt, activation, supported background sync, notification click/close, and messages from the app on resume, reconnect, read actions and sign-out. Zero unread/401 clears the badge; offline errors preserve its last value, with a push payload count as an initial fallback. A notification click opens its exact review and acknowledges it with a current CSRF token. Workers do not run continuously: reading on another device updates a sleeping device at its next wake event, not through a silent push.
+
+Badging is feature-detected and depends on OS/browser support, installation and notification permissions. iOS home-screen apps require notification permission, and every received push must display a visible notification. Foreground suppression therefore happens before sending. See [WebKit badging guidance](https://webkit.org/blog/14112/badging-for-home-screen-web-apps/) and [WebKit Web Push guidance](https://webkit.org/blog/13878/web-push-for-web-apps-on-ios-and-ipados/).
+
 ## Tests
 
 ```sh
 bundle exec rspec spec/services/training_progression_calculator_spec.rb spec/services/ai_workout_context_builder_spec.rb spec/services/ai_workout_analysis_schema_spec.rb spec/helpers/workout_analyses_helper_spec.rb spec/jobs/analyse_workout_job_spec.rb spec/requests/workout_coaching_spec.rb
 bundle exec rspec spec/jobs/weekly_training_review_job_spec.rb spec/services/ai_weekly_context_builder_spec.rb spec/mailers/weekly_summary_mailer_spec.rb
+bundle exec rspec spec/jobs/ai_notification_delivery_spec.rb spec/requests/ai_notifications_spec.rb spec/services/ai_notification_push_spec.rb spec/javascript/service_worker_notifications_spec.rb
+RUN_JS_SYSTEM_SPECS=1 bundle exec rspec spec/system/ai_notifications_spec.rb
 RUN_JS_SYSTEM_SPECS=1 bundle exec rspec spec/system/workout_coaching_spec.rb
 bundle exec rubocop
 ```

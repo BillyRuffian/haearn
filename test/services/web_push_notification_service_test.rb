@@ -36,10 +36,10 @@ class WebPushNotificationServiceTest < ActiveSupport::TestCase
     @cache_store = ActiveSupport::Cache::MemoryStore.new
     WebPushNotificationService.reset_metrics!(cache_store: @cache_store)
     @notification = @user.notifications.create!(
-      kind: 'streak_risk',
+      kind: 'rest_timer',
       severity: 'warning',
-      title: 'Streak Warning',
-      message: 'Train today to keep momentum.',
+      title: 'Rest Complete',
+      message: 'Time to lift.',
       dedupe_key: "test-webpush-#{SecureRandom.hex(4)}",
       metadata: {}
     )

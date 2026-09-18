@@ -34,6 +34,7 @@ export default class extends Controller {
 
     try {
       const response = await fetch(this.feedUrlValue, {
+        cache: "no-store",
         headers: {
           "Accept": "application/json",
           "X-Requested-With": "XMLHttpRequest"
@@ -49,6 +50,8 @@ export default class extends Controller {
 
       this.render(notifications)
       this.updateBadge(payload.unread_count || 0)
+    } catch (_) {
+      // Keep the last visible feed while offline; do not manufacture a zero count.
     } finally {
       this.showLoading(false)
     }
@@ -61,10 +64,13 @@ export default class extends Controller {
     const actionUrl = item.dataset.actionUrl
 
     if (readUrl) {
-      await fetch(readUrl, {
-        method: "PATCH",
-        headers: this.requestHeaders()
-      })
+      try {
+        const response = await fetch(readUrl, {
+          method: "PATCH",
+          headers: this.requestHeaders()
+        })
+        if (response.ok) window.dispatchEvent(new Event("notifications:refresh"))
+      } catch (_) { /* The review can still open from the offline cache. */ }
     }
 
     if (actionUrl) {
@@ -78,11 +84,14 @@ export default class extends Controller {
     event.preventDefault()
     if (!this.hasMarkAllUrlValue) return
 
-    await fetch(this.markAllUrlValue, {
+    const response = await fetch(this.markAllUrlValue, {
       method: "PATCH",
       headers: this.requestHeaders()
     })
-    this.load()
+    if (response.ok) {
+      document.querySelectorAll("[data-notification-unread]").forEach(element => element.remove())
+      window.dispatchEvent(new Event("notifications:refresh"))
+    }
   }
 
   startPolling() {
@@ -203,10 +212,7 @@ export default class extends Controller {
 
   iconFor(kind) {
     switch (kind) {
-      case "readiness": return "bi-trophy-fill"
-      case "plateau": return "bi-graph-down-arrow"
-      case "streak_risk": return "bi-fire"
-      case "volume_drop": return "bi-bar-chart-line"
+      case "workout_analysis": return "bi-stars"
       case "rest_timer": return "bi-stopwatch-fill"
       default: return "bi-bell-fill"
     }

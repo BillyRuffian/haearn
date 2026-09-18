@@ -26,7 +26,10 @@ class AnalyseWorkoutJob < ApplicationJob
     # A continued workout or stale-worker recovery must not publish old advice.
     analysis.workout.reload
     if analysis.workout.finished_at == analysis.workout_finished_at
-      WorkoutAnalysis.update_and_broadcast(owned(analysis, token), **result, status: 'completed', error_message: nil, processing_token: nil, updated_at: Time.current)
+      WorkoutAnalysis.transaction do
+        updated = WorkoutAnalysis.update_and_broadcast(owned(analysis, token), **result, status: 'completed', error_message: nil, processing_token: nil, updated_at: Time.current)
+        AiAnalysisNotificationService.record!(analysis.reload) if updated == 1
+      end
     else
       WorkoutAnalysis.update_and_broadcast(owned(analysis, token), status: 'failed', error_message: 'workout_changed', processing_token: nil, updated_at: Time.current)
     end

@@ -124,22 +124,6 @@ RSpec.describe 'Optional workout equipment', type: :request do
     expect(response.body).to include('History Stack')
   end
 
-  it 'links equipment-free readiness notifications to the no-equipment history tab' do
-    notification = user.notifications.create!(
-      kind: 'readiness',
-      severity: 'success',
-      title: 'Equipment Free Ready',
-      message: 'Ready to progress without equipment.',
-      dedupe_key: 'equipment-free-readiness-link',
-      metadata: { exercise_id: exercise.id, machine_id: nil }
-    )
-
-    get feed_notifications_path, as: :json
-
-    payload = response.parsed_body.fetch('notifications').find { |entry| entry['id'] == notification.id }
-    expect(payload.fetch('action_url')).to eq(history_exercise_path(exercise, machine_id: 'none'))
-  end
-
   private
 
   def create_workout(finished_at: nil)

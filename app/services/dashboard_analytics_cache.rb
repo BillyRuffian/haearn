@@ -14,7 +14,6 @@ class DashboardAnalyticsCache
     week_comparison
     tonnage
     training_period_totals
-    plateaus
     training_density
     muscle_group_volume
     muscle_balance

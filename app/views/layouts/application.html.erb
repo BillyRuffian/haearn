@@ -28,11 +28,12 @@
   </head>
 
   <% active_workout = Current.user&.active_workout %>
-  <% body_controllers = ["offline"] %>
+  <% body_controllers = ["offline", "app-notifications"] %>
   <% body_controllers << "rest-timer" if active_workout %>
   <body class="<%= content_for?(:body_class) ? yield(:body_class) : nil %>"
         data-controller="<%= body_controllers.join(' ') %>"
         data-offline-show-class="d-block"
+        data-app-notifications-authenticated-value="<%= Current.user.present? %>"
         data-rest-timer-duration-value="<%= Current.user&.default_rest_seconds || User::DEFAULT_REST_SECONDS %>"
         data-rest-timer-default-duration-value="<%= Current.user&.default_rest_seconds || User::DEFAULT_REST_SECONDS %>"
         data-rest-timer-background-alert-enabled="<%= Current.user&.notify_rest_timer_push? ? 'true' : 'false' %>">

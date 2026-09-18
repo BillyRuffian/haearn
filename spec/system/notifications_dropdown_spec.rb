@@ -21,24 +21,19 @@ RSpec.describe 'Notifications dropdown', type: :system, js: true do
     JS
   end
 
-  it 'loads notifications into the dropdown and marks them all read' do
+  it 'hides retired training alerts from the dropdown and unread badge' do
     visit root_path
-
-    within("li.nav-item.dropdown[data-controller='notifications-center']", visible: true) do
-      expect(page).to have_css("[data-notifications-center-target='badge']", visible: true)
-    end
 
     open_dropdown("li.nav-item.dropdown[data-controller='notifications-center'] button[aria-label='Notifications']")
 
-    expect(page).to have_css(".notification-item", text: unread_notification.title)
-    expect(page).to have_css(".notification-item", text: unread_notification.message)
-
     within("li.nav-item.dropdown[data-controller='notifications-center']", visible: true) do
-      click_button 'Mark all read'
+      expect(page).to have_css("[data-notifications-center-target='empty']", text: 'No alerts right now.')
+      expect(page).to have_no_css(".notification-item")
       expect(page).to have_no_css("[data-notifications-center-target='badge']", visible: true)
+      click_button 'Mark all read'
     end
 
-    expect(unread_notification.reload).to be_read
+    expect(unread_notification.reload).not_to be_read
   end
 
   it 'keeps the mobile notifications dropdown within the viewport on phone widths' do

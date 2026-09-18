@@ -1,14 +1,31 @@
 class NotificationsController < ApplicationController
+  allow_unauthenticated_access only: :status
+  before_action :prevent_caching
   before_action :set_notification, only: [ :read ]
 
+  def status
+    return head :unauthorized unless authenticated? && !Current.user.deactivated?
+
+    render json: { unread_count: center_notifications_scope.unread.count, user_id: Current.user.id,
+      csrf_token: form_authenticity_token }
+  end
+
+  def presence
+    client_id = params[:client_id].to_s
+    sequence = Integer(params[:sequence].to_s, exception: false)
+    return head :unprocessable_entity unless client_id.match?(/\A[0-9a-f-]{36}\z/i) && sequence&.positive? && sequence < 2**53
+
+    AppPresence.report!(session: Current.session, client_id: client_id, sequence: sequence,
+      visible: ActiveModel::Type::Boolean.new.cast(params[:visible]))
+    head :ok
+  end
+
   def index
-    PerformanceNotificationService.new(user: Current.user).refresh!
     @notifications = center_notifications_scope.recent.limit(50)
   end
 
   def feed
-    notifications = PerformanceNotificationService.new(user: Current.user).refresh!
-    center_notifications = notifications.reject { |notification| notification.kind == 'rest_timer' }
+    center_notifications = center_notifications_scope.recent.limit(20)
 
     render json: {
       unread_count: center_notifications_scope.unread.count,
@@ -57,7 +74,7 @@ class NotificationsController < ApplicationController
   private
 
   def set_notification
-    @notification = Current.user.notifications.find(params[:id])
+    @notification = Current.user.notifications.active.find(params[:id])
   end
 
   def serialize_notification(notification)
@@ -75,33 +92,14 @@ class NotificationsController < ApplicationController
   end
 
   def center_notifications_scope
-    Current.user.notifications.where.not(kind: 'rest_timer')
+    Current.user.notifications.center
   end
 
   def action_url_for(notification)
-    case notification.kind
-    when 'readiness'
-      exercise_id = notification.metadata['exercise_id']
-      machine_id = notification.metadata['machine_id']
-      return nil unless exercise_id
+    notification.action_path
+  end
 
-      history_exercise_path(exercise_id, machine_id: machine_id.presence || 'none')
-    when 'plateau'
-      exercise_id = notification.metadata['exercise_id']
-      exercise_id ? history_exercise_path(exercise_id) : workouts_path
-    when 'streak_risk'
-      new_workout_path
-    when 'volume_drop'
-      workouts_path
-    when 'rest_timer'
-      workout_id = notification.metadata['workout_id']
-      if workout_id.present?
-        workout_path(workout_id)
-      else
-        Current.user.active_workout ? workout_path(Current.user.active_workout) : root_path
-      end
-    else
-      nil
-    end
+  def prevent_caching
+    response.headers['Cache-Control'] = 'no-store'
   end
 end
