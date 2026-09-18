@@ -227,11 +227,13 @@ module ApplicationHelper
     fallback
   end
 
-  # Generate shareable workout text
+  # Generates shareable text summary of workout
+  # Format: Date, Gym, Duration, then each exercise with sets
+  # Used by clipboard controller for sharing workouts
   def generate_workout_text(workout)
     lines = []
 
-    # Header
+    # Build header with date, location, and duration
     date_str = workout.started_at.strftime('%A, %B %-d, %Y')
     lines << "🏋️ #{date_str}"
     lines << "📍 #{workout.gym.name}" if workout.gym
@@ -244,6 +246,7 @@ module ApplicationHelper
         exercise_name = we.exercise&.name || 'Unknown Exercise'
         machine_suffix = we.machine ? " (#{we.machine.name})" : ''
         lines << "#{exercise_name}#{machine_suffix}"
+        lines << "Session notes: #{we.session_notes}" if we.session_notes.present?
 
         we.exercise_sets.order(:position).each_with_index do |set, idx|
           set_line = format_set_text(set, idx + 1, workout.user.preferred_unit)
@@ -262,24 +265,30 @@ module ApplicationHelper
     lines.join("\n").strip
   end
 
-  # Format a single set as text
+  # Formats a single set as human-readable text
+  # Handles reps, time, and distance-based exercises
+  # Converts weights to user's preferred unit
   def format_set_text(set, set_num, unit)
-    warmup_tag = set.is_warmup ? ' (warmup)' : ''
+    details = []
+    details << 'warmup' if set.is_warmup
+    details << "RPE #{set.rpe.to_f}" if set.rpe.present?
+    details << "RIR #{set.rir}" if set.rir.present?
+    details_tag = details.any? ? " (#{details.join(', ')})" : ''
 
     if set.weight_kg.present? && set.reps.present?
       weight = unit == 'lbs' ? (set.weight_kg * 2.20462).round(1) : set.weight_kg.round(1)
-      "Set #{set_num}: #{set.reps} × #{weight}#{unit}#{warmup_tag}"
+      "Set #{set_num}: #{set.reps} × #{weight}#{unit}#{details_tag}"
     elsif set.reps.present?
-      "Set #{set_num}: #{set.reps} reps#{warmup_tag}"
+      "Set #{set_num}: #{set.reps} reps#{details_tag}"
     elsif set.duration_seconds.present?
       mins = set.duration_seconds / 60
       secs = set.duration_seconds % 60
       duration_str = mins > 0 ? "#{mins}m #{secs}s" : "#{secs}s"
-      "Set #{set_num}: #{duration_str}#{warmup_tag}"
+      "Set #{set_num}: #{duration_str}#{details_tag}"
     elsif set.distance_meters.present?
-      "Set #{set_num}: #{set.distance_meters}m#{warmup_tag}"
+      "Set #{set_num}: #{set.distance_meters}m#{details_tag}"
     else
-      "Set #{set_num}: completed#{warmup_tag}"
+      "Set #{set_num}: completed#{details_tag}"
     end
   end
 
