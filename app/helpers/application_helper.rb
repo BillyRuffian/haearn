@@ -271,8 +271,10 @@ module ApplicationHelper
   def format_set_text(set, set_num, unit)
     details = []
     details << 'warmup' if set.is_warmup
-    details << "RPE #{set.rpe.to_f}" if set.rpe.present?
-    details << "RIR #{set.rir}" if set.rir.present?
+    unless set.rpe == 0 && set.rir == 0
+      details << "RPE #{set.rpe.to_f}" if set.rpe.present?
+      details << "RIR #{set.rir}" if set.rir.present?
+    end
     details_tag = details.any? ? " (#{details.join(', ')})" : ''
 
     if set.weight_kg.present? && set.reps.present?

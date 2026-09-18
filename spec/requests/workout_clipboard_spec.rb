@@ -40,6 +40,28 @@ RSpec.describe 'Workout clipboard summary', type: :request do
     expect(text.lines.map(&:chomp)).to include('Set 1: 1 × 10.0kg')
   end
 
+  [ false, true ].each do |warmup|
+    it "omits both zero effort values while preserving the set and warmup flag (warmup: #{warmup})" do
+      workout_exercise.update!(session_notes: 'Kept form strict')
+      # Represent stored zero placeholders, which current RPE validation rejects.
+      exercise_set.update_columns(rpe: 0, rir: 0, is_warmup: warmup)
+
+      get workout_path(workout)
+
+      expect(response).to have_http_status(:ok)
+      text = Nokogiri::HTML.parse(response.body).at_css('[data-controller="clipboard"]')['data-clipboard-text-value']
+      expect(text).not_to include('RPE', 'RIR')
+      expect(text).to include('Session notes: Kept form strict')
+      expected_set = warmup ? 'Set 1: 1 × 10.0kg (warmup)' : 'Set 1: 1 × 10.0kg'
+      expect(text.lines.map(&:chomp)).to include(expected_set)
+
+      get share_text_workout_path(workout)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body.fetch('text')).to eq(text)
+    end
+  end
+
   [ { rpe: 7.5, rir: nil }, { rpe: nil, rir: 2 } ].each do |effort|
     it "includes independently recorded effort #{effort.inspect}" do
       exercise_set.update!(**effort, weight_kg: nil, reps: nil, duration_seconds: 90, distance_meters: nil)
