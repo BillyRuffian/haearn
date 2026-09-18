@@ -271,7 +271,7 @@ module ApplicationHelper
   def format_set_text(set, set_num, unit)
     details = []
     details << 'warmup' if set.is_warmup
-    unless set.rpe == 0 && set.rir == 0
+    unless set.rpe.to_f.zero? && set.rir.to_i.zero?
       details << "RPE #{set.rpe.to_f}" if set.rpe.present?
       details << "RIR #{set.rir}" if set.rir.present?
     end

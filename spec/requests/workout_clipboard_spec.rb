@@ -40,11 +40,11 @@ RSpec.describe 'Workout clipboard summary', type: :request do
     expect(text.lines.map(&:chomp)).to include('Set 1: 1 × 10.0kg')
   end
 
-  [ false, true ].each do |warmup|
-    it "omits both zero effort values while preserving the set and warmup flag (warmup: #{warmup})" do
+  [ [ 0, 0 ], [ nil, 0 ], [ 0, nil ], [ nil, nil ] ].product([ false, true ]).each do |(rpe, rir), warmup|
+    it "omits unrecorded effort (RPE: #{rpe.inspect}, RIR: #{rir.inspect}, warmup: #{warmup})" do
       workout_exercise.update!(session_notes: 'Kept form strict')
       # Represent stored zero placeholders, which current RPE validation rejects.
-      exercise_set.update_columns(rpe: 0, rir: 0, is_warmup: warmup)
+      exercise_set.update_columns(rpe: rpe, rir: rir, is_warmup: warmup)
 
       get workout_path(workout)
 

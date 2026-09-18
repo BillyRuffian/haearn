@@ -11,6 +11,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Handle blank/zero RPE/RIR combinations as unrecorded in clipboard summaries, with regressions for every nil/zero pair on working and warmup sets
 - [x] Omit RPE/RIR from plaintext workout copies when both values are zero, preserving session notes, warmup labels, and RIR 0 paired with a recorded RPE
 - [x] Include per-exercise session notes and recorded set RPE/RIR (including RIR 0) in the workout plaintext clipboard summary
 - [x] Remove whole template blocks without breaking historical exercise links; exclude removed blocks from future workouts and restore their container when restoring an archived exercise
