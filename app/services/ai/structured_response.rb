@@ -11,6 +11,9 @@ module Ai
     end
 
     def data
+      if @envelope['status'] == 'incomplete' && @envelope.dig('incomplete_details', 'reason') == 'max_output_tokens'
+        raise InvalidResponse, 'response_output_limit'
+      end
       raise InvalidResponse, 'response_incomplete' unless @envelope['status'] == 'completed'
 
       content = Array(@envelope['output']).select { |item| item['type'] == 'message' }.flat_map { |item| Array(item['content']) }

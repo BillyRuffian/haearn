@@ -7,7 +7,9 @@ module Ai
     def call
       response = Client.new.structured_response(
         model: @review.model, instructions: Prompts.fetch(@review.prompt_version), input: @review.input_data,
-        schema: WeeklyReviewSchema::SCHEMA, schema_name: 'weekly_training_review'
+        schema: WeeklyReviewSchema::SCHEMA, schema_name: 'weekly_training_review',
+        reasoning_effort: @review.reasoning_effort, max_output_tokens: @review.max_output_tokens,
+        timeout: @review.request_timeout
       )
       structured = StructuredResponse.new(response)
       owned.update_all(**structured.metadata, updated_at: Time.current)

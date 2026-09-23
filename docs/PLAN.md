@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: September 18, 2026
+> Last Updated: September 23, 2026
 
 ## Overview
 
@@ -11,6 +11,9 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [x] Diagnose September 20 weekly email failure: AI exhausted its 6,000-token output budget, then statistics-only delivery timed out on SMTP and remained uncertain
+- [x] Give weekly AI reviews GPT-5.4 mini, explicit medium reasoning, and independent 25,000-token/180-second budgets while preserving saved request settings across retries; verify production account model access
+- [x] Increase SMTP connection/read timeouts and retain safe handling of ambiguous sends; verify weekly generation, fallback, and delivery regressions (258 RSpec examples, 0 failures, 40 guarded browser skips; 296 Minitest tests, 0 failures; RuboCop: 301 files clean; production-mode SMTP settings verified)
 - [x] Persist AI review completion notifications exactly once, with foreground-aware push delivery and recovery
 - [x] Synchronize PWA unread badges through service-worker status checks, review/read actions, resume, and sign-out
 - [x] Verify AI notification delivery, presence, read authorization, service-worker badge lifecycle, and browser integration (RSpec: 253 examples, 0 failures, 40 guarded browser skips; focused browser suite: 9 passed; worker lifecycle: 12 passed; Minitest: 296 tests, 0 failures; RuboCop: 300 files clean; Brakeman: 0 warnings)

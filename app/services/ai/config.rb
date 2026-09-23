@@ -14,7 +14,19 @@ module Ai
       end
 
       def weekly_model
-        ENV.fetch('OPENAI_WEEKLY_MODEL', model)
+        ENV.fetch('OPENAI_WEEKLY_MODEL', 'gpt-5.4-mini')
+      end
+
+      def weekly_reasoning_effort
+        ENV.fetch('OPENAI_WEEKLY_REASONING_EFFORT', 'medium').presence_in(%w[low medium high]) || 'medium'
+      end
+
+      def weekly_max_output_tokens
+        integer('OPENAI_WEEKLY_MAX_OUTPUT_TOKENS', 25_000, 6000..32_000)
+      end
+
+      def weekly_timeout
+        integer('OPENAI_WEEKLY_TIMEOUT', 180, 30..300)
       end
 
       def weekly_prompt_version

@@ -77,6 +77,8 @@ Rails.application.configure do
       user_name: ENV.fetch('SMTP_USERNAME', nil),
       password: ENV.fetch('SMTP_PASSWORD', nil),
       authentication: ENV.fetch('SMTP_AUTHENTICATION', 'plain'),
+      open_timeout: Integer(ENV.fetch('SMTP_OPEN_TIMEOUT', '10')).clamp(5, 60),
+      read_timeout: Integer(ENV.fetch('SMTP_READ_TIMEOUT', '30')).clamp(5, 120),
       # tls: ENV["SMTP_TLS"] == "true",
       enable_starttls_auto: true
       # openssl_verify_mode: ENV["SMTP_SSL_VERIFY_MODE"]

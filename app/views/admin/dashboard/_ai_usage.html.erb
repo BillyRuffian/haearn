@@ -50,7 +50,14 @@
       <%= number_to_currency(Ai::TokenPricing::GPT_5_MINI[:input], precision: 3, strip_insignificant_zeros: true) %> input /
       <%= number_to_currency(Ai::TokenPricing::GPT_5_MINI[:cached_input], precision: 3, strip_insignificant_zeros: true) %> cached input /
       <%= number_to_currency(Ai::TokenPricing::GPT_5_MINI[:output]) %> output per million tokens.
-      Applies to gpt-5-mini and its 2025-08-07 snapshot. Other models show unavailable pricing.
+      Applies to gpt-5-mini and its 2025-08-07 snapshot.
+    </p>
+    <p class="small text-muted mb-0">
+      <%= link_to 'OpenAI GPT-5.4 mini pricing', Ai::TokenPricing::WEEKLY_SOURCE_URL %>, verified <%= Ai::TokenPricing::WEEKLY_VERIFIED_ON.strftime('%d %b %Y') %>:
+      <%= number_to_currency(Ai::TokenPricing::GPT_5_4_MINI[:input], precision: 3, strip_insignificant_zeros: true) %> input /
+      <%= number_to_currency(Ai::TokenPricing::GPT_5_4_MINI[:cached_input], precision: 3, strip_insignificant_zeros: true) %> cached input /
+      <%= number_to_currency(Ai::TokenPricing::GPT_5_4_MINI[:output]) %> output per million tokens.
+      Applies to gpt-5.4-mini. Other models show unavailable pricing.
     </p>
   </div>
 </section>

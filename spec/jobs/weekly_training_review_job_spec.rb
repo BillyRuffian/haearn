@@ -41,6 +41,53 @@ RSpec.describe WeeklyTrainingReviewJob do
     expect { WeeklyTrainingReview.insert_all!([ duplicate ]) }.to raise_error(ActiveRecord::RecordNotUnique)
   end
 
+  it 'uses a stronger weekly model with explicit reasoning and independent request budgets' do
+    expect(OpenAI::Client).to receive(:new).with(api_key: 'test-key-never-sent', timeout: 180, max_retries: 0).and_return(openai_sdk)
+    described_class.perform_now(review.id)
+    expect(review.reload).to be_completed
+    expect(responses_api).to have_received(:create).with(hash_including(
+      model: 'gpt-5.4-mini', reasoning: { effort: 'medium' }, max_output_tokens: 25_000, store: false))
+    expect(Ai::Config.model).to eq('gpt-5-mini')
+    expect(Ai::Config.max_output_tokens).to eq(6000)
+  end
+
+  it 'keeps the original request settings when defaults change between attempts' do
+    allow(responses_api).to receive(:create).and_raise(OpenAI::Errors::APIConnectionError.new(url: 'https://api.openai.com/v1/responses'))
+    described_class.perform_now(review.id)
+    allow(Ai::Config).to receive_messages(weekly_model: 'different-model', weekly_reasoning_effort: 'high',
+      weekly_max_output_tokens: 32_000, weekly_timeout: 300)
+    expect(WeeklyTrainingReview.request!(user: users(:one), week_start: week_start)).to eq(review)
+    allow(responses_api).to receive(:create) { |**request| api_response(weekly_response(JSON.parse(request.fetch(:input)))) }
+    expect(OpenAI::Client).to receive(:new).with(api_key: 'test-key-never-sent', timeout: 180, max_retries: 0).and_return(openai_sdk)
+    travel_to(review.reload.retry_at + 1.second) { described_class.perform_now(review.id) }
+    expect(review.reload).to be_completed
+    expect(responses_api).to have_received(:create).with(hash_including(
+      model: 'gpt-5.4-mini', reasoning: { effort: 'medium' }, max_output_tokens: 25_000)).twice
+  end
+
+  it 'preserves the legacy request settings of reviews created before the upgrade' do
+    legacy = WeeklyTrainingReview.create!(user: users(:one), week_start: week_start, model: 'gpt-5-mini', prompt_version: 'weekly-v1')
+    expect(OpenAI::Client).to receive(:new).with(api_key: 'test-key-never-sent', timeout: 90, max_retries: 0).and_return(openai_sdk)
+    described_class.perform_now(legacy.id)
+    expect(legacy.reload).to be_completed
+    expect(responses_api).to have_received(:create) do |**request|
+      expect(request).to include(model: 'gpt-5-mini', max_output_tokens: 6000)
+      expect(request).not_to have_key(:reasoning)
+    end
+  end
+
+  it 'records token exhaustion precisely and still allows statistics-only delivery' do
+    response = api_response(nil, status: 'incomplete')
+    response.incomplete_details = { reason: 'max_output_tokens' }
+    allow(responses_api).to receive(:create).and_return(response)
+    described_class.perform_now(review.id)
+    expect(review.reload.error_message).to eq('response_output_limit')
+    expect(review.token_usage).to be_present
+    expect(review).to be_ready_to_send
+    DeliverWeeklySummaryJob.perform_now(review.id)
+    expect(ActionMailer::Base.deliveries.sole.text_part.body.decoded).to include('AI review was unavailable')
+  end
+
   it 'waits for persisted coaching and delivers both email parts once despite overlapping jobs' do
     allow(responses_api).to receive(:create) do |**request|
       expect(review.reload).to be_processing

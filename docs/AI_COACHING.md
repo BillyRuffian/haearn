@@ -13,10 +13,15 @@ Set `OPENAI_API_KEY` in the Rails **web and job worker** environment, or add an 
 | `OPENAI_WORKOUT_HISTORY_SESSIONS` | `6` | Prior sessions per exact exercise/machine, clamped to 1–8 |
 | `OPENAI_WORKOUT_MAX_OUTPUT_TOKENS` | `6000` | Output budget including reasoning, clamped to 1,000–16,000 |
 | `OPENAI_WORKOUT_PROMPT_VERSION` | `workout-v1` | Version defined in `Ai::Prompts`; retain old versions for queued jobs |
-| `OPENAI_WEEKLY_MODEL` | workout model | Model for weekly reviews |
+| `OPENAI_WEEKLY_MODEL` | `gpt-5.4-mini` | Independent model for weekly reviews |
+| `OPENAI_WEEKLY_REASONING_EFFORT` | `medium` | Explicit reasoning effort: low, medium or high |
+| `OPENAI_WEEKLY_MAX_OUTPUT_TOKENS` | `25000` | Reasoning plus output budget, clamped to 6,000–32,000 |
+| `OPENAI_WEEKLY_TIMEOUT` | `180` | API deadline in seconds, clamped to 30–300 |
 | `OPENAI_WEEKLY_PROMPT_VERSION` | `weekly-v1` | Weekly prompt version |
 
 All defaults live in `Ai::Config`. The model and prompt version are captured on each analysis record. An unknown prompt version fails the attempt safely. The request uses strict JSON-schema output, no tools, no conversation history, and `store: false`. API retention remains subject to the OpenAI account's policies. The API receives exercise/equipment names, limited workout/setup notes, set values, and local metrics; it receives no account email, user profile, photos, or full database export. The compact input snapshot is stored locally for reproducibility. Treat it as private workout data.
+
+Weekly reviews also snapshot reasoning effort, output budget and API timeout at creation. Existing reviews retain their original model and legacy 6,000-token/90-second settings; retries do not silently adopt new defaults. Daily workout coaching retains its separate settings. [GPT-5.4 mini](https://developers.openai.com/api/docs/models/gpt-5.4-mini) supports explicit medium reasoning and strict structured output. [Reasoning tokens share the output budget](https://developers.openai.com/api/docs/guides/reasoning), so weekly reports need space for both reasoning and feedback across all exercises. Token-limited incomplete responses record `response_output_limit` and still permit the statistics-only fallback.
 
 Without a key, attempts fail with `not_configured`; completing and editing workouts still works. Configure the key and use **Retry coaching** afterward. No real API requests are made by the automated tests.
 
@@ -64,6 +69,8 @@ The admin dashboard's **AI usage & estimated costs** section covers reviews requ
 
 `Ai::TokenPricing` contains standard USD rates verified on September 15, 2026 against [OpenAI's GPT-5 mini documentation](https://developers.openai.com/api/docs/models/gpt-5-mini): $0.25 per million uncached input tokens, $0.025 cached input, and $2.00 output, for `gpt-5-mini` and `gpt-5-mini-2025-08-07`. Cached tokens are subtracted from total input before applying the uncached rate. Reasoning tokens are already included in output and are never added again. Calculations retain decimal precision until display.
 
+The weekly `gpt-5.4-mini` model uses separately verified rates from [its official model page](https://developers.openai.com/api/docs/models/gpt-5.4-mini), checked September 23, 2026: $0.75 input, $0.075 cached input, and $4.50 output per million tokens. The admin report prices it independently of workout reviews.
+
 Missing/invalid usage and unknown model pricing are shown separately; they never silently count as zero spend. Genuine recorded zero usage remains zero. Totals cover only responses with known prices. Verify another model's official rate before adding its exact ID; do not infer pricing from a name prefix. Keep the verification date/source current when updating rates.
 
 These are estimates of saved responses at the listed rates, not historical invoices. The tables retain one usage snapshot per review, so interrupted requests without usage, superseded responses, or overwritten retry responses may have incurred additional charges. Deleted reviews no longer contribute. Taxes, credits, special service tiers and negotiated account pricing are excluded. Reconcile actual charges in the provider's billing dashboard; the application does not need an organization billing/admin key for this report.
@@ -108,6 +115,14 @@ The existing Sunday 06:00 schedule still selects the **previous completed Monday
 `RecoverWeeklyTrainingReviewsJob` runs every ten minutes. It repairs lost preparation/delivery enqueue steps and stale AI claims. Ownership tokens prevent superseded workers from publishing results. The database is never held locked while waiting for OpenAI or SMTP.
 
 **SMTP ambiguity:** if sending raises or a process disappears after claiming delivery, the record becomes `delivery_status: uncertain` and is not automatically resent. SMTP cannot guarantee exactly-once delivery when a server accepts a message before a connection fails. Inspect the provider's delivery logs using the stable Message-ID before deciding whether an uncertain message needs a resend. Record IDs/statuses and error classes are logged; secret credentials, input notes, and provider response bodies are not.
+
+Production SMTP defaults to a 10-second connection deadline and 30-second read deadline, configurable through `SMTP_OPEN_TIMEOUT` (5–60 seconds) and `SMTP_READ_TIMEOUT` (5–120 seconds). These allow slower mail-server responses without removing finite deadlines or retrying ambiguous sends.
+
+### September 20, 2026 delivery incident
+
+The Sunday scheduler ran at 06:00 UTC and created review 1 for the completed September 7–13 week (the existing Sunday schedule intentionally selects the previous completed week). The AI request used `gpt-5-mini`, 36,351 input tokens and all 6,000 allowed output tokens, including 4,032 reasoning tokens, then returned incomplete. The job correctly attempted a statistics-only fallback at 06:01:02 UTC; SMTP raised `Net::ReadTimeout` about five seconds later, leaving delivery uncertain. Older SMTP timeouts predate AI reviews, so AI failure alone did not explain the missing email.
+
+On September 23, read-only inspection confirmed the scheduler and workers were healthy and the user remained opted in. SMTP connection/authentication probes succeeded without submitting any email, and the production OpenAI account exposed `gpt-5.4-mini`. The code now gives new weekly reviews independent, larger reasoning/output/time budgets and increases SMTP deadlines. The original uncertain record remains unchanged; provider acceptance was not established and no resend was attempted. Provider-log lookup key: `weekly-review-1-2026-09-07@haearn.com`.
 
 For an authorized operational resend, first establish that the provider did not accept the email, then change that review's `delivery_status` to `pending` and enqueue `DeliverWeeklySummaryJob` with its ID. Preserve its completed response and saved statistics. Do not reset uncertain records in bulk. `sent` means the delivery adapter accepted the message, not that a recipient opened or received it.
 

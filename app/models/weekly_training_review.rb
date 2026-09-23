@@ -10,9 +10,12 @@
 #  delivery_status     :string           default("pending"), not null
 #  error_message       :string
 #  input_data          :json
+#  max_output_tokens   :integer          default(6000), not null
 #  model               :string           not null
 #  processing_token    :string
 #  prompt_version      :string           not null
+#  reasoning_effort    :string
+#  request_timeout     :integer          default(90), not null
 #  response_data       :json
 #  retry_at            :datetime
 #  sent_at             :datetime
@@ -56,6 +59,9 @@ class WeeklyTrainingReview < ApplicationRecord
     create_or_find_by!(user: user, week_start: start) do |review|
       review.model = Ai::Config.weekly_model
       review.prompt_version = Ai::Config.weekly_prompt_version
+      review.reasoning_effort = Ai::Config.weekly_reasoning_effort
+      review.max_output_tokens = Ai::Config.weekly_max_output_tokens
+      review.request_timeout = Ai::Config.weekly_timeout
     end
   end
 

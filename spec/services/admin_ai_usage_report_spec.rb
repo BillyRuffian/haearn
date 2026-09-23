@@ -39,6 +39,16 @@ RSpec.describe Admin::AiUsageReport do
     expect(result[:rows].find { |row| row[:model] == 'unverified-model' }[:input_tokens]).to eq(1_000_000)
   end
 
+  it 'prices weekly GPT-5.4 mini reviews with their verified rate rather than the workout rate' do
+    WeeklyTrainingReview.create!(user: users(:one), week_start: Date.new(2026, 8, 3), model: 'gpt-5.4-mini',
+      prompt_version: 'weekly-v1', status: 'completed', token_usage: usage, created_at: through)
+    result = described_class.new(through: through).call
+    # 600k uncached = $0.45, 400k cached = $0.03, 100k output = $0.45.
+    expect(result[:estimated_cost_usd]).to eq(BigDecimal('0.93'))
+    expect(result[:priced_reviews]).to eq(1)
+    expect(result[:unpriced_reviews]).to eq(0)
+  end
+
   it 'distinguishes genuine zero usage from unavailable usage and accepts absent cache details' do
     analysis(tokens: { input_tokens: 0, output_tokens: 0 })
     expect(described_class.new(through: through).call[:estimated_cost_usd]).to eq(0)
