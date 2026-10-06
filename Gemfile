@@ -34,7 +34,7 @@ gem 'json_schemer'
 gem 'pundit'
 
 # Use rdoc version bundled with Ruby 4.0.1 to avoid conflicts
-gem 'rdoc', '~> 8.0.0'
+gem 'rdoc', '~> 8.1.0'
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: %i[ windows jruby ]
