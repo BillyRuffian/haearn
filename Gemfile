@@ -1,9 +1,9 @@
 source 'https://rubygems.org'
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"
-gem 'rails', '~> 8.1.2'
-# Rails 8.1.3.1 passes JSON parser options positionally; json 3 requires keywords.
-gem 'json', '< 3.0'
+gem 'rails', '~> 8.1.4'
+# Rails 8.1.4 forwards parser options as keywords, supporting JSON 3 on Ruby 4.
+gem 'json', '~> 3.1'
 # The modern asset pipeline for Rails [https://github.com/rails/propshaft]
 gem 'propshaft'
 # Use sqlite3 as the database for Active Record
@@ -33,8 +33,8 @@ gem 'json_schemer'
 # Authorization
 gem 'pundit'
 
-# Use rdoc version bundled with Ruby 4.0.1 to avoid conflicts
-gem 'rdoc', '~> 8.0.0'
+# Resolve RDoc through Bundler before loading Ruby's documentation tooling.
+gem 'rdoc', '~> 8.1'
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem 'tzinfo-data', platforms: %i[ windows jruby ]
@@ -65,7 +65,7 @@ group :development, :test do
   gem 'bundler-audit', require: false
 
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
-  gem 'brakeman', require: false
+  gem 'brakeman', '>= 8.1.0', require: false
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem 'rubocop-rails-omakase', require: false

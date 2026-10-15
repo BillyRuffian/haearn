@@ -81,6 +81,8 @@ class Exercise < ApplicationRecord
     'full_body' => '#43464b'   # Dark steel
   }.freeze
 
+  normalizes :strength_lift_key, with: ->(value) { value.presence }
+
   validates :name, presence: true
   validates :exercise_type, presence: true, inclusion: { in: EXERCISE_TYPES }
   validates :primary_muscle_group, presence: true, inclusion: { in: MUSCLE_GROUPS }

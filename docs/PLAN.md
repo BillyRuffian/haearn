@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: September 23, 2026
+> Last Updated: October 15, 2026
 
 ## Overview
 
@@ -11,6 +11,13 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
+- [ ] Commit, push and deploy the exercise-classification fix and dependency refresh; verify live health, runtime versions and blank lift validation
+- [x] Refresh Ruby dependencies to current compatible releases, including Rails 8.1.4, Brakeman 8.1.0, JSON 3.1.0, RDoc 8.1.0, SQLite 2.10.0 and OpenAI 0.103.0; retire the JSON < 3 workaround after verifying Rails' keyword-parser fix and JSON/signed-payload regressions
+- [x] Verify the updated bundle: RSpec 266 examples, zero failures (40 guarded browser skips); Minitest 296 tests/735 assertions, zero failures/errors; RuboCop 302 files clean; Brakeman 8.1.0 zero warnings/errors; gem/importmap audits clean; production-mode boot and JSON keyword decoding pass; RDoc/IRB load together
+- [x] Confirm every direct Gemfile dependency is current and `bundle outdated --strict` is clean; newer indirect majors remain incompatible with parent constraints (`diff-lcs` via RSpec, `hkdf`/`jwt` via webpush, `marcel` via Active Storage)
+- [x] Verify the updated Selenium driver with focused desktop/mobile notification browser checks (2 examples, zero failures); verification logs are in `tmp/dependency-*.log`.
+- [x] Fix exercise creation and classification clearing when “Not a major lift” submits a blank value by normalizing it to nil at the model boundary
+- [x] Verify HTML, Turbo and admin exercise creation, classification clearing, valid lift selection and invalid lift rejection (new regressions reproduced four failures before the fix; targeted request/core/strength-analytics suite: 20 examples, zero failures; RuboCop: 302 files clean)
 - [x] Diagnose September 20 weekly email failure: AI exhausted its 6,000-token output budget, then statistics-only delivery timed out on SMTP and remained uncertain
 - [x] Give weekly AI reviews GPT-5.4 mini, explicit medium reasoning, and independent 25,000-token/180-second budgets while preserving saved request settings across retries; verify production account model access
 - [x] Increase SMTP connection/read timeouts and retain safe handling of ambiguous sends; verify weekly generation, fallback, and delivery regressions (258 RSpec examples, 0 failures, 40 guarded browser skips; 296 Minitest tests, 0 failures; RuboCop: 301 files clean; production-mode SMTP settings verified)
