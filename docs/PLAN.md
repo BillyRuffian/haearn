@@ -11,7 +11,9 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 ## Engineering Improvements
 
 ### Current Refactor Track
-- [ ] Commit, push and deploy the exercise-classification fix and dependency refresh; verify live health, runtime versions and blank lift validation
+- [x] Commit, push and deploy the exercise-classification fix and dependency refresh as `683e2ae0ceebb4f4f9bcd6c4ef2860f34a4ad5b2` via Kamal on October 15, 2026; live `/up` and sign-in return 200, HTTP redirects to HTTPS, and anonymous home redirects to sign-in
+- [x] Verify the live Rails 8.1.4 / JSON 3.1.0 / SQLite 2.10.0 runtime, JSON keyword decoding, blank/valid/invalid lift classifications and clearing a classification without saving test records; Solid Queue supervisor, dispatcher, worker and scheduler have current heartbeats
+- Deployment handoff: live release is `683e2ae0ceebb4f4f9bcd6c4ef2860f34a4ad5b2`; previous healthy release is `94536a1782afc0826f000930f5ef002e8d36fb05` (`bin/kamal rollback 94536a1782afc0826f000930f5ef002e8d36fb05` if required). No schema changes. The documentation-only follow-up commit does not need deployment. Hosted CI status could not be checked because `gh` returned HTTP 401 (invalid credentials); local verification below passed.
 - [x] Refresh Ruby dependencies to current compatible releases, including Rails 8.1.4, Brakeman 8.1.0, JSON 3.1.0, RDoc 8.1.0, SQLite 2.10.0 and OpenAI 0.103.0; retire the JSON < 3 workaround after verifying Rails' keyword-parser fix and JSON/signed-payload regressions
 - [x] Verify the updated bundle: RSpec 266 examples, zero failures (40 guarded browser skips); Minitest 296 tests/735 assertions, zero failures/errors; RuboCop 302 files clean; Brakeman 8.1.0 zero warnings/errors; gem/importmap audits clean; production-mode boot and JSON keyword decoding pass; RDoc/IRB load together
 - [x] Confirm every direct Gemfile dependency is current and `bundle outdated --strict` is clean; newer indirect majors remain incompatible with parent constraints (`diff-lcs` via RSpec, `hkdf`/`jwt` via webpush, `marcel` via Active Storage)
