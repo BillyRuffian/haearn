@@ -105,6 +105,8 @@ User
 
 ### Key Design Decisions
 
+- **Registration Control**: Store the site-wide registration flag in the singleton `SiteSetting` database record, defaulting to enabled. Admin changes require authorization and an audit log. Check the current setting on both sign-up display and submission; closed registrations hide the form and reject account creation while existing users can still sign in.
+
 1. **Weight Normalization**: All weights stored in kg internally. Convert to/from user's preferred unit on display/input.
 
 2. **Blocks for Everything**: Even single exercises are a block with one exercise. This unifies the model for normal sets, supersets, and circuits.

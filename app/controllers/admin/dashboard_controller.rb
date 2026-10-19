@@ -4,6 +4,7 @@ module Admin
       authorize :admin_dashboard, :index?
       skip_policy_scope
 
+      @site_setting = SiteSetting.current
       @total_users = User.count
       @active_users_7d = User.where('updated_at > ?', 7.days.ago).count
       @active_users_30d = User.where('updated_at > ?', 30.days.ago).count
@@ -17,6 +18,26 @@ module Admin
       @popular_exercises = popular_exercises_data
       @system_info = system_info_data
       @ai_usage = AiUsageReport.new.call
+    end
+
+    def update_registration
+      authorize :admin_dashboard, :update_registration?
+      enabled = params.require(:site_setting).require(:registrations_enabled)
+      raise ActionController::BadRequest unless %w[0 1].include?(enabled)
+
+      setting = SiteSetting.current
+      setting.with_lock do
+        previous = setting.registrations_enabled?
+        setting.update!(registrations_enabled: enabled)
+        if previous != setting.registrations_enabled?
+          log_admin_action(
+            action: 'update_registration_settings', resource: setting,
+            metadata: { registrations_enabled: setting.registrations_enabled?, previous_registrations_enabled: previous }
+          )
+        end
+      end
+
+      redirect_to admin_root_path, notice: "New user registrations are #{setting.registrations_enabled? ? 'enabled' : 'disabled'}.", status: :see_other
     end
 
     private

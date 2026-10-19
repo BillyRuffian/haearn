@@ -231,6 +231,7 @@ Rails.application.routes.draw do
   # Admin Panel
   namespace :admin do
     root 'dashboard#index'
+    patch 'registration', to: 'dashboard#update_registration', as: :registration
     resources :users, only: [ :index, :show, :edit, :update ] do
       member do
         patch :toggle_admin

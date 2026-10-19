@@ -2,6 +2,7 @@
 # Creates user account and auto-logs them in
 class RegistrationsController < ApplicationController
   allow_unauthenticated_access only: %i[new create]
+  before_action :load_registration_status
 
   # GET /registration/new
   # Shows signup form
@@ -12,6 +13,8 @@ class RegistrationsController < ApplicationController
   # POST /registration
   # Creates new user account and starts session
   def create
+    return render :new, status: :forbidden unless @registrations_enabled
+
     @user = User.new(user_params)
 
     if @user.save
@@ -23,6 +26,11 @@ class RegistrationsController < ApplicationController
   end
 
   private
+
+  def load_registration_status
+    response.headers['Cache-Control'] = 'no-store'
+    @registrations_enabled = SiteSetting.current.registrations_enabled?
+  end
 
   def user_params
     params.require(:user).permit(:email_address, :password, :password_confirmation, :name, :preferred_unit)

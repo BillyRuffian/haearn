@@ -4,6 +4,23 @@
   <i class="bi bi-speedometer2 me-2 text-rust"></i>Dashboard
 </h1>
 
+<div class="card mb-4">
+  <div class="card-body">
+    <h2 class="h5">New user registrations</h2>
+    <p id="registration-setting-help" class="text-muted">
+      Turn off registrations to pause new account creation. Existing users can still sign in.
+    </p>
+    <p>Registrations are currently <strong><%= @site_setting.registrations_enabled? ? 'enabled' : 'disabled' %></strong>.</p>
+    <%= form_with model: @site_setting, url: admin_registration_path, method: :patch do |form| %>
+      <div class="form-check form-switch mb-3">
+        <%= form.check_box :registrations_enabled, class: 'form-check-input', role: 'switch', aria: { describedby: 'registration-setting-help' } %>
+        <%= form.label :registrations_enabled, 'Allow new user registrations', class: 'form-check-label' %>
+      </div>
+      <%= form.submit 'Save registration settings', class: 'btn btn-primary' %>
+    <% end %>
+  </div>
+</div>
+
 <!-- Stat Cards -->
 <div class="row g-3 mb-4">
   <div class="col-6 col-md-3">

@@ -1,6 +1,6 @@
 # Haearn Implementation Plan
 
-> Last Updated: October 15, 2026
+> Last Updated: October 19, 2026
 
 ## Overview
 
@@ -113,6 +113,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
   - `preferred_unit` (string, default: 'kg')
   - `name` (string)
 - [x] Create registration flow
+- [ ] Add human verification to sign-up; proposed approach is Cloudflare Turnstile Managed with Stimulus rendering and server-side verification, pending user confirmation before implementation
 - [x] Style login/register pages (dark theme)
 - [x] Add current user helper methods
 
@@ -841,6 +842,7 @@ $text-muted: #6c757d;
 - [x] Audit log for admin actions (who did what, when)
 
 ### 12.7 Admin Access Control
+- [x] Add a persistent, audited registration switch on the admin dashboard; enforce closed registrations on sign-up submissions and show a clear closed message with a sign-in link
 - [x] `before_action` guard in `Admin::BaseController` requiring admin role
 - [x] Redirect non-admins with flash message
 - [ ] Rate-limit admin actions (optional)
