@@ -25,6 +25,6 @@ RSpec.describe 'Admin registration switch', type: :system do
     expect(page).to have_checked_field('Allow new user registrations')
 
     visit new_registration_path
-    expect(page).to have_button('Create Account')
+    expect(page).to have_button('Create Account', disabled: true)
   end
 end

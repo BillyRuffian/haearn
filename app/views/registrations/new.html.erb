@@ -10,7 +10,10 @@
         </div>
         <div class="card-body p-4">
           <% if @registrations_enabled %>
-            <%= form_with model: @user, url: registration_path, class: "needs-validation" do |form| %>
+            <%= form_with model: @user, url: registration_path, class: "needs-validation",
+                  data: { controller: (@turnstile_ready ? 'turnstile' : nil),
+                          turnstile_site_key_value: (@turnstile_ready ? TurnstileConfig.site_key : nil),
+                          action: 'turbo:submit-end->turnstile#reset turbo:before-cache@document->turnstile#teardown' } do |form| %>
               <% if @user.errors.any? %>
                 <div class="alert alert-danger">
                   <ul class="mb-0">
@@ -48,7 +51,15 @@
               </div>
 
               <div class="d-grid gap-2">
-                <%= form.submit "Create Account", class: "btn btn-primary btn-lg" %>
+                <% if @turnstile_ready %>
+                  <div data-turnstile-target="widget"></div>
+                  <p class="small text-muted mb-0" role="status" aria-live="polite" data-turnstile-target="status">Loading human verification…</p>
+                  <button type="button" class="btn btn-outline-secondary" data-turnstile-target="retry" data-action="turnstile#retry" hidden>Retry verification</button>
+                  <noscript><p class="alert alert-info">Please enable JavaScript to complete human verification and create an account.</p></noscript>
+                <% else %>
+                  <p class="alert alert-info mb-0" role="status">Human verification is temporarily unavailable. Please try again later.</p>
+                <% end %>
+                <%= form.submit "Create Account", class: "btn btn-primary btn-lg", disabled: true, data: { turnstile_target: 'submit' } %>
               </div>
             <% end %>
           <% else %>

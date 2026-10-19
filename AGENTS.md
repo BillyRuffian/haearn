@@ -106,6 +106,7 @@ User
 ### Key Design Decisions
 
 - **Registration Control**: Store the site-wide registration flag in the singleton `SiteSetting` database record, defaulting to enabled. Admin changes require authorization and an audit log. Check the current setting on both sign-up display and submission; closed registrations hide the form and reject account creation while existing users can still sign in.
+- **Sign-up Human Verification**: Use the existing Cloudflare Turnstile widget through Stimulus and gate registration in Rails on Siteverify boolean success, action `signup`, and an explicit deployment hostname allowlist. Read the private secret from `TURNSTILE_SECRET` or `turnstile.secret` in Rails credentials. Fail closed on missing configuration and outages; reset single-use tokens after submissions and Turbo navigation. Never log tokens or store the secret in tracked files. See `docs/TURNSTILE.md`.
 
 1. **Weight Normalization**: All weights stored in kg internally. Convert to/from user's preferred unit on display/input.
 

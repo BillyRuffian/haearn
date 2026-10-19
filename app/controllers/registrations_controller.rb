@@ -17,6 +17,17 @@ class RegistrationsController < ApplicationController
 
     @user = User.new(user_params)
 
+    verification = TurnstileVerifier.call(token: params['cf-turnstile-response'], remote_ip: request.remote_ip)
+    unless verification == :verified
+      message = if verification == :unavailable
+        'Human verification is temporarily unavailable. Please try again later.'
+      else
+        'Please complete the human verification again, then submit your sign-up.'
+      end
+      @user.errors.add(:base, message)
+      return render :new, status: :forbidden
+    end
+
     if @user.save
       start_new_session_for @user
       redirect_to root_path, notice: "Welcome to Haearn! Let's get lifting."
@@ -30,6 +41,7 @@ class RegistrationsController < ApplicationController
   def load_registration_status
     response.headers['Cache-Control'] = 'no-store'
     @registrations_enabled = SiteSetting.current.registrations_enabled?
+    @turnstile_ready = TurnstileConfig.configured? if @registrations_enabled
   end
 
   def user_params
