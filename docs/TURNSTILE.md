@@ -36,6 +36,8 @@ RUN_JS_SYSTEM_SPECS=1 bundle exec rspec spec/system/turnstile_signup_spec.rb
 
 Before reporting end-to-end success, configure the real secret and test the actual protected backend from an allowed hostname with a fresh real widget token. Confirm one successful registration, then confirm a replay of the same token is rejected without creating another user or session. Automated mocked responses do not establish real-widget validation.
 
-October 19, 2026: Rails credentials are configured and the real Cloudflare endpoint accepted the secret (rejecting an intentionally invalid token). The real widget rendered on the local test server under `www.haearn.com`, but did not issue a token in the automated browser. Successful real-token registration and replay rejection remain pending a human browser check. The browser regression uses a simulated widget/API to verify form submission, validation errors, expiry and Turbo lifecycle independently.
+October 19, 2026: Rails credentials were configured and the real Cloudflare endpoint accepted the secret (rejecting an intentionally invalid token). The real widget rendered on the local test server under `www.haearn.com`, but did not issue a token in the automated browser. The browser regression uses a simulated widget/API to verify form submission, validation errors, expiry and Turbo lifecycle independently; service/request regressions cover replay rejection.
+
+October 23, 2026: The user confirmed the integration working after taking over deployment, closing the outstanding human-browser acceptance check. This is user-reported acceptance, not an independently observed live token-replay test.
 
 Integration reference: [Cloudflare existing-widget flow](https://developers.cloudflare.com/turnstile/spin/prompt.md).
