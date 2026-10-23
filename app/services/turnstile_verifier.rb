@@ -2,13 +2,12 @@ require 'net/http'
 
 class TurnstileVerifier
   ENDPOINT = URI('https://challenges.cloudflare.com/turnstile/v0/siteverify')
-  ACTION = 'signup'.freeze
 
-  def self.call(token:, remote_ip:)
-    new.call(token: token, remote_ip: remote_ip)
+  def self.call(token:, remote_ip:, expected_action:)
+    new.call(token: token, remote_ip: remote_ip, expected_action: expected_action)
   end
 
-  def call(token:, remote_ip:)
+  def call(token:, remote_ip:, expected_action:)
     return :unavailable unless TurnstileConfig.configured?
     return :invalid unless token.is_a?(String) && token.present? && token.length <= 2048
 
@@ -28,7 +27,7 @@ class TurnstileVerifier
     return :unavailable unless result.is_a?(Hash)
     return :unavailable if (Array(result['error-codes']) & %w[missing-input-secret invalid-input-secret internal-error]).any?
 
-    if result['success'] == true && result['action'] == ACTION && TurnstileConfig.hostnames.include?(result['hostname'])
+    if result['success'] == true && result['action'] == expected_action && TurnstileConfig.hostnames.include?(result['hostname'])
       :verified
     else
       :invalid

@@ -3,8 +3,11 @@
 # 2. User clicks link in email (token validates)
 # 3. User sets new password
 class PasswordsController < ApplicationController
+  include HumanVerification
+
   allow_unauthenticated_access
   before_action :set_user_by_token, only: %i[ edit update ]
+  before_action :prepare_human_verification
   rate_limit to: 10, within: 3.minutes, only: :create, with: -> { redirect_to new_password_path, alert: 'Try again later.' }
 
   # GET /passwords/new
@@ -15,6 +18,8 @@ class PasswordsController < ApplicationController
   # POST /passwords
   # Sends password reset email (always shows success to prevent email enumeration)
   def create
+    return unless verify_human(action: 'password_reset_request', template: :new)
+
     if user = User.find_by(email_address: params[:email_address])
       PasswordsMailer.reset(user).deliver_later
     end
@@ -30,6 +35,8 @@ class PasswordsController < ApplicationController
   # PATCH /passwords/:token
   # Updates password and invalidates all existing sessions for security
   def update
+    return unless verify_human(action: 'password_reset', template: :edit)
+
     if @user.update(params.permit(:password, :password_confirmation))
       @user.sessions.destroy_all
       redirect_to new_session_path, notice: 'Password has been reset.'

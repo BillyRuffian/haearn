@@ -3,7 +3,7 @@ const assert = require('node:assert/strict')
 const { readFileSync } = require('node:fs')
 const vm = require('node:vm')
 
-function harness({ loaded = true } = {}) {
+function harness({ loaded = true, action = 'signup' } = {}) {
   const calls = { renders: [], resets: [], removes: [], scripts: [] }
   const turnstile = {
     render: (element, options) => { calls.renders.push(options); return 0 },
@@ -23,6 +23,7 @@ function harness({ loaded = true } = {}) {
   vm.runInContext(source, context)
   const controller = new context.TurnstileController()
   controller.siteKeyValue = 'public-key'
+  controller.actionValue = action
   controller.widgetTarget = { replaceChildren() {} }
   controller.statusTarget = { textContent: '' }
   controller.submitTarget = { disabled: false }
@@ -105,3 +106,12 @@ test('navigation away during script loading does not render a detached widget', 
   await h.flush()
   assert.equal(h.calls.renders.length, 0)
 })
+
+for (const action of ['signup', 'login', 'password_reset_request', 'password_reset']) {
+  test(`renders the configured ${action} action`, async () => {
+    const h = harness({ action })
+    h.controller.connect()
+    await h.flush()
+    assert.equal(h.calls.renders[0].action, action)
+  })
+}

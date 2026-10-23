@@ -15,7 +15,7 @@ RSpec.describe TurnstileVerifier do
   end
 
   def verify(token = 'fresh-token')
-    described_class.call(token: token, remote_ip: '192.0.2.1')
+    described_class.call(token: token, remote_ip: '192.0.2.1', expected_action: 'signup')
   end
 
   it 'verifies via HTTPS with the secret, token, client IP and bounded timeouts' do

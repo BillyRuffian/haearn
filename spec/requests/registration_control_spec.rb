@@ -69,7 +69,10 @@ RSpec.describe 'Registration control', type: :request do
 
   it 'allows existing users to sign in while registrations are closed' do
     SiteSetting.current.update!(registrations_enabled: false)
-    expect { sign_in_as(users(:one)) }.to change(Session, :count).by(1)
+    allow(verification_response).to receive(:body).and_return({ success: true, action: 'login', hostname: 'signup.example.com' }.to_json)
+    expect do
+      post session_path, params: { email_address: users(:one).email_address, password: 'password', 'cf-turnstile-response' => 'fresh-token' }
+    end.to change(Session, :count).by(1)
     expect(response).to redirect_to(root_url)
   end
 

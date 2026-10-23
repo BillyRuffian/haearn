@@ -1,6 +1,9 @@
 require 'test_helper'
+require_relative '../test_helpers/human_verification_test_helper'
 
 class PasswordsControllerTest < ActionDispatch::IntegrationTest
+  include HumanVerificationTestHelper
+
   setup { @user = User.take }
 
   test 'new' do
@@ -9,7 +12,9 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'create' do
-    post passwords_path, params: { email_address: @user.email_address }
+    with_verified_human do
+      post passwords_path, params: { email_address: @user.email_address }
+    end
     assert_enqueued_email_with PasswordsMailer, :reset, args: [ @user ]
     assert_redirected_to new_session_path
 
@@ -18,7 +23,9 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'create for an unknown user redirects but sends no mail' do
-    post passwords_path, params: { email_address: 'missing-user@example.com' }
+    with_verified_human do
+      post passwords_path, params: { email_address: 'missing-user@example.com' }
+    end
     assert_enqueued_emails 0
     assert_redirected_to new_session_path
 
@@ -41,7 +48,9 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
 
   test 'update' do
     assert_changes -> { @user.reload.password_digest } do
-      put password_path(@user.password_reset_token), params: { password: 'new', password_confirmation: 'new' }
+      with_verified_human do
+        put password_path(@user.password_reset_token), params: { password: 'new', password_confirmation: 'new' }
+      end
       assert_redirected_to new_session_path
     end
 
@@ -52,7 +61,9 @@ class PasswordsControllerTest < ActionDispatch::IntegrationTest
   test 'update with non matching passwords' do
     token = @user.password_reset_token
     assert_no_changes -> { @user.reload.password_digest } do
-      put password_path(token), params: { password: 'no', password_confirmation: 'match' }
+      with_verified_human do
+        put password_path(token), params: { password: 'no', password_confirmation: 'match' }
+      end
       assert_redirected_to edit_password_path(token)
     end
 

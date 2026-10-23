@@ -30,7 +30,7 @@ function loadTurnstile() {
 
 export default class extends Controller {
   static targets = ["widget", "status", "submit", "retry"]
-  static values = { siteKey: String }
+  static values = { siteKey: String, action: String }
 
   connect() {
     this.active = true
@@ -49,7 +49,7 @@ export default class extends Controller {
       this.pending("Please complete human verification.")
       this.widgetId = turnstile.render(this.widgetTarget, {
         sitekey: this.siteKeyValue,
-        action: "signup",
+        action: this.actionValue,
         theme: "dark",
         size: "flexible",
         callback: () => {

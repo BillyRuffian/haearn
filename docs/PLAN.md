@@ -116,6 +116,7 @@ This document outlines the phased implementation of Haearn, a hardcore weightlif
 - [x] Integrate the approved existing Cloudflare Turnstile widget into sign-up with Stimulus, strict server verification, explicit hostnames, expiry/retry handling and closed-registration precedence
 - [x] Configure `turnstile.secret` through Rails credentials and confirm Cloudflare accepts the secret using an invalid-token probe without exposing the secret
 - [x] Complete sign-up human-verification acceptance _(User confirmed the integration working on October 23, 2026 after taking over deployment. Automated regressions cover token replay rejection; the user's confirmation closes the outstanding human-browser acceptance check.)_
+- [x] Extend the existing Turnstile widget to login, reset-email requests and password changes with separate server-checked actions, shared UI, and failure/retry handling
 - [x] Style login/register pages (dark theme)
 - [x] Add current user helper methods
 

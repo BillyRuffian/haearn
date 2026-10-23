@@ -13,7 +13,9 @@ RSpec.describe 'Sign-up human verification', type: :system, js: true do
   end
 
   it 'requires verification again after validation errors and supports Turbo navigation' do
+    allow(TurnstileConfig).to receive(:secret).and_return(nil)
     visit new_session_path
+    allow(TurnstileConfig).to receive(:secret).and_return('private-test-secret')
     page.execute_script(<<~JS)
       window.testWidgets = [];
       window.turnstile = {

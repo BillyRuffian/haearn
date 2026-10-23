@@ -2,10 +2,10 @@ require 'rails_helper'
 
 RSpec.describe 'Admin registration switch', type: :system do
   it 'saves the switch in both directions and updates the sign-up screen' do
-    visit new_session_path
-    fill_in 'Email', with: users(:admin).email_address
-    fill_in 'Password', with: 'password'
-    click_button 'Sign In'
+    session = users(:admin).sessions.create!
+    jar = ActionDispatch::TestRequest.create.cookie_jar
+    jar.signed[:session_id] = session.id
+    page.driver.browser.set_cookie("session_id=#{jar[:session_id]}")
 
     visit admin_root_path
     expect(page).to have_checked_field('Allow new user registrations')

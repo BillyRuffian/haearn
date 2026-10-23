@@ -17,7 +17,7 @@ class RegistrationsController < ApplicationController
 
     @user = User.new(user_params)
 
-    verification = TurnstileVerifier.call(token: params['cf-turnstile-response'], remote_ip: request.remote_ip)
+    verification = TurnstileVerifier.call(token: params['cf-turnstile-response'], remote_ip: request.remote_ip, expected_action: 'signup')
     unless verification == :verified
       message = if verification == :unavailable
         'Human verification is temporarily unavailable. Please try again later.'
